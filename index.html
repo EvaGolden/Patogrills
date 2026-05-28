@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <title>Patogrills | Fire & Flavor – Abraka, Delta State</title>
-   <link rel="icon" type="image/png" href="logo.png">
+  <link rel="icon" type="image/png" href="logo.png">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
@@ -105,7 +105,7 @@
     /* ══════════ TOP BAR – GLASS EFFECT (more transparent) ══════════ */
     .top-bar {
       position:sticky; top:0; z-index:900;
-      background: rgba(255, 250, 246, 0.7);  /* increased transparency */
+      background: rgba(255, 250, 246, 0.7);
       backdrop-filter: blur(24px);
       -webkit-backdrop-filter: blur(24px);
       border-bottom: 1px solid rgba(242, 98, 46, 0.2);
@@ -252,7 +252,7 @@
     .order-btn:hover { background: var(--fire-deep); transform: scale(0.96); }
     .order-btn:active { transform: scale(0.94); }
 
-    /* GOOGLE REVIEWS WIDGET – proper format with time/price/ratings */
+    /* GOOGLE REVIEWS WIDGET */
     .g-review-wrap {
       background: white;
       border-radius: 28px;
@@ -344,6 +344,68 @@
     .g-review-btn:hover { background: #0d5bbb; transform: scale(0.98); }
     .g-review-btn i { font-size: 1.1rem; }
 
+    /* MAP & DIRECTIONS CARD (NEW) */
+    .map-card {
+      background: white;
+      border-radius: 28px;
+      margin: 20px 0 24px;
+      padding: 22px 20px;
+      box-shadow: 0 12px 28px -8px rgba(0,0,0,0.08);
+      border: 1px solid var(--border);
+      transition: all 0.2s;
+    }
+    .map-container {
+      border-radius: 24px;
+      overflow: hidden;
+      box-shadow: 0 6px 14px rgba(0,0,0,0.1);
+      margin-bottom: 20px;
+    }
+    .map-container iframe {
+      width: 100%;
+      height: 240px;
+      border: 0;
+      display: block;
+    }
+    .directions-buttons {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      justify-content: center;
+      margin-top: 8px;
+    }
+    .dir-btn {
+      flex: 1;
+      min-width: 160px;
+      background: var(--fire);
+      border-radius: 60px;
+      padding: 12px 18px;
+      font-weight: 700;
+      font-size: 0.9rem;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      transition: all 0.2s ease;
+      text-decoration: none;
+      color: white;
+      font-family: var(--DF);
+    }
+    .dir-btn i { font-size: 1.1rem; }
+    .dir-btn.google-orange { background: #ea4335; }
+    .dir-btn.google-blue { background: #1a73e8; }
+    .dir-btn:hover { transform: translateY(-2px); filter: brightness(1.05); }
+    .store-address {
+      text-align: center;
+      font-size: 0.8rem;
+      margin-top: 16px;
+      color: var(--text-muted);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      flex-wrap: wrap;
+    }
+
     /* cart & order styles (unchanged) */
     .cart-empty { text-align:center; padding:60px 20px; color:var(--text-muted); }
     .cart-empty i { font-size:3rem; color:#f5cfc0; margin-bottom:12px; display:block; }
@@ -423,39 +485,41 @@
   <div class="cat-scroll"><div class="cat-pill active" data-cat="ALL">ALL ITEMS</div><div class="cat-pill" data-cat="MAINS">🍝 MAINS</div><div class="cat-pill" data-cat="PROTEINS">🍗 PROTEINS</div><div class="cat-pill" data-cat="EXTRAS">🥗 EXTRAS</div></div>
   <div id="menuContent"></div>
 
-  <!-- GOOGLE REVIEWS WIDGET – final format with local names, time/price, ratings -->
+  <!-- GOOGLE REVIEWS WIDGET -->
   <div class="g-review-wrap">
     <div class="g-review-header"><i class="fab fa-google"></i> Google Reviews</div>
     <div class="rating-score"><div class="rating-stars"><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star-half-alt"></i></div><span style="font-weight:800;">4.9 ★</span><span class="g-badge">10+ reviews</span></div>
-
-    <div class="review-card">
-      <div class="reviewer"><i class="fas fa-user-circle"></i> <strong>Iwelumo Rita.</strong> <span style="font-size:0.7rem; color:#aaa; margin-left:6px;">a year ago</span></div>
-      <div class="time-price">Takeaway  |  Dinner  |  ₦4,000–6,000</div>
-      <div class="rev-stars">★★★★★</div>
-      <div class="rev-text">“The very best grill spot in Delta state. I can recommend 100%”</div>
-      <div class="rating-detail">Food: 5/5  |  Service: 5/5  |  Atmosphere: 5/5</div>
-    </div>
-
-    <div class="review-card">
-      <div class="reviewer"><i class="fas fa-user-circle"></i> <strong>Chibuzor Olamilekan.</strong> <span style="font-size:0.7rem; color:#aaa; margin-left:6px;">8 months ago</span></div>
-      <div class="time-price">Delivery  |  Lunch  |  ₦3,000–5,000</div>
-      <div class="rev-stars">★★★★★</div>
-      <div class="rev-text">“It’s the best stir-fry pasta on that side of town”</div>
-      <div class="rating-detail">Food: 5/5  |  Service: 5/5  |  Atmosphere: 5/5</div>
-    </div>
-
-    <div class="review-card">
-      <div class="reviewer"><i class="fas fa-user-circle"></i> <strong>Idosi Talent.</strong> <span style="font-size:0.7rem; color:#aaa; margin-left:6px;">2 weeks ago</span></div>
-      <div class="time-price">Takeaway  |  Dinner  |  ₦4,000–6,000</div>
-      <div class="rev-stars">★★★★★</div>
-      <div class="rev-text">“The boy de try 😊😊
-
-Plus na my destiny helper”</div>
-      <div class="rating-detail">Food: 5/5  |  Service: 5/5  |  Atmosphere: 5/5</div>
-    </div>
-
+    <div class="review-card"><div class="reviewer"><i class="fas fa-user-circle"></i> <strong>Iwelumo Rita.</strong> <span style="font-size:0.7rem; color:#aaa; margin-left:6px;">a year ago</span></div><div class="time-price">Takeaway  |  Dinner  |  ₦4,000–6,000</div><div class="rev-stars">★★★★★</div><div class="rev-text">“The very best grill spot in Delta state. I can recommend 100%”</div><div class="rating-detail">Food: 5/5  |  Service: 5/5  |  Atmosphere: 5/5</div></div>
+    <div class="review-card"><div class="reviewer"><i class="fas fa-user-circle"></i> <strong>Chibuzor Olamilekan.</strong> <span style="font-size:0.7rem; color:#aaa; margin-left:6px;">8 months ago</span></div><div class="time-price">Delivery  |  Lunch  |  ₦3,000–5,000</div><div class="rev-stars">★★★★★</div><div class="rev-text">“It’s the best stir-fry pasta on that side of town”</div><div class="rating-detail">Food: 5/5  |  Service: 5/5  |  Atmosphere: 5/5</div></div>
+    <div class="review-card"><div class="reviewer"><i class="fas fa-user-circle"></i> <strong>Idosi Talent.</strong> <span style="font-size:0.7rem; color:#aaa; margin-left:6px;">2 weeks ago</span></div><div class="time-price">Takeaway  |  Dinner  |  ₦4,000–6,000</div><div class="rev-stars">★★★★★</div><div class="rev-text">“The boy de try 😊😊<br>Plus na my destiny helper”</div><div class="rating-detail">Food: 5/5  |  Service: 5/5  |  Atmosphere: 5/5</div></div>
     <a class="g-review-btn" href="https://www.google.com/search?client=ms-android-xiaomi-terr1-rso2&hs=nqqp&sca_esv=39e7e74914a90773&sxsrf=ANbL-n4KG161SznHY9JQX9jtsDL44Kg4Vg:1778238525882&q=patogrills+reviews&uds=ALYpb_kGrzrO92vWfVUObUyhGdu-ZnUQYDQj4x15clcHZUdUhzieyk0sSJt8GtlvfaOGXC5Cd8heCAGM7hMfh6k9yS_G78b_KvfLxjURe7xsSzfUkD6vCEPhA3toCnkqlCZrqnPw8f5cfcA-dsVBJJNkUuI-tZGwtdG3BMxticWOlK3B7AhU7pSrOVo5hq2lnSLaXdr-4G9Pyrp9e2tHntTbrdg32KCcADwN-F37uuNezAofwFxEfxiJ-2QqnjuWUcM67Ex2FagWYTkogxbbaf0wwire_LwmseYtKCiWhp7_w4Upfj3omGyFh8wCh6NFoxLRHtAv5Vio9jI2c975stCPcLDu4IQVGZjZlf97el2K05liUyU7SrVr-ql7cQSrb2k49L5v5gBWsIA9ftLc-CVaYwv5VqcjjKu4jMVKSpJgo8xJLfqg8RDXifboi8W3Y79Lpi8722TPgcWFHHfb3RJWeJ1nO2wesZE9ck3f846YdRZy4TGAWbA&si=AL3DRZEsmMGCryMMFSHJ3StBhOdZ2-6yYkXd_doETEE1OR-qOTnrX26u2nPaXJMIdN1654OVA0X12ckxX_FE56QDYRuk7vtGaEYzEwmGvPhfyGmrHZr3PH3mDyaONS8ex_5PP--9X60Q&sa=X&ved=2ahUKEwiwxqTdxqmUAxWwVkEAHTjeKwgQk8gLegUInwEQAQ&ictx=1&stq=1&cs=1&lei=PcT9afCzNbCthbIPuLyvQQ#ebo=5" target="_blank" rel="noopener noreferrer"><i class="fab fa-google"></i> ✍️ Write a review on Google</a>
     <p style="font-size: .7rem; color: var(--text-muted); text-align: center; margin-top: 14px;">⭐ Your feedback fuels our fire — share your experience!</p>
+  </div>
+
+  <!-- ★ NEW: GOOGLE MAP + DIRECTIONS BUTTONS ★ -->
+  <div class="map-card">
+    <div class="g-review-header"><i class="fas fa-map-marked-alt"></i> Find Our Spot</div>
+    <div class="map-container">
+      <iframe 
+        src="https://maps.google.com/?q=Patogrills+Abraka+Delta+State+Nigeria&output=embed" 
+        title="Patogrills location map"
+        loading="lazy" 
+        referrerpolicy="no-referrer-when-downgrade">
+      </iframe>
+    </div>
+    <div class="directions-buttons">
+      <a href="https://www.google.com/maps/dir/?api=1&destination=Patogrills+Abraka+Delta+State+Nigeria" target="_blank" rel="noopener noreferrer" class="dir-btn google-blue">
+        <i class="fas fa-directions"></i> GET DIRECTIONS
+      </a>
+      <a href="https://maps.app.goo.gl/5srZKvJwr1EW7bxs9" target="_blank" rel="noopener noreferrer" class="dir-btn google-orange">
+        <i class="fas fa-external-link-alt"></i> OPEN STORE PAGE
+      </a>
+    </div>
+    <div class="store-address">
+      <i class="fas fa-location-dot" style="color: var(--fire);"></i> 
+      Patogrills,Campus 4 Road, Opposite Oma's Hostel, Abraka — Delta State
+      <i class="fas fa-fire" style="color: var(--fire);"></i>
+    </div>
   </div>
 
   <div class="social-sec"><a href="https://www.tiktok.com/@patogrills1" target="_blank" class="soc-btn"><i class="fab fa-tiktok"></i> @patogrills</a><a href="#" class="soc-btn"><i class="fab fa-instagram"></i> Instagram</a></div>
@@ -473,7 +537,7 @@ Plus na my destiny helper”</div>
 <div class="toast" id="toast"></div>
 
 <script>
-  // ----- ALL ORIGINAL IMAGE FILE NAMES RETAINED -----
+  // ----- ALL ORIGINAL MENU ITEMS -----
   const ITEMS = [
     {id:1,name:"Spaghetti",       price:1500,desc:"Classic pasta, rich tomato sauce",    cat:"MAINS",   img:"Spaghetti.jpg"},
     {id:2,name:"Chips (Fries)",    price:1500,desc:"Golden crispy fries, well-salted",    cat:"MAINS",   img:"chip.jpg"},
@@ -500,7 +564,6 @@ Plus na my destiny helper”</div>
   const tot=()=>sub()+(OT==="Delivery"&&cart.length?FEE:0);
   function goTo(p){ document.querySelectorAll('.page').forEach(x=>x.classList.remove('active')); document.querySelectorAll('.ni').forEach(x=>x.classList.remove('active')); document.getElementById('page-'+p).classList.add('active'); document.getElementById('nav-'+p).classList.add('active'); if(p==='order') updPreview(); if(p==='cart') renderCart(); window.scrollTo({top:0,behavior:'smooth'}); }
   
-  // Updated buildMenu with ORDER button instead of plus icon
   function buildMenu(){ 
     const cats=actCat==="ALL"?["MAINS","PROTEINS","EXTRAS"]:[actCat]; 
     const CL={MAINS:"🍝 Mains",PROTEINS:"🍗 Proteins",EXTRAS:"🥗 Extras"}; 
