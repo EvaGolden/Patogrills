@@ -43,6 +43,7 @@
       overflow-x: hidden;
       padding-bottom: calc(var(--nav-h) + var(--safe-bottom) + 8px);
     }
+    /* Onboarding (full original – kept) */
     #onboarding {
       position: fixed; inset: 0; z-index: 9999;
       display: flex; flex-direction: column;
@@ -81,6 +82,8 @@
     .ob-skip { flex:1; padding:13px; border-radius:16px; background:#f4ede8; color:var(--text-muted); border:none; font-family:var(--DF); font-weight:600; font-size:.9rem; cursor:pointer; }
     .ob-next { flex:2; padding:13px; border-radius:16px; background:var(--fire); color:white; border:none; font-family:var(--BF); font-size:1.3rem; letter-spacing:1.5px; cursor:pointer; transition:background .15s; }
     .ob-next:hover { background:var(--fire-deep); }
+
+    /* Top Bar */
     .top-bar {
       position:sticky; top:0; z-index:900;
       background: rgba(255, 250, 246, 0.7);
@@ -97,6 +100,8 @@
     .cart-pill { background:var(--fire); color:white; border-radius:40px; padding:7px 14px; display:flex; align-items:center; gap:6px; cursor:pointer; border:none; font-family:var(--BF); font-size:1rem; letter-spacing:.5px; transition:transform .15s, background .15s; }
     .cart-pill:active { transform:scale(.95); }
     .cart-pill .cnt { background:white; color:var(--fire); border-radius:50%; width:20px; height:20px; font-size:.72rem; font-weight:700; font-family:var(--DF); display:flex; align-items:center; justify-content:center; }
+
+    /* Hero */
     .hero {
       margin:12px 12px 0; border-radius:28px;
       background: linear-gradient(115deg, rgba(0,0,0,0.7) 0%, rgba(0,0,0,0.25) 100%), url('hero.png') center/cover no-repeat;
@@ -110,6 +115,8 @@
     .hero-content h1 span { color: var(--fire-light); text-shadow: 0 0 8px rgba(242,98,46,0.5);}
     .hero-content p { font-size:.8rem; opacity:.85; margin-top:8px; letter-spacing:.1em; font-weight:500;}
     .hero-tag { display:inline-flex; align-items:center; gap:6px; margin-top:14px; background:rgba(242,98,46,.9); backdrop-filter:blur(8px); padding:6px 14px; border-radius:40px; font-size:.75rem; font-weight:700; letter-spacing:.08em; text-transform:uppercase; }
+
+    /* Pages */
     .page { display:none; max-width:900px; margin:0 auto; padding:16px 12px; animation:pgIn .25s ease; }
     .page.active { display:block; }
     @keyframes pgIn { from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:translateY(0)} }
@@ -135,6 +142,8 @@
     .order-btn i { font-size:0.8rem; }
     .order-btn:hover { background:var(--fire-deep); transform:scale(0.96); }
     .order-btn:active { transform:scale(0.94); }
+
+    /* Order ID Banner */
     .order-id-banner {
       background: var(--charcoal);
       border-radius: 20px;
@@ -168,6 +177,8 @@
     }
     .oid-copy-btn:hover { background: rgba(242,98,46,0.25); }
     .oid-tip { font-size: 0.7rem; color: rgba(255,255,255,0.35); margin-top: 2px; width: 100%; }
+
+    /* Reviews, Map Card, Cart, Form, etc. (all original) */
     .g-review-wrap { background:white; border-radius:28px; margin:32px 0 24px; padding:22px 20px; box-shadow:0 12px 28px -8px rgba(0,0,0,0.08); border:1px solid var(--border); }
     .g-review-header { display:flex; align-items:center; gap:10px; font-family:var(--BF); font-size:1.35rem; letter-spacing:1px; color:var(--black); margin-bottom:8px; }
     .g-review-header i { color:var(--fire); font-size:1.4rem; }
@@ -243,6 +254,8 @@
     .toast { position:fixed; top:72px; left:50%; transform:translateX(-50%) translateY(-10px); background:var(--charcoal); color:white; padding:9px 18px; border-radius:40px; font-size:.82rem; z-index:9000; opacity:0; pointer-events:none; transition:all .3s; white-space:nowrap; }
     .toast.show { opacity:1; transform:translateX(-50%) translateY(0); }
     .hf { display:none; }
+
+    /* Track page dropdown styles */
     .track-toggle-bar {
       display: flex;
       gap: 12px;
@@ -315,6 +328,8 @@
       border-left: 5px solid var(--fire);
       font-size: 0.85rem;
     }
+
+    /* Rider modal */
     .rider-modal {
       display: none;
       position: fixed;
@@ -612,49 +627,26 @@
   firebase.initializeApp(firebaseConfig);
   const rtdb = firebase.database();
 
+  rtdb.ref('test/connection').set({ timestamp: Date.now(), status: 'Patogrills connected' })
+    .then(() => console.log('✅ Firebase write successful! Database is writable.'))
+    .catch(err => console.error('❌ Firebase write FAILED:', err));
+
   // ==================== GLOBAL VARIABLES ====================
-  let menuItems = [];
-  let cart = [], OT = "Delivery", actCat = "ALL";
-  let riderSharing = false, riderWatchId = null, riderCurrentOrderId = null;
-  let pendingOrdersListener = null, activeOrderListener = null;
-  let trackMap = null, riderMarker = null, customerMarker = null, routingControl = null, trackOrderRef = null;
-  let mapCentered = false;
-  const FEE = 1000, PH = "2348029811578";
-  const OFFLINE_TIMEOUT = 60000;
-
-  const DEFAULT_MENU = [
-    {id:1,name:"Spaghetti", price:1500,desc:"Classic pasta, rich tomato sauce", cat:"MAINS", img:"Spaghetti.jpg", stock:99},
-    {id:2,name:"Chips (Fries)", price:1500,desc:"Golden crispy fries, well-salted", cat:"MAINS", img:"chip.jpg", stock:99},
-    {id:3,name:"Sharp Wrap", price:3500,desc:"Shawarma wrap, garlic sauce, veggies", cat:"MAINS", img:"shawarma.jpg", stock:99},
-    {id:4,name:"Sabi Talk Turkey", price:6000,desc:"Jumbo turkey, smoky glaze", cat:"PROTEINS", img:"turk.jpg", stock:99},
-    {id:5,name:"Talkless Turkey", price:4000,desc:"Small turkey, well-spiced & tender", cat:"PROTEINS", img:"trk.jpg", stock:99},
-    {id:6,name:"Big Chicken", price:5000,desc:"Full grilled chicken, super juicy", cat:"PROTEINS", img:"chick.jpg", stock:99},
-    {id:7,name:"Small Chicken", price:3500,desc:"Half chicken, flame-grilled", cat:"PROTEINS", img:"chken.jpg", stock:99},
-    {id:8,name:"Sausage", price:500, desc:"Smoky grilled sausage", cat:"EXTRAS", img:"suss.png", stock:99},
-    {id:9,name:"Fresh Salad", price:700, desc:"Crunchy veggie mix, house dressing", cat:"EXTRAS", img:"salad.jpg", stock:99}
+  const ITEMS = [
+    {id:1,name:"Spaghetti", price:1500,desc:"Classic pasta, rich tomato sauce", cat:"MAINS", img:"Spaghetti.jpg"},
+    {id:2,name:"Chips (Fries)", price:1500,desc:"Golden crispy fries, well-salted", cat:"MAINS", img:"chip.jpg"},
+    {id:3,name:"Sharp Wrap", price:3500,desc:"Shawarma wrap, garlic sauce, veggies", cat:"MAINS", img:"shawarma.jpg"},
+    {id:4,name:"Sabi Talk Turkey", price:6000,desc:"Jumbo turkey, smoky glaze", cat:"PROTEINS", img:"turk.jpg"},
+    {id:5,name:"Talkless Turkey", price:4000,desc:"Small turkey, well-spiced & tender", cat:"PROTEINS", img:"trk.jpg"},
+    {id:6,name:"Big Chicken", price:5000,desc:"Full grilled chicken, super juicy", cat:"PROTEINS", img:"chick.jpg"},
+    {id:7,name:"Small Chicken", price:3500,desc:"Half chicken, flame-grilled", cat:"PROTEINS", img:"chken.jpg"},
+    {id:8,name:"Sausage", price:500, desc:"Smoky grilled sausage", cat:"EXTRAS", img:"suss.png"},
+    {id:9,name:"Fresh Salad", price:700, desc:"Crunchy veggie mix, house dressing", cat:"EXTRAS", img:"salad.jpg"}
   ];
-
-  // Load menu from Firebase
-  async function loadMenuFromFirebase() {
-    try {
-      const snap = await rtdb.ref('menu').once('value');
-      const fbMenu = snap.val();
-      if (fbMenu && Object.keys(fbMenu).length > 0) {
-        menuItems = Object.values(fbMenu);
-      } else {
-        menuItems = DEFAULT_MENU;
-        for (let item of menuItems) {
-          await rtdb.ref('menu/' + item.id).set(item);
-        }
-      }
-      buildMenu();
-    } catch (e) {
-      console.error("Menu load error:", e);
-      menuItems = DEFAULT_MENU;
-      buildMenu();
-    }
-  }
-
+  const FEE = 1000, PH = "2348029811578";
+  let cart = [], OT = "Delivery", actCat = "ALL";
+  let trackMap = null, riderMarker = null, customerMarker = null, routingControl = null, trackOrderRef = null;
+  
   function generateOrderId() {
     const now = new Date();
     const dateStr = now.getFullYear() + String(now.getMonth()+1).padStart(2,'0') + String(now.getDate()).padStart(2,'0');
@@ -670,106 +662,39 @@
   const tot = () => sub() + (OT === "Delivery" && cart.length ? FEE : 0);
   function updateOrderBannerVisibility() { document.getElementById('orderIdBanner').style.display = OT === 'Delivery' ? 'flex' : 'none'; }
 
-  // CAPTURE CUSTOMER LOCATION
   function captureCustomerLocation() {
     return new Promise((resolve, reject) => {
-      if (!navigator.geolocation) {
-        reject(new Error("Geolocation not supported by your browser."));
-        return;
-      }
-      document.getElementById("locationStatus").innerHTML = `<i class="fas fa-spinner fa-spin"></i> Getting your exact location... Please allow GPS.`;
+      if (!navigator.geolocation) reject(new Error("Geolocation not supported"));
+      document.getElementById("locationStatus").innerHTML = `<i class="fas fa-spinner fa-spin"></i> Getting your exact location...`;
       navigator.geolocation.getCurrentPosition(
-        (pos) => {
-          document.getElementById("locationStatus").innerHTML = `✅ Location captured! Rider will navigate to you.`;
-          resolve({ lat: pos.coords.latitude, lng: pos.coords.longitude });
-        },
-        (err) => {
-          let msg = "";
-          if (err.code === err.PERMISSION_DENIED) msg = "Location permission denied. Please enable GPS in your browser to place a delivery order.";
-          else if (err.code === err.POSITION_UNAVAILABLE) msg = "Location unavailable. Check GPS signal.";
-          else msg = "Could not get location. Please check your settings.";
-          document.getElementById("locationStatus").innerHTML = `⚠️ ${msg}`;
-          reject(new Error(msg));
-        },
+        (pos) => { document.getElementById("locationStatus").innerHTML = `✅ Location captured!`; resolve({ lat: pos.coords.latitude, lng: pos.coords.longitude }); },
+        (err) => { let msg = "Location permission denied. Please enable GPS."; document.getElementById("locationStatus").innerHTML = `⚠️ ${msg}`; reject(new Error(msg)); },
         { enableHighAccuracy: true, timeout: 10000 }
       );
     });
   }
 
-  // SAVE ORDER TO REALTIME DB WITH STOCK UPDATE
   async function saveOrderToRTDB(customerCoords) {
-    console.log("🔵 saveOrderToRTDB called with coords:", customerCoords);
-    if (!cart.length) {
-      toast("❌ Your cart is empty. Add items first.");
-      return false;
-    }
+    if (!cart.length) { toast("❌ Your cart is empty."); return false; }
     const name = document.getElementById("name").value.trim();
     const phone = document.getElementById("phone").value.trim();
     const address = OT === "Delivery" ? document.getElementById("address").value.trim() : "";
     const notes = document.getElementById("notes").value.trim();
-    if (!name || !phone) {
-      toast("❌ Please fill in your name and phone number");
-      return false;
-    }
-    if (OT === "Delivery" && !address) {
-      toast("📍 Please enter your delivery address");
-      return false;
-    }
-
-    // FIRST: Update stock for each item in cart
-    console.log("📦 Updating stock...");
-    for (const item of cart) {
-      const itemRef = rtdb.ref('menu/' + item.id);
-      const snapshot = await itemRef.once('value');
-      const currentStock = snapshot.val()?.stock || 0;
-      const newStock = currentStock - item.qty;
-      
-      if (newStock < 0) {
-        toast(`❌ Not enough stock for ${item.name}! Only ${currentStock} left.`);
-        return false;
-      }
-      
-      await itemRef.update({ stock: newStock });
-      console.log(`✅ Updated ${item.name}: ${currentStock} → ${newStock}`);
-      
-      // Update local menuItems array
-      const localItem = menuItems.find(i => i.id === item.id);
-      if (localItem) localItem.stock = newStock;
-    }
-
+    if (!name || !phone) { toast("❌ Please fill in your name and phone number"); return false; }
+    if (OT === "Delivery" && !address) { toast("📍 Please enter your delivery address"); return false; }
     const orderData = {
-      orderId: ORDER_ID,
-      customerName: name,
-      phone: phone,
-      orderType: OT,
-      address: address,
-      notes: notes,
-      items: cart.map(i => ({ id: i.id, name: i.name, price: i.price, qty: i.qty, total: i.price * i.qty })),
-      total: tot(),
-      status: "pending",
-      timestamp: Date.now(),
-      assigned: false,
-      riderLocation: null,
+      orderId: ORDER_ID, customerName: name, phone, orderType: OT, address, notes,
+      items: cart.map(i => ({ name: i.name, price: i.price, qty: i.qty, total: i.price * i.qty })),
+      total: tot(), status: "pending", timestamp: Date.now(), assigned: false, riderLocation: null,
       customerLocation: customerCoords ? { latitude: customerCoords.lat, longitude: customerCoords.lng, timestamp: Date.now() } : null
     };
-
     try {
       await rtdb.ref('orders/' + ORDER_ID).set(orderData);
-      console.log("✅ Order saved successfully in Firebase at orders/" + ORDER_ID);
-      toast("✅ Order saved! Stock updated!");
-      
-      // Refresh menu display to show updated stock
-      buildMenu();
-      
+      toast("✅ Order saved! Track via the Track tab.");
       return true;
-    } catch (err) {
-      console.error("❌ Firebase save error:", err);
-      toast("⚠️ Could not save order. Check console for details.");
-      return false;
-    }
+    } catch (err) { console.error(err); toast("⚠️ Could not save order."); return false; }
   }
 
-  // GENERATE WHATSAPP MESSAGE
   function genMsg() {
     if (!cart.length) return "🔥 Patogrills: Cart is empty.";
     const lines = cart.map(i => `• ${i.qty} x ${i.name} — ${fmt(i.qty * i.price)}`).join("\n");
@@ -781,52 +706,20 @@
     return `🍢 *PATO GRILLS ORDER* 🍢\n\n🔖 *Order ID:* ${ORDER_ID}\n\n${lines}${dl}\n\n────────────────\n📦 *Total:* ${fmt(tot())}\n\n📌 *Order type:* ${OT}\n👤 *Name:* ${nm}\n📞 *Phone:* ${ph}${ad !== null ? `\n📍 *Address:* ${ad}` : ""}\n📝 *Notes:* ${nt}\n\n🔥 *Enjoy the Thrills Of The Grills — Good Food No Dey Rush*`;
   }
 
-  function updPreview() {
-    document.getElementById("preview").textContent = genMsg();
-    const lk = document.getElementById("sendLink");
-    if (!cart.length) { lk.href = "#"; return; }
-    lk.href = `https://wa.me/${PH}?text=${encodeURIComponent(genMsg())}`;
-  }
-
-  // ORDER TYPE SELECT
-  window.selOT = type => {
-    OT = type;
-    document.getElementById("od").classList.toggle("sel", type === "Delivery");
-    document.getElementById("op").classList.toggle("sel", type === "Pickup");
-    document.getElementById("addrWrap").classList.toggle("hf", type !== "Delivery");
-    renderCart(); updPreview(); updateOrderBannerVisibility();
-    document.getElementById("locationStatus").innerHTML = "";
-  };
-
-  // WHATSAPP HANDLER
+  function updPreview() { document.getElementById("preview").textContent = genMsg(); const lk = document.getElementById("sendLink"); if (!cart.length) lk.href = "#"; else lk.href = `https://wa.me/${PH}?text=${encodeURIComponent(genMsg())}`; }
+  window.selOT = type => { OT = type; document.getElementById("od").classList.toggle("sel", type === "Delivery"); document.getElementById("op").classList.toggle("sel", type === "Pickup"); document.getElementById("addrWrap").classList.toggle("hf", type !== "Delivery"); renderCart(); updPreview(); updateOrderBannerVisibility(); document.getElementById("locationStatus").innerHTML = ""; };
+  
   document.getElementById("sendLink").addEventListener("click", async (e) => {
-    e.preventDefault();
-    console.log("Send button clicked");
-    if (!cart.length) { toast("🍽️ Add items first!"); return; }
-    if (OT === "Delivery" && !document.getElementById("address").value.trim()) { toast("📍 Please enter your delivery address first"); return; }
-    
+    if (!cart.length) { e.preventDefault(); toast("🍽️ Add items first!"); return; }
+    if (OT === "Delivery" && !document.getElementById("address").value.trim()) { e.preventDefault(); toast("📍 Please enter your delivery address first"); return; }
     if (OT === "Delivery") {
-      try {
-        const coords = await captureCustomerLocation();
-        const saved = await saveOrderToRTDB(coords);
-        if (!saved) return;
-      } catch (err) {
-        toast(err.message || "Location permission required. Please enable GPS to place delivery order.");
-        return;
-      }
-    } else {
-      const saved = await saveOrderToRTDB(null);
-      if (!saved) return;
-    }
-    
-    // Clear cart after successful order
-    cart = [];
-    updBadge();
-    renderCart();
-    updPreview();
+      try { const coords = await captureCustomerLocation(); const saved = await saveOrderToRTDB(coords); if (!saved) e.preventDefault(); } 
+      catch (err) { e.preventDefault(); toast(err.message || "Location required."); return; }
+    } else { const saved = await saveOrderToRTDB(null); if (!saved) e.preventDefault(); }
   });
 
-  // UI MENU, CART FUNCTIONS
+  ["name","phone","address","notes"].forEach(id => { const el = document.getElementById(id); if (el) el.addEventListener("input", updPreview); });
+
   function goTo(p) {
     document.querySelectorAll('.page').forEach(x => x.classList.remove('active'));
     document.querySelectorAll('.ni').forEach(x => x.classList.remove('active'));
@@ -843,25 +736,11 @@
     const CL = {MAINS:"🍝 Mains", PROTEINS:"🍗 Proteins", EXTRAS:"🥗 Extras"};
     let h = "";
     for (const c of cats) {
-      const items = menuItems.filter(i => i.cat === c);
+      const items = ITEMS.filter(i => i.cat === c);
       if (!items.length) continue;
       h += `<div class="sec-title">${CL[c]}</div><div class="menu-grid">`;
       items.forEach(i => {
-        const isOutOfStock = i.stock <= 0;
-        h += `<div class="menu-card">
-          <img class="menu-img" src="${i.img}" alt="${i.name}" loading="lazy" onerror="this.src='https://placehold.co/400x250/fef0e6/f2622e?text=🔥'">
-          <div class="menu-info">
-            <div class="menu-name">${i.name} ${isOutOfStock ? '<span style="background:#ef4444; color:white; font-size:0.65rem; padding:2px 8px; border-radius:20px; margin-left:8px;">SOLD OUT</span>' : ''}</div>
-            <div class="menu-desc">${i.desc}</div>
-            <div class="menu-bottom">
-              <div class="menu-price">${fmt(i.price)}</div>
-              <button class="order-btn" onclick="addItem(${i.id})" ${isOutOfStock ? 'disabled' : ''}>
-                <i class="fas fa-shopping-cart"></i> ${isOutOfStock ? 'UNAVAILABLE' : 'ORDER'}
-              </button>
-            </div>
-            <small style="font-size:0.65rem;">stock: ${i.stock}</small>
-          </div>
-        </div>`;
+        h += `<div class="menu-card"><img class="menu-img" src="${i.img}" alt="${i.name}" onerror="this.src='https://placehold.co/400x250/fef0e6/f2622e?text=🔥'"><div class="menu-info"><div class="menu-name">${i.name}</div><div class="menu-desc">${i.desc}</div><div class="menu-bottom"><div class="menu-price">${fmt(i.price)}</div><button class="order-btn" onclick="addItem(${i.id})"><i class="fas fa-shopping-cart"></i> ORDER</button></div></div></div>`;
       });
       h += "</div>";
     }
@@ -873,62 +752,13 @@
     p.classList.add('active'); actCat = p.dataset.cat; buildMenu();
   }));
 
-  function addItem(id) { 
-    const it = menuItems.find(i => i.id === id);
-    if (!it || it.stock <= 0) {
-      toast("❌ Sorry, " + it?.name + " is out of stock!");
-      return;
-    }
-    const ex = cart.find(i => i.id === id);
-    if (ex) {
-      if (ex.qty >= it.stock) {
-        toast(`❌ Only ${it.stock} ${it.name}(s) available!`);
-        return;
-      }
-      ex.qty++;
-    } else {
-      cart.push({...it, qty: 1});
-    }
-    updBadge(); 
-    toast("✅ " + it.name + " added to cart!"); 
-    updPreview();
-  }
-  
-  window.updateQty = (id,d) => { 
-    const idx = cart.findIndex(i => i.id === id);
-    if (idx === -1) return;
-    const item = menuItems.find(i => i.id === id);
-    const newQty = cart[idx].qty + d;
-    if (newQty > item.stock) {
-      toast(`❌ Only ${item.stock} ${item.name}(s) available!`);
-      return;
-    }
-    cart[idx].qty += d;
-    if (cart[idx].qty <= 0) cart.splice(idx, 1);
-    updBadge();
-    renderCart();
-    updPreview();
-  };
-  
-  function updBadge() { 
-    const n = cart.reduce((s,i) => s + i.qty, 0);
-    document.getElementById("cartCount").textContent = n;
-    const b = document.getElementById("navBadge");
-    if (b) {
-      b.style.display = n > 0 ? "flex" : "none";
-      b.textContent = n;
-    }
-  }
-  
+  function addItem(id) { const it=ITEMS.find(i=>i.id===id); const ex=cart.find(i=>i.id===id); if(ex) ex.qty++; else cart.push({...it,qty:1}); updBadge(); toast("✅ "+it.name+" added to cart!"); updPreview(); }
+  window.updateQty = (id,d) => { const idx=cart.findIndex(i=>i.id===id); if(idx===-1) return; cart[idx].qty+=d; if(cart[idx].qty<=0) cart.splice(idx,1); updBadge(); renderCart(); updPreview(); };
+  function updBadge() { const n=cart.reduce((s,i)=>s+i.qty,0); document.getElementById("cartCount").textContent=n; const b=document.getElementById("navBadge"); b.style.display=n>0?"flex":"none"; b.textContent=n; }
   function renderCart() {
-    const el = document.getElementById("cartContent"), sm = document.getElementById("cartSummary"), cw = document.getElementById("chkWrap");
-    if (!cart.length) {
-      el.innerHTML = `<div class="cart-empty"><i class="fas fa-bag-shopping"></i><h3>CART IS EMPTY</h3><p>Go to Menu and tap ORDER to add items!</p></div>`;
-      sm.style.display = "none";
-      cw.innerHTML = "";
-      return;
-    }
-    el.innerHTML = `<div class="cart-list">${cart.map(it => `<div class="cart-item"><img class="ci-img" src="${it.img}" onerror="this.src='https://placehold.co/100x100/fef0e6/f2622e?text=🔥'"><div class="ci-info"><div class="ci-name">${it.name}</div><div class="ci-unit">${fmt(it.price)} each</div><div class="qty-row"><button class="qty-btn" onclick="updateQty(${it.id},-1)">−</button><span class="qty-num">${it.qty}</span><button class="qty-btn" onclick="updateQty(${it.id},1)">+</button></div></div><div class="ci-price">${fmt(it.price * it.qty)}</div></div>`).join("")}</div>`;
+    const el=document.getElementById("cartContent"), sm=document.getElementById("cartSummary"), cw=document.getElementById("chkWrap");
+    if (!cart.length) { el.innerHTML=`<div class="cart-empty"><i class="fas fa-bag-shopping"></i><h3>CART IS EMPTY</h3><p>Go to Menu and tap ORDER to add items!</p></div>`; sm.style.display="none"; cw.innerHTML=""; return; }
+    el.innerHTML=`<div class="cart-list">${cart.map(it=>`<div class="cart-item"><img class="ci-img" src="${it.img}" onerror="this.src='https://placehold.co/100x100/fef0e6/f2622e?text=🔥'"><div class="ci-info"><div class="ci-name">${it.name}</div><div class="ci-unit">${fmt(it.price)} each</div><div class="qty-row"><button class="qty-btn" onclick="updateQty(${it.id},-1)">−</button><span class="qty-num">${it.qty}</span><button class="qty-btn" onclick="updateQty(${it.id},1)">+</button></div></div><div class="ci-price">${fmt(it.price*it.qty)}</div></div>`).join("")}</div>`;
     const isD = OT === "Delivery";
     document.getElementById("sSub").textContent = fmt(sub());
     document.getElementById("dRow").style.display = isD ? "flex" : "none";
@@ -937,17 +767,26 @@
     cw.innerHTML = `<button class="wa-btn" onclick="goTo('order')"><i class="fas fa-receipt"></i> FILL ORDER DETAILS</button>`;
   }
 
-  ["name","phone","address","notes"].forEach(id => { const el = document.getElementById(id); if (el) el.addEventListener("input", updPreview); });
-
-  // TRACKING FUNCTIONS
-  const pickupPanel = document.getElementById("pickupPanel"), deliveryPanel = document.getElementById("deliveryPanel");
-  const togglePickup = document.getElementById("togglePickupBtn"), toggleDelivery = document.getElementById("toggleDeliveryTrackBtn");
+  // ==================== TRACKING FUNCTIONS ====================
   function setTrackMode(mode) {
-    if(mode === 'pickup') { pickupPanel.classList.remove("hidden-panel"); deliveryPanel.classList.add("hidden-panel"); togglePickup.classList.add("active-toggle"); toggleDelivery.classList.remove("active-toggle"); }
-    else { pickupPanel.classList.add("hidden-panel"); deliveryPanel.classList.remove("hidden-panel"); toggleDelivery.classList.add("active-toggle"); togglePickup.classList.remove("active-toggle"); }
+    const pickupPanel = document.getElementById('pickupPanel');
+    const deliveryPanel = document.getElementById('deliveryPanel');
+    const pickupBtn = document.getElementById('togglePickupBtn');
+    const deliveryBtn = document.getElementById('toggleDeliveryTrackBtn');
+    if (mode === 'pickup') {
+      pickupPanel.classList.remove('hidden-panel');
+      deliveryPanel.classList.add('hidden-panel');
+      pickupBtn.classList.add('active-toggle');
+      deliveryBtn.classList.remove('active-toggle');
+      if (trackMap) { trackMap.remove(); trackMap = null; riderMarker = null; customerMarker = null; routingControl = null; }
+      document.getElementById('liveTrackingMap').style.display = 'none';
+    } else {
+      pickupPanel.classList.add('hidden-panel');
+      deliveryPanel.classList.remove('hidden-panel');
+      pickupBtn.classList.remove('active-toggle');
+      deliveryBtn.classList.add('active-toggle');
+    }
   }
-  togglePickup.addEventListener("click", () => setTrackMode('pickup'));
-  toggleDelivery.addEventListener("click", () => setTrackMode('delivery'));
 
   function initTrackMap(custLat, custLng) {
     const container = document.getElementById("liveTrackingMap");
@@ -955,16 +794,13 @@
     if (trackMap) trackMap.remove();
     trackMap = L.map(container).setView([custLat, custLng], 14);
     L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', { attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OSM</a>' }).addTo(trackMap);
-    customerMarker = L.marker([custLat, custLng], { icon: L.divIcon({ html: '📍', iconSize: [30,30] }) }).addTo(trackMap).bindPopup('Your delivery location');
-    mapCentered = true;
+    customerMarker = L.marker([custLat, custLng], { icon: L.divIcon({ html: '📍', iconSize: [30,30], className: 'cust-icon' }) }).addTo(trackMap).bindPopup('Your delivery location');
   }
 
   function updateTrackingUI(riderLat, riderLng, custLat, custLng, lastUpdateTimestamp) {
     if (!trackMap) initTrackMap(custLat, custLng);
     if (riderMarker) riderMarker.setLatLng([riderLat, riderLng]);
-    else {
-      riderMarker = L.marker([riderLat, riderLng], { icon: L.divIcon({ html: '🏍️', iconSize: [30,30] }) }).addTo(trackMap).bindPopup('Rider');
-    }
+    else { riderMarker = L.marker([riderLat, riderLng], { icon: L.divIcon({ html: '🏍️', iconSize: [30,30] }) }).addTo(trackMap).bindPopup('Rider'); }
     if (routingControl) trackMap.removeControl(routingControl);
     routingControl = L.Routing.control({
       waypoints: [L.latLng(riderLat, riderLng), L.latLng(custLat, custLng)],
@@ -972,85 +808,127 @@
       routeWhileDragging: false, show: false, addWaypoints: false, fitSelectedRoutes: false,
       lineOptions: { styles: [{ color: '#f2622e', weight: 4 }] }
     }).addTo(trackMap);
+    routingControl.on('routesfound', (e) => {
+      const route = e.routes[0];
+      const distKm = (route.summary.totalDistance / 1000).toFixed(1);
+      const etaMin = Math.round(route.summary.totalTime / 60);
+      const timeAgo = Math.floor((Date.now() - lastUpdateTimestamp) / 1000);
+      const isOnline = timeAgo < 60000;
+      const statusDiv = document.getElementById("trackStatusResult");
+      statusDiv.style.display = "block";
+      statusDiv.innerHTML = `<i class="fas fa-truck-fast"></i> <strong>Status:</strong> ${isOnline ? '🟢 Rider online' : '🔴 Rider offline'}<br><i class="fas fa-route"></i> <strong>Distance:</strong> ${distKm} km<br><i class="fas fa-clock"></i> <strong>ETA:</strong> ~${etaMin} min<br><i class="fas fa-sync-alt"></i> <strong>Last update:</strong> ${timeAgo} sec ago`;
+    });
   }
 
-  document.getElementById("trackOrderBtn")?.addEventListener("click", () => {
-    const inputId = document.getElementById("trackingIdInput").value.trim().toUpperCase();
-    if (!inputId) { document.getElementById("trackStatusResult").innerHTML = "⚠️ Please enter your Order ID."; document.getElementById("trackStatusResult").style.display = "block"; return; }
-    if (trackMap) { trackMap.remove(); trackMap = null; }
+  function startTracking(orderId) {
     if (trackOrderRef) trackOrderRef.off();
-    trackDeliveryOrder(inputId);
+    const orderRef = rtdb.ref('orders/' + orderId);
+    trackOrderRef = orderRef;
+    orderRef.on('value', (snap) => {
+      const order = snap.val();
+      if (!order) { document.getElementById("trackStatusResult").innerHTML = `<div class="error-msg">❌ Order not found. Check Order ID.</div>`; document.getElementById("trackStatusResult").style.display = "block"; return; }
+      if (order.orderType !== 'Delivery') { document.getElementById("trackStatusResult").innerHTML = `<div class="error-msg">⚠️ This order is for pickup. No live tracking available.</div>`; document.getElementById("trackStatusResult").style.display = "block"; return; }
+      const custLoc = order.customerLocation;
+      const riderLoc = order.riderLocation;
+      if (!custLoc || !custLoc.latitude) { document.getElementById("trackStatusResult").innerHTML = `<div class="error-msg">📍 Customer location not captured.</div>`; return; }
+      if (!riderLoc || !riderLoc.latitude) { document.getElementById("trackStatusResult").innerHTML = `<div class="status-box"><i class="fas fa-spinner fa-spin"></i> Waiting for rider to share location...</div>`; document.getElementById("trackStatusResult").style.display = "block"; return; }
+      updateTrackingUI(riderLoc.latitude, riderLoc.longitude, custLoc.latitude, custLoc.longitude, riderLoc.timestamp || Date.now());
+      document.getElementById("trackStatusResult").style.display = "block";
+    });
+  }
+
+  document.getElementById('trackOrderBtn').addEventListener('click', () => {
+    const inputId = document.getElementById('trackingIdInput').value.trim();
+    if (!inputId) { toast("Please enter an Order ID"); return; }
+    document.getElementById("trackStatusResult").innerHTML = `<div class="status-box"><i class="fas fa-spinner fa-spin"></i> Fetching order...</div>`;
+    document.getElementById("trackStatusResult").style.display = "block";
+    startTracking(inputId);
   });
 
-  function trackDeliveryOrder(orderId) {
-    if (trackOrderRef) trackOrderRef.off();
-    const resultDiv = document.getElementById("trackStatusResult");
-    resultDiv.style.display = "block";
-    resultDiv.innerHTML = `<i class="fas fa-spinner fa-spin"></i> Looking up order...`;
-    const orderRef = rtdb.ref('orders/' + orderId);
-    orderRef.once('value').then(async (snap) => {
-      if (!snap.exists()) {
-        resultDiv.innerHTML = "❌ No order found with that ID. Check the ID and try again.";
-        return;
-      }
-      const orderData = snap.val();
-      const custLoc = orderData.customerLocation;
-      let custLat = custLoc?.latitude;
-      let custLng = custLoc?.longitude;
-      if (!custLat || !custLng) {
-        resultDiv.innerHTML = `⚠️ Delivery order found but no GPS location available. Please ensure you allowed location when placing the order.`;
-        return;
-      }
-      initTrackMap(custLat, custLng);
-      resultDiv.innerHTML = `📦 <strong>Order found!</strong> Waiting for rider to start delivery...<br>📍 Your location is set.`;
-      trackOrderRef = orderRef.on('value', (riderSnap) => {
-        const riderData = riderSnap.val();
-        if (riderData && riderData.riderLocation && riderData.riderLocation.latitude) {
-          updateTrackingUI(riderData.riderLocation.latitude, riderData.riderLocation.longitude, custLat, custLng, riderData.riderLocation.timestamp);
-        }
-      });
-    }).catch(err => { console.error(err); resultDiv.innerHTML = "⚠️ Error fetching order."; });
-  }
+  document.getElementById('togglePickupBtn').addEventListener('click', () => setTrackMode('pickup'));
+  document.getElementById('toggleDeliveryTrackBtn').addEventListener('click', () => setTrackMode('delivery'));
 
-  // ONBOARDING
-  let obI = 0;
-  function showOBStep(i) {
-    for(let j=0;j<4;j++){ document.getElementById("os"+j).classList.toggle("on",j===i); document.getElementById("d"+j).classList.toggle("on",j===i); }
-    document.getElementById("obNext").innerText = i===3?"LET'S EAT! 🔥":"NEXT →";
-  }
-  document.getElementById("obNext").onclick = () => { if(obI<3){ obI++; showOBStep(obI); } else closeOB(); };
-  document.getElementById("obSkip").onclick = closeOB;
-  function closeOB() { localStorage.setItem("pg_ob2","1"); const el=document.getElementById("onboarding"); el.classList.add("fade-out"); setTimeout(()=>el.classList.add("gone"),380); }
-  function initOB() { if(localStorage.getItem("pg_ob2")){ document.getElementById("onboarding").classList.add("gone"); return; } showOBStep(0); }
-
-  // INITIALIZE
-  (async () => {
-    await loadMenuFromFirebase();
-    renderCart();
-    selOT("Delivery");
-    updateOrderBannerVisibility();
-    setTrackMode('pickup');
-    initOB();
-  })();
-
-  // RIDER MODAL FUNCTIONS
-  window.openRiderModal = () => { document.getElementById("riderModal").classList.add("active"); };
-  window.closeRiderModal = () => { document.getElementById("riderModal").classList.remove("active"); };
-  document.getElementById("riderModal").innerHTML = `<div class="rider-modal-content"><div class="rider-close" onclick="closeRiderModal()">&times;</div><div class="rider-inner"><div class="rider-logo">RIDER<span>PANEL</span></div><div class="rider-field-label">Enter Access Code</div><input type="password" id="riderAccessCode" class="rider-input" placeholder="••••••"><button class="rider-btn" onclick="accessRiderPanel()">ACCESS</button></div></div>`;
-  
-  window.accessRiderPanel = () => {
-    const code = document.getElementById("riderAccessCode").value;
-    if (code === "admin123") {
-      toast("🔐 Admin access granted");
-      // Admin functionality can be added here
-    } else if (code === "rider123") {
-      toast("🛵 Rider access granted");
-      // Rider functionality can be added here
-    } else {
-      toast("❌ Invalid access code");
-    }
-    closeRiderModal();
+  // Rider Modal (admin/delivery personnel interface)
+  window.openRiderModal = () => {
+    const modal = document.getElementById('riderModal');
+    modal.innerHTML = `
+      <div class="rider-modal-content">
+        <div class="rider-close" onclick="closeRiderModal()">&times;</div>
+        <div class="rider-inner">
+          <div class="rider-logo">PATO<span>GRILLS</span> · RIDER</div>
+          <div class="rider-field-label">RIDER ID / SECRET</div>
+          <input type="password" id="riderAuthKey" class="rider-input" placeholder="Enter rider secret key" value="PatogrillsRider2024">
+          <button class="rider-btn" id="riderAuthBtn">🔐 ACCESS DASHBOARD</button>
+          <div id="riderDashboard"></div>
+        </div>
+      </div>`;
+    modal.classList.add('active');
+    document.getElementById('riderAuthBtn').addEventListener('click', async () => {
+      const key = document.getElementById('riderAuthKey').value;
+      if (key !== 'PatogrillsRider2024') { document.getElementById('riderDashboard').innerHTML = '<div class="rider-error" style="display:block;">❌ Invalid rider key.</div>'; return; }
+      loadRiderDashboard();
+    });
   };
+  window.closeRiderModal = () => { document.getElementById('riderModal').classList.remove('active'); if (riderWatchId) navigator.geolocation.clearWatch(riderWatchId); riderWatchId = null; };
+
+  async function loadRiderDashboard() {
+    const dashDiv = document.getElementById('riderDashboard');
+    dashDiv.innerHTML = '<div>Loading pending orders...</div>';
+    const ordersSnap = await rtdb.ref('orders').orderByChild('status').equalTo('pending').once('value');
+    const pendingOrders = [];
+    ordersSnap.forEach(child => { pendingOrders.push({ id: child.key, ...child.val() }); });
+    if (pendingOrders.length === 0) dashDiv.innerHTML = '<div class="rider-status-block">✅ No pending orders.</div>';
+    else {
+      let html = `<div class="rider-status-block"><strong>📋 PENDING ORDERS (${pendingOrders.length})</strong></div>`;
+      pendingOrders.forEach(order => {
+        html += `<div class="rider-order-item"><div><div class="rider-order-id">${order.orderId}</div><div>${order.customerName} · ${order.orderType}</div><div>${fmt(order.total)}</div></div><button class="rider-accept-btn" onclick="acceptOrder('${order.id}')">ACCEPT & START</button></div>`;
+      });
+      dashDiv.innerHTML = html;
+    }
+    const activeSnap = await rtdb.ref('orders').orderByChild('assigned').equalTo(true).once('value');
+    const activeOrders = [];
+    activeSnap.forEach(child => { if (child.val().assigned === true && child.val().status !== 'delivered') activeOrders.push({ id: child.key, ...child.val() }); });
+    if (activeOrders.length > 0) {
+      let activeHtml = `<div class="rider-status-block"><strong>🚀 ACTIVE DELIVERY</strong></div>`;
+      activeOrders.forEach(order => {
+        activeHtml += `<div class="active-delivery-card"><div><strong>${order.orderId}</strong> → ${order.customerName}<br>📍 ${order.address || 'Pickup'}</div><div class="action-buttons-group"><button class="navigate-btn" onclick="window.open('https://www.google.com/maps/dir/?api=1&destination=${order.customerLocation?.latitude},${order.customerLocation?.longitude}')">🗺️ Navigate</button><button class="rider-btn-delivered" style="padding:8px 16px; margin:0;" onclick="markDelivered('${order.id}')">✅ Mark Delivered</button><button class="rider-terminate-btn" onclick="cancelDelivery('${order.id}')">❌ Cancel</button></div></div>`;
+      });
+      dashDiv.innerHTML += activeHtml;
+    }
+    if (activeOrders.length === 0 && pendingOrders.length === 0) dashDiv.innerHTML = '<div>🎉 No active deliveries</div>';
+  }
+
+  window.acceptOrder = async (orderId) => {
+    await rtdb.ref('orders/' + orderId).update({ assigned: true, status: 'assigned', riderId: 'rider_' + Date.now() });
+    if (navigator.geolocation && !riderWatchId) {
+      riderWatchId = navigator.geolocation.watchPosition((pos) => {
+        rtdb.ref('orders/' + orderId + '/riderLocation').set({ latitude: pos.coords.latitude, longitude: pos.coords.longitude, timestamp: Date.now() });
+        toast("📍 Location sent to customer");
+      }, (err) => console.error("Geolocation error", err), { enableHighAccuracy: true, maximumAge: 5000 });
+    }
+    loadRiderDashboard();
+    toast("Order accepted! Share location enabled.");
+  };
+  window.markDelivered = async (orderId) => {
+    if (riderWatchId) navigator.geolocation.clearWatch(riderWatchId);
+    await rtdb.ref('orders/' + orderId).update({ status: 'delivered', deliveredAt: Date.now() });
+    loadRiderDashboard();
+    toast("🎉 Order marked delivered!");
+  };
+  window.cancelDelivery = async (orderId) => {
+    if (confirm("Cancel this delivery?")) { await rtdb.ref('orders/' + orderId).update({ assigned: false, status: 'pending', riderLocation: null }); loadRiderDashboard(); toast("Delivery cancelled."); }
+  };
+
+  // Onboarding + initial load
+  (function init() {
+    let step = 0; const steps = ['os0','os1','os2','os3']; const dots = ['d0','d1','d2','d3'];
+    const nextBtn = document.getElementById('obNext'), skipBtn = document.getElementById('obSkip');
+    function updateStep() { steps.forEach((s,i)=>{ document.getElementById(s).classList.toggle('on', i===step); document.getElementById(dots[i]).classList.toggle('on', i===step); }); }
+    function nextStep() { if(step<3) { step++; updateStep(); } else { document.getElementById('onboarding').classList.add('fade-out'); setTimeout(()=>document.getElementById('onboarding').classList.add('gone'), 300); } }
+    nextBtn.onclick = nextStep; skipBtn.onclick = () => { document.getElementById('onboarding').classList.add('fade-out'); setTimeout(()=>document.getElementById('onboarding').classList.add('gone'), 300); };
+    updateStep(); buildMenu(); renderCart(); updPreview(); selOT('Delivery');
+    setTrackMode('pickup');
+  })();
 </script>
 </body>
 </html>
