@@ -783,29 +783,42 @@
     });
   }
 
-  // FIXED: Generate WhatsApp message - properly formatted
+  // FIXED: Generate WhatsApp message - properly captures ALL form data
   function generateWhatsAppMessage() {
-    // Get form values
-    const name = document.getElementById("name").value.trim();
-    const phone = document.getElementById("phone").value.trim();
-    const address = OT === "Delivery" ? document.getElementById("address").value.trim() : "Pickup Order";
-    const notes = document.getElementById("notes").value.trim();
+    // Get form values DIRECTLY from DOM elements
+    const nameInput = document.getElementById("name");
+    const phoneInput = document.getElementById("phone");
+    const addressInput = document.getElementById("address");
+    const notesInput = document.getElementById("notes");
     
-    // Build message
+    const name = nameInput ? nameInput.value.trim() : "";
+    const phone = phoneInput ? phoneInput.value.trim() : "";
+    const address = (OT === "Delivery" && addressInput) ? addressInput.value.trim() : "Pickup Order";
+    const notes = notesInput ? notesInput.value.trim() : "";
+    
+    console.log("Generating message with:", { name, phone, address, notes });
+    
+    // If fields are empty, show error
+    if (!name || !phone) {
+      toast("❌ Please fill in your name and phone number first!");
+      return null;
+    }
+    
+    // Build message with proper formatting
     let msg = "🔥 *PATOGRILLS ORDER* 🔥%0A%0A";
     msg += `*Order ID:* ${ORDER_ID}%0A`;
     msg += `*Name:* ${name || "Not provided"}%0A`;
     msg += `*Phone:* ${phone || "Not provided"}%0A`;
-    msg += `*Type:* ${OT}%0A`;
+    msg += `*Order Type:* ${OT}%0A`;
     msg += `*Address:* ${address || "Not provided"}%0A`;
     msg += `%0A*ITEMS:*%0A`;
     
-    // Add items
+    // Add cart items
     if (cart.length === 0) {
       msg += `No items in cart%0A`;
     } else {
-      cart.forEach(item => {
-        msg += `• ${item.name} x${item.qty} = ${fmt(item.price * item.qty)}%0A`;
+      cart.forEach((item, index) => {
+        msg += `${index + 1}. ${item.name} x${item.qty} = ${fmt(item.price * item.qty)}%0A`;
       });
     }
     
@@ -816,16 +829,16 @@
     msg += `*TOTAL:* ${fmt(tot())}%0A%0A`;
     
     if (notes) {
-      msg += `*Notes:* ${notes}%0A%0A`;
+      msg += `*Special Notes:* ${notes}%0A%0A`;
     }
     
     msg += `🙏 Thank you for ordering from Patogrills! 🔥`;
     
-    console.log("Generated message:", msg);
+    console.log("Generated message length:", msg.length);
     return msg;
   }
 
-  // SAVE ORDER TO FIREBASE - WORKS FOR BOTH PICKUP AND DELIVERY
+  // SAVE ORDER TO FIREBASE
   async function saveOrderToRTDB(customerLocationData) {
     if (!cart.length) {
       toast("❌ Cart empty");
@@ -846,7 +859,6 @@
       return false;
     }
 
-    // Build order object with location data
     const orderData = {
       orderId: ORDER_ID,
       customerName: name,
@@ -878,12 +890,10 @@
     try {
       await rtdb.ref('orders/' + ORDER_ID).set(orderData);
       
-      // Update stats counter
       const currentCount = await rtdb.ref('stats/ordersCount').once('value');
       let count = currentCount.val() || 0;
       await rtdb.ref('stats/ordersCount').set(count + 1);
       
-      // Also save to customersLocations for tracking
       if (customerLocationData) {
         await rtdb.ref('customersLocations/' + ORDER_ID).set({
           latitude: customerLocationData.latitude,
@@ -921,33 +931,45 @@
     renderCart();
   };
 
-  // FIXED: WhatsApp handler - saves order THEN opens WhatsApp
+  // FIXED: WhatsApp handler - validates form FIRST then saves
   document.getElementById("sendLink")?.addEventListener("click", async (e) => {
     e.preventDefault();
     
     console.log("Send button clicked");
     
+    // FIRST: Validate cart
     if (!cart.length) {
       toast("🍽️ Add items first!");
       return;
     }
     
+    // SECOND: Get and validate form data
     const name = document.getElementById("name").value.trim();
     const phone = document.getElementById("phone").value.trim();
+    const address = document.getElementById("address")?.value.trim() || "";
     
-    if (!name || !phone) {
-      toast("❌ Please enter your name and phone number");
+    console.log("Form values:", { name, phone, address, OT });
+    
+    if (!name) {
+      toast("❌ Please enter your name");
+      document.getElementById("name").focus();
       return;
     }
     
-    if (OT === "Delivery" && !document.getElementById("address").value.trim()) {
+    if (!phone) {
+      toast("❌ Please enter your phone number");
+      document.getElementById("phone").focus();
+      return;
+    }
+    
+    if (OT === "Delivery" && !address) {
       toast("📍 Please enter your delivery address");
+      document.getElementById("address")?.focus();
       return;
     }
 
+    // THIRD: Capture location for delivery
     let locationData = null;
-    
-    // Capture location ONLY for delivery orders
     if (OT === "Delivery") {
       try {
         locationData = await captureCustomerLocation();
@@ -958,7 +980,7 @@
       }
     }
 
-    // SAVE TO FIREBASE FIRST
+    // FOURTH: Save to Firebase
     toast("💾 Saving order to database...");
     const saved = await saveOrderToRTDB(locationData);
     
@@ -967,13 +989,17 @@
       return;
     }
 
-    // Generate WhatsApp message
+    // FIFTH: Generate and send WhatsApp message
     const waMessage = generateWhatsAppMessage();
+    
+    if (!waMessage) {
+      toast("❌ Failed to generate message");
+      return;
+    }
+    
     const waLink = `https://wa.me/${PH}?text=${waMessage}`;
+    console.log("Opening WhatsApp:", waLink);
     
-    console.log("Opening WhatsApp with link:", waLink);
-    
-    // Open WhatsApp
     window.open(waLink, '_blank');
     toast("✅ Order saved! Opening WhatsApp...");
     
@@ -1174,7 +1200,6 @@
         trackMap.setView([custLat, custLng], 14);
       }
       
-      // Listen for rider location updates
       const orderRef = rtdb.ref('orders/' + orderId);
       orderRef.on('value', (snap) => {
         const updatedOrder = snap.val();
