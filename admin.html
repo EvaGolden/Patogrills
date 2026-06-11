@@ -11,10 +11,10 @@
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: 'DM Sans', sans-serif; background: #f5f5f5; }
+        body { font-family: 'DM Sans', sans-serif; background: #f5f5f5; overflow-x: hidden; }
 
-        /* Login Modal */
-        .login-modal {
+        /* Access Denied / Login Required Screen */
+        .access-denied {
             display: flex;
             position: fixed;
             top: 0;
@@ -28,8 +28,8 @@
             justify-content: center;
             padding: 20px;
         }
-        .login-modal.hidden { display: none; }
-        .login-modal-content {
+        .access-denied.hidden { display: none; }
+        .denied-content {
             background: white;
             border-radius: 32px;
             width: 100%;
@@ -37,14 +37,14 @@
             padding: 40px 32px;
             text-align: center;
         }
-        .login-modal h2 {
+        .denied-content h2 {
             font-family: 'Bebas Neue', cursive;
             font-size: 2rem;
             color: #f2622e;
             margin-bottom: 10px;
         }
-        .login-modal p { color: #666; margin-bottom: 25px; font-size: 0.85rem; }
-        .login-modal input {
+        .denied-content p { color: #666; margin-bottom: 25px; }
+        .denied-content input {
             width: 100%;
             padding: 14px 16px;
             margin-bottom: 16px;
@@ -52,8 +52,8 @@
             border-radius: 16px;
             font-size: 1rem;
         }
-        .login-modal input:focus { border-color: #f2622e; outline: none; }
-        .login-modal button {
+        .denied-content input:focus { border-color: #f2622e; outline: none; }
+        .denied-content button {
             width: 100%;
             padding: 14px;
             background: #f2622e;
@@ -64,8 +64,8 @@
             font-size: 1.3rem;
             cursor: pointer;
         }
-        .login-modal button:hover { background: #c84318; }
-        .login-error { color: #ef4444; font-size: 0.85rem; margin-bottom: 16px; display: none; }
+        .denied-content button:hover { background: #c84318; }
+        .error-msg { color: #ef4444; font-size: 0.85rem; margin-bottom: 16px; display: none; }
 
         /* Admin Container */
         .admin-container { display: flex; min-height: 100vh; }
@@ -92,7 +92,11 @@
             color: white;
             text-align: center;
         }
-        .sidebar-header h2 { font-family: 'Bebas Neue', cursive; font-size: 1.8rem; letter-spacing: 2px; }
+        .sidebar-header h2 {
+            font-family: 'Bebas Neue', cursive;
+            font-size: 1.8rem;
+            letter-spacing: 2px;
+        }
         .sidebar-nav { padding: 20px 0; }
         .nav-item {
             display: flex;
@@ -131,7 +135,11 @@
             border-radius: 10px;
             cursor: pointer;
         }
-        .top-bar h1 { font-family: 'Bebas Neue', cursive; color: #f2622e; font-size: 1.8rem; }
+        .top-bar h1 {
+            font-family: 'Bebas Neue', cursive;
+            color: #f2622e;
+            font-size: 1.8rem;
+        }
         .logout-btn {
             background: #ef4444;
             color: white;
@@ -159,9 +167,15 @@
             padding: 20px;
             text-align: center;
             border-left: 4px solid #f2622e;
+            transition: transform 0.2s, box-shadow 0.2s;
         }
-        .stat-number { font-family: 'Bebas Neue', cursive; font-size: 2.5rem; color: #f2622e; }
-        .stat-label { font-size: 0.8rem; color: #666; margin-top: 5px; text-transform: uppercase; }
+        .stat-card:hover { transform: translateY(-3px); box-shadow: 0 8px 20px rgba(0,0,0,0.1); }
+        .stat-number {
+            font-family: 'Bebas Neue', cursive;
+            font-size: 2.5rem;
+            color: #f2622e;
+        }
+        .stat-label { font-size: 0.8rem; color: #666; margin-top: 5px; text-transform: uppercase; letter-spacing: 0.5px; }
 
         /* Menu Editor */
         .menu-editor-list { display: flex; flex-direction: column; gap: 15px; }
@@ -174,14 +188,15 @@
             gap: 15px;
             align-items: center;
         }
-        .menu-item-edit img { width: 60px; height: 60px; border-radius: 10px; object-fit: cover; }
+        .menu-item-edit img { width: 60px; height: 60px; border-radius: 10px; object-fit: cover; background: #fef0e6; }
         .edit-fields { flex: 1; display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
         .edit-fields input, .edit-fields textarea {
             padding: 8px 12px;
             border: 1px solid #ddd;
             border-radius: 8px;
+            font-family: 'DM Sans', sans-serif;
         }
-        .edit-fields textarea { width: 200px; }
+        .edit-fields textarea { width: 200px; resize: vertical; }
         .edit-fields input { width: 100px; }
         .save-btn {
             background: #f2622e;
@@ -190,9 +205,11 @@
             padding: 8px 20px;
             border-radius: 8px;
             cursor: pointer;
+            transition: background 0.2s;
         }
+        .save-btn:hover { background: #c84318; }
 
-        /* Orders List - Enhanced Visual Feedback */
+        /* Orders */
         .orders-list { display: flex; flex-direction: column; gap: 15px; }
         .order-card {
             background: white;
@@ -203,122 +220,38 @@
             justify-content: space-between;
             align-items: center;
             gap: 15px;
-            transition: all 0.3s ease;
-            border-left: 4px solid #f2622e;
+            transition: all 0.2s;
         }
-        
-        /* Pending order style */
-        .order-card.pending {
-            background: white;
-            border-left: 4px solid #f2622e;
-        }
-        
-        /* Ready order style - Green theme */
-        .order-card.ready {
-            background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%);
-            border-left: 4px solid #22c55e;
-            animation: pulseGreen 0.5s ease;
-        }
-        
-        @keyframes pulseGreen {
-            0% { transform: scale(1); background: #f0fdf4; }
-            50% { transform: scale(1.01); background: #bbf7d0; }
-            100% { transform: scale(1); background: #f0fdf4; }
-        }
-        
-        /* Just marked (temporary animation) */
-        .order-card.just-marked {
-            animation: highlightFlash 0.6s ease;
-        }
-        
-        @keyframes highlightFlash {
-            0% { background: #fef3c7; transform: scale(1); }
-            50% { background: #fde68a; transform: scale(1.02); }
-            100% { background: #f0fdf4; transform: scale(1); }
-        }
-        
+        .order-card.ready { background: #f0fdf4; border-left: 4px solid #22c55e; }
         .order-info { flex: 1; }
         .order-id {
             font-family: 'Bebas Neue', cursive;
             font-size: 1.2rem;
             color: #f2622e;
-            margin-bottom: 5px;
         }
-        
-        /* Ready order ID color */
-        .order-card.ready .order-id {
-            color: #059669;
-        }
-        
-        .order-details {
-            font-size: 0.85rem;
-            color: #666;
-            line-height: 1.5;
-        }
-        
+        .order-details { font-size: 0.85rem; color: #555; margin: 5px 0; }
         .order-status {
-            display: inline-flex;
-            align-items: center;
-            gap: 5px;
-            padding: 4px 12px;
+            display: inline-block;
+            padding: 3px 12px;
             border-radius: 20px;
             font-size: 0.7rem;
             font-weight: 600;
-            margin-top: 8px;
+            margin-top: 5px;
         }
-        
-        /* Pending status badge */
-        .status-pending {
-            background: #fef3c7;
-            color: #d97706;
-        }
-        
-        /* Ready status badge */
-        .status-ready {
-            background: #22c55e;
-            color: white;
-        }
-        
+        .status-pending { background: #fef3c7; color: #d97706; }
+        .status-ready { background: #d1fae5; color: #059669; }
         .ready-btn {
             background: #22c55e;
             color: white;
             border: none;
-            padding: 10px 24px;
-            border-radius: 10px;
+            padding: 8px 20px;
+            border-radius: 8px;
             cursor: pointer;
             font-weight: 600;
-            transition: all 0.2s ease;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            font-size: 0.85rem;
+            transition: background 0.2s;
         }
-        
-        .ready-btn:hover:not(:disabled) {
-            background: #16a34a;
-            transform: scale(1.02);
-        }
-        
-        .ready-btn:disabled {
-            background: #9ca3af;
-            cursor: not-allowed;
-            opacity: 0.7;
-        }
-        
-        /* Loading animation for button */
-        .ready-btn.loading {
-            background: #f59e0b;
-            pointer-events: none;
-        }
-        
-        .ready-btn.loading i {
-            animation: spin 1s linear infinite;
-        }
-        
-        @keyframes spin {
-            from { transform: rotate(0deg); }
-            to { transform: rotate(360deg); }
-        }
+        .ready-btn:hover { background: #16a34a; }
+        .ready-btn:disabled { background: #9ca3af; cursor: not-allowed; }
 
         /* Popular Items */
         .popular-items { display: flex; flex-wrap: wrap; gap: 10px; }
@@ -328,6 +261,7 @@
             padding: 10px 20px;
             color: #f2622e;
             font-weight: 600;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.05);
         }
         .clean-btn {
             background: #ef4444;
@@ -336,7 +270,10 @@
             padding: 12px 30px;
             border-radius: 10px;
             cursor: pointer;
+            font-weight: 600;
+            transition: background 0.2s;
         }
+        .clean-btn:hover { background: #dc2626; }
         .overlay {
             display: none;
             position: fixed;
@@ -358,49 +295,34 @@
             border-radius: 10px;
             z-index: 2000;
             display: none;
-            animation: slideIn 0.3s ease;
+            font-size: 0.9rem;
         }
         .toast.show { display: block; }
-        @keyframes slideIn {
-            from { transform: translateX(100%); opacity: 0; }
-            to { transform: translateX(0); opacity: 1; }
-        }
-        
-        /* Confetti effect container */
-        .confetti {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            pointer-events: none;
-            z-index: 9999;
-        }
-        
         @media (max-width: 768px) {
             .sidebar { width: 260px; }
             .edit-fields { flex-direction: column; align-items: stretch; }
             .edit-fields input, .edit-fields textarea { width: 100%; }
             .stats-grid { grid-template-columns: 1fr; }
-            .order-card { flex-direction: column; text-align: center; }
-            .ready-btn { width: 100%; justify-content: center; }
         }
     </style>
 </head>
 <body>
 
-<!-- LOGIN MODAL -->
-<div id="loginModal" class="login-modal">
-    <div class="login-modal-content">
-        <h2><i class="fas fa-crown"></i> PATOGRILLS ADMIN</h2>
-        <p>Enter Admin Password</p>
-        <input type="password" id="adminPassword" placeholder="Password">
-        <div id="loginError" class="login-error"></div>
+<!-- ACCESS DENIED / LOGIN REQUIRED SCREEN (shown if no valid session) -->
+<div id="accessDenied" class="access-denied">
+    <div class="denied-content">
+        <h2><i class="fas fa-lock"></i> Access Denied</h2>
+        <p>Please login with your admin password</p>
+        <input type="password" id="loginPassword" placeholder="Enter admin password">
+        <div id="loginError" class="error-msg"></div>
         <button id="loginBtn"><i class="fas fa-sign-in-alt"></i> LOGIN</button>
+        <p style="margin-top: 20px; font-size: 0.7rem; color: #999;">
+            🔐 Default password: <strong>admin123</strong> (change after login)
+        </p>
     </div>
 </div>
 
-<!-- MAIN ADMIN PANEL -->
+<!-- MAIN ADMIN PANEL (hidden until login) -->
 <div id="adminPanel" class="admin-container hidden">
     <div class="sidebar" id="sidebar">
         <div class="sidebar-header">
@@ -432,7 +354,7 @@
                     <div class="stat-card"><div class="stat-number">-</div><div class="stat-label">This Week</div></div>
                     <div class="stat-card"><div class="stat-number">-</div><div class="stat-label">This Month</div></div>
                     <div class="stat-card"><div class="stat-number">-</div><div class="stat-label">Total Deliveries</div></div>
-                    <div class="stat-card"><div class="stat-number">-</div><div class="stat-label">Visitors</div></div>
+                    <div class="stat-card"><div class="stat-number">-</div><div class="stat-label">Total Visitors</div></div>
                     <div class="stat-card"><div class="stat-number">-</div><div class="stat-label">All Orders</div></div>
                     <div class="stat-card"><div class="stat-number">-</div><div class="stat-label">Total Revenue</div></div>
                 </div>
@@ -441,8 +363,9 @@
             <div class="panel" id="ordersPanel"><div id="ordersList" class="orders-list">Loading orders...</div></div>
             <div class="panel" id="popularPanel"><div id="popularList" class="popular-items">Calculating...</div></div>
             <div class="panel" id="housekeepingPanel">
-                <button class="clean-btn" id="cleanOrdersBtn"><i class="fas fa-trash-alt"></i> Clean Old Orders (>24 hours)</button>
-                <p style="margin-top: 20px; color: #666; font-size: 0.85rem;">This will permanently delete all orders older than 24 hours.</p>
+                <button class="clean-btn" id="cleanOrdersBtn"><i class="fas fa-trash-alt"></i> Clean Old Orders (&gt;24 hours)</button>
+                <button class="clean-btn" id="resetVisitorsBtn" style="background:#3b82f6; margin-top:15px;"><i class="fas fa-chart-simple"></i> Reset Visitor Counter</button>
+                <p style="margin-top: 20px; color: #666; font-size: 0.85rem;">⚠️ Cleaning old orders will permanently delete all orders older than 24 hours. Resetting visitor counter will set it back to 0.</p>
             </div>
         </div>
     </div>
@@ -465,16 +388,16 @@
     firebase.initializeApp(firebaseConfig);
     const rtdb = firebase.database();
 
-    // ==================== PASSWORD ====================
-    const CORRECT_PASSWORD = "PatogrillsAdmin2024";
+    // ==================== AUTHENTICATION ====================
+    // Default password: admin123 (stored as base64)
+    const DEFAULT_AUTH = btoa('admin123');
     
-    function checkPassword(input) {
-        return input === CORRECT_PASSWORD;
+    function isAuthenticated() {
+        return localStorage.getItem('adminAuth') !== null;
     }
     
-    // ==================== AUTHENTICATION ====================
     function login() {
-        const password = document.getElementById('adminPassword').value;
+        const password = document.getElementById('loginPassword').value;
         const errorDiv = document.getElementById('loginError');
         errorDiv.style.display = 'none';
         
@@ -484,38 +407,44 @@
             return;
         }
         
-        if (checkPassword(password)) {
+        const enteredAuth = btoa(password);
+        const storedAuth = localStorage.getItem('adminAuth') || DEFAULT_AUTH;
+        
+        if (storedAuth === enteredAuth) {
             sessionStorage.setItem('adminLoggedIn', 'true');
-            document.getElementById('loginModal').classList.add('hidden');
+            document.getElementById('accessDenied').classList.add('hidden');
             document.getElementById('adminPanel').classList.remove('hidden');
-            document.getElementById('adminPassword').value = '';
+            document.getElementById('loginPassword').value = '';
             loadAllData();
             toast('✅ Login successful!');
         } else {
-            errorDiv.textContent = '❌ Incorrect password';
+            errorDiv.textContent = '❌ Incorrect password. Please try again.';
             errorDiv.style.display = 'block';
         }
     }
     
     function logout() {
         sessionStorage.removeItem('adminLoggedIn');
-        document.getElementById('loginModal').classList.remove('hidden');
+        document.getElementById('accessDenied').classList.remove('hidden');
         document.getElementById('adminPanel').classList.add('hidden');
         toast('Logged out successfully');
     }
     
-    if (sessionStorage.getItem('adminLoggedIn') === 'true') {
-        document.getElementById('loginModal').classList.add('hidden');
+    // Check authentication on page load
+    if (sessionStorage.getItem('adminLoggedIn') === 'true' && isAuthenticated()) {
+        document.getElementById('accessDenied').classList.add('hidden');
         document.getElementById('adminPanel').classList.remove('hidden');
         loadAllData();
     }
     
+    // Event listeners
     document.getElementById('loginBtn').addEventListener('click', login);
     document.getElementById('logoutBtn').addEventListener('click', logout);
-    document.getElementById('adminPassword').addEventListener('keypress', (e) => {
+    document.getElementById('loginPassword').addEventListener('keypress', (e) => {
         if (e.key === 'Enter') login();
     });
     
+    // Helper functions
     function toast(message) {
         const toastEl = document.getElementById('toast');
         toastEl.textContent = message;
@@ -524,37 +453,6 @@
     }
     
     const formatMoney = (n) => '₦' + n.toLocaleString();
-    
-    // ==================== CONFETTI EFFECT ====================
-    function showConfetti() {
-        const colors = ['#22c55e', '#f2622e', '#ff9142', '#16a34a', '#fbbf24'];
-        for (let i = 0; i < 100; i++) {
-            const confetti = document.createElement('div');
-            confetti.style.position = 'fixed';
-            confetti.style.left = Math.random() * 100 + '%';
-            confetti.style.top = '-10px';
-            confetti.style.width = Math.random() * 8 + 4 + 'px';
-            confetti.style.height = Math.random() * 8 + 4 + 'px';
-            confetti.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
-            confetti.style.borderRadius = '50%';
-            confetti.style.pointerEvents = 'none';
-            confetti.style.zIndex = '9999';
-            confetti.style.animation = `confettiFall ${Math.random() * 2 + 1}s linear forwards`;
-            document.body.appendChild(confetti);
-            
-            setTimeout(() => confetti.remove(), 3000);
-        }
-    }
-    
-    // Add confetti animation style
-    const style = document.createElement('style');
-    style.textContent = `
-        @keyframes confettiFall {
-            0% { transform: translateY(0) rotate(0deg); opacity: 1; }
-            100% { transform: translateY(100vh) rotate(720deg); opacity: 0; }
-        }
-    `;
-    document.head.appendChild(style);
     
     // ==================== LOAD ALL DATA ====================
     let menuItems = [];
@@ -601,9 +499,9 @@
                 <img src="${item.img}" onerror="this.src='https://placehold.co/100/fef0e6/f2622e?text=🔥'">
                 <div class="edit-fields">
                     <strong>${item.name}</strong>
-                    <textarea id="desc_${item.id}" rows="2">${item.desc}</textarea>
-                    <input type="number" id="price_${item.id}" value="${item.price}" step="100">
-                    <input type="number" id="stock_${item.id}" value="${item.stock}">
+                    <textarea id="desc_${item.id}" rows="2" placeholder="Description">${item.desc || ''}</textarea>
+                    <input type="number" id="price_${item.id}" value="${item.price}" step="100" placeholder="Price">
+                    <input type="number" id="stock_${item.id}" value="${item.stock || 99}" placeholder="Stock">
                     <button class="save-btn" onclick="saveMenuItem(${item.id})">SAVE</button>
                 </div>
             </div>
@@ -623,69 +521,92 @@
         await loadMenu();
     };
     
-    // ==================== DASHBOARD ====================
+    // ==================== DASHBOARD WITH VISITOR COUNT ====================
     async function updateDashboard() {
         const snapshot = await rtdb.ref('orders').once('value');
         const orders = snapshot.val() || {};
         const now = Date.now();
         const ordersArray = Object.values(orders);
-        const last24h = ordersArray.filter(o => o.timestamp > now - 86400000).length;
-        const startWeek = new Date();
-        startWeek.setDate(startWeek.getDate() - startWeek.getDay());
-        const thisWeek = ordersArray.filter(o => o.timestamp > startWeek.getTime()).length;
-        const startMonth = new Date();
-        startMonth.setDate(1);
-        const thisMonth = ordersArray.filter(o => o.timestamp > startMonth.getTime()).length;
+        
+        // Calculate time-based stats
+        const last24h = ordersArray.filter(o => o.timestamp && o.timestamp > now - 86400000).length;
+        
+        const startOfWeek = new Date();
+        startOfWeek.setDate(startOfWeek.getDate() - startOfWeek.getDay());
+        startOfWeek.setHours(0, 0, 0, 0);
+        const thisWeek = ordersArray.filter(o => o.timestamp && o.timestamp > startOfWeek.getTime()).length;
+        
+        const startOfMonth = new Date();
+        startOfMonth.setDate(1);
+        startOfMonth.setHours(0, 0, 0, 0);
+        const thisMonth = ordersArray.filter(o => o.timestamp && o.timestamp > startOfMonth.getTime()).length;
+        
         const totalDeliveries = ordersArray.filter(o => o.orderType === 'Delivery').length;
         const totalOrders = ordersArray.length;
         const totalRevenue = ordersArray.reduce((sum, o) => sum + (o.total || 0), 0);
-        let visitorCount = (await rtdb.ref('visitors/count').once('value')).val() || 0;
+        
+        // Get visitor count from Firebase (tracked by the main site)
+        let visitorCount = 0;
+        try {
+            const visitorSnap = await rtdb.ref('visitors/count').once('value');
+            visitorCount = visitorSnap.val() || 0;
+        } catch(e) { console.warn("Visitor count read error:", e); }
+        
+        // Also check for 'pageVisits' as fallback
+        if (visitorCount === 0) {
+            try {
+                const visitSnap = await rtdb.ref('pageVisits').once('value');
+                visitorCount = visitSnap.val() || 0;
+            } catch(e) {}
+        }
         
         document.getElementById('statsContainer').innerHTML = `
-            <div class="stat-card"><div class="stat-number">${last24h}</div><div class="stat-label">LAST 24h</div></div>
+            <div class="stat-card"><div class="stat-number">${last24h}</div><div class="stat-label">LAST 24 HOURS</div></div>
             <div class="stat-card"><div class="stat-number">${thisWeek}</div><div class="stat-label">THIS WEEK</div></div>
             <div class="stat-card"><div class="stat-number">${thisMonth}</div><div class="stat-label">THIS MONTH</div></div>
-            <div class="stat-card"><div class="stat-number">${totalDeliveries}</div><div class="stat-label">DELIVERIES</div></div>
-            <div class="stat-card"><div class="stat-number">${visitorCount}</div><div class="stat-label">VISITORS</div></div>
+            <div class="stat-card"><div class="stat-number">${totalDeliveries}</div><div class="stat-label">TOTAL DELIVERIES</div></div>
+            <div class="stat-card"><div class="stat-number">${visitorCount}</div><div class="stat-label">👥 TOTAL VISITORS</div></div>
             <div class="stat-card"><div class="stat-number">${totalOrders}</div><div class="stat-label">ALL ORDERS</div></div>
-            <div class="stat-card"><div class="stat-number">${formatMoney(totalRevenue)}</div><div class="stat-label">REVENUE</div></div>
+            <div class="stat-card"><div class="stat-number">${formatMoney(totalRevenue)}</div><div class="stat-label">TOTAL REVENUE</div></div>
         `;
     }
     
-    // ==================== ORDERS WITH ENHANCED VISUAL FEEDBACK ====================
+    // Reset visitor counter
+    async function resetVisitorCounter() {
+        if (!confirm('⚠️ Reset visitor counter to 0? This action cannot be undone.')) return;
+        try {
+            await rtdb.ref('visitors/count').set(0);
+            await rtdb.ref('pageVisits').set(0);
+            toast('✅ Visitor counter reset to 0');
+            await updateDashboard();
+        } catch(e) {
+            toast('❌ Failed to reset counter');
+            console.error(e);
+        }
+    }
+    
+    // ==================== ORDERS ====================
     async function renderOrders() {
-        const snapshot = await rtdb.ref('orders').orderByKey().limitToLast(20).once('value');
+        const snapshot = await rtdb.ref('orders').orderByKey().limitToLast(30).once('value');
         const orders = snapshot.val();
-        if (!orders) {
-            document.getElementById('ordersList').innerHTML = '<div style="text-align:center; padding:40px;">No orders yet.</div>';
+        if (!orders || Object.keys(orders).length === 0) {
+            document.getElementById('ordersList').innerHTML = '<div style="text-align:center; padding:40px; background:white; border-radius:15px;">📭 No orders yet. Customers will appear here.</div>';
             return;
         }
         let html = '';
-        for (let [key, order] of Object.entries(orders).reverse()) {
-            const isReady = order.readyForPickup === true;
-            const cardClass = isReady ? 'ready' : 'pending';
-            const statusText = isReady ? '✅ MEAL READY' : '⏳ PENDING';
-            const statusClass = isReady ? 'status-ready' : 'status-pending';
-            const buttonText = isReady ? '✓ MEAL READY' : '🍽️ MARK AS READY';
-            const buttonIcon = isReady ? 'fa-check-circle' : 'fa-utensils';
-            
+        const orderKeys = Object.keys(orders).reverse();
+        for (let key of orderKeys) {
+            const order = orders[key];
+            const isReady = order.readyForPickup === true || order.status === 'meal_ready';
             html += `
-                <div class="order-card ${cardClass}" data-order-id="${order.orderId}" data-order-key="${key}">
+                <div class="order-card ${isReady ? 'ready' : ''}">
                     <div class="order-info">
-                        <div class="order-id">📋 ${order.orderId}</div>
-                        <div class="order-details">
-                            👤 <strong>${order.customerName}</strong><br>
-                            📞 ${order.phone}<br>
-                            📦 ${order.orderType} | 💰 ${formatMoney(order.total)}<br>
-                            ${order.address ? `📍 ${order.address.substring(0, 60)}...<br>` : ''}
-                            📝 Notes: ${order.notes || 'None'}
-                        </div>
-                        <span class="order-status ${statusClass}">
-                            ${isReady ? '<i class="fas fa-check-circle"></i>' : '<i class="fas fa-clock"></i>'} ${statusText}
-                        </span>
+                        <div class="order-id">${order.orderId || key}</div>
+                        <div class="order-details">👤 ${order.customerName || '—'} | ${order.orderType || 'Pickup'} | ${formatMoney(order.total || 0)}<br>📞 ${order.phone || '—'} ${order.address ? `| 📍 ${order.address.substring(0, 40)}` : ''}</div>
+                        <span class="order-status ${isReady ? 'status-ready' : 'status-pending'}">${isReady ? '✅ MEAL READY' : '⏳ PENDING'}</span>
                     </div>
                     <button class="ready-btn" onclick="markAsReady('${key}')" ${isReady ? 'disabled' : ''}>
-                        <i class="fas ${buttonIcon}"></i> ${buttonText}
+                        <i class="fas fa-check-circle"></i> ${isReady ? 'READY' : 'MARK READY'}
                     </button>
                 </div>
             `;
@@ -694,100 +615,19 @@
     }
     
     window.markAsReady = async (orderKey) => {
-        const orderCard = document.querySelector(`.order-card[data-order-key="${orderKey}"]`);
-        const button = orderCard?.querySelector('.ready-btn');
-        
-        // Show loading state on button
-        if (button) {
-            button.classList.add('loading');
-            button.innerHTML = '<i class="fas fa-spinner"></i> PROCESSING...';
-        }
-        
         const orderSnap = await rtdb.ref('orders/' + orderKey).once('value');
         const order = orderSnap.val();
-        
-        if (!order) {
-            toast('❌ Order not found');
-            if (button) {
-                button.classList.remove('loading');
-                button.innerHTML = '<i class="fas fa-utensils"></i> MARK AS READY';
-            }
+        if (!order || order.readyForPickup) {
+            toast('⚠️ Order not found or already ready');
             return;
         }
-        
-        if (order.readyForPickup) {
-            toast('⚠️ Order already marked as ready');
-            if (button) {
-                button.classList.remove('loading');
-                button.innerHTML = '<i class="fas fa-check-circle"></i> MEAL READY';
-                button.disabled = true;
-            }
-            return;
+        await rtdb.ref('orders/' + orderKey).update({ readyForPickup: true, status: 'meal_ready', mealReadyTimestamp: Date.now() });
+        toast(`✅ Order ${order.orderId || orderKey} marked as MEAL READY!`);
+        if (Notification.permission === 'granted') {
+            new Notification('🍽️ Meal Ready - ' + (order.orderId || orderKey), { body: `${order.customerName || 'Customer'}, your order is ready for pickup!`, icon: 'logo.png' });
         }
-        
-        try {
-            await rtdb.ref('orders/' + orderKey).update({ 
-                readyForPickup: true, 
-                status: 'meal_ready', 
-                mealReadyTimestamp: Date.now(),
-                markedBy: 'admin'
-            });
-            
-            // Show success feedback
-            toast(`✅ Order ${order.orderId} marked as MEAL READY!`);
-            
-            // Show confetti effect
-            showConfetti();
-            
-            // Update the card with animation
-            if (orderCard) {
-                // Add just-marked class for flash animation
-                orderCard.classList.add('just-marked');
-                orderCard.classList.remove('pending');
-                orderCard.classList.add('ready');
-                
-                // Update status badge
-                const statusSpan = orderCard.querySelector('.order-status');
-                if (statusSpan) {
-                    statusSpan.className = 'order-status status-ready';
-                    statusSpan.innerHTML = '<i class="fas fa-check-circle"></i> ✅ MEAL READY';
-                }
-                
-                // Update order ID color (already handled by CSS)
-                
-                // Update button
-                if (button) {
-                    button.classList.remove('loading');
-                    button.disabled = true;
-                    button.innerHTML = '<i class="fas fa-check-circle"></i> ✓ MEAL READY';
-                }
-                
-                // Remove animation class after animation ends
-                setTimeout(() => {
-                    orderCard.classList.remove('just-marked');
-                }, 600);
-            }
-            
-            // Send notification if granted
-            if (Notification.permission === 'granted') {
-                new Notification('🍽️ Meal Ready - ' + order.orderId, { 
-                    body: `${order.customerName}, your order is ready for ${order.orderType === 'Delivery' ? 'delivery' : 'pickup'}!`, 
-                    icon: 'logo.png',
-                    tag: order.orderId
-                });
-            }
-            
-            // Update dashboard stats
-            await updateDashboard();
-            
-        } catch (error) {
-            console.error('Error marking order as ready:', error);
-            toast('❌ Error marking order. Please try again.');
-            if (button) {
-                button.classList.remove('loading');
-                button.innerHTML = '<i class="fas fa-utensils"></i> MARK AS READY';
-            }
-        }
+        await renderOrders();
+        await updateDashboard();
     };
     
     // ==================== POPULAR ITEMS ====================
@@ -796,23 +636,25 @@
         const orders = snapshot.val() || {};
         const itemCount = {};
         for (let order of Object.values(orders)) {
-            if (order.items) {
+            if (order.items && Array.isArray(order.items)) {
                 for (let item of order.items) {
-                    itemCount[item.name] = (itemCount[item.name] || 0) + item.qty;
+                    if (item.name) {
+                        itemCount[item.name] = (itemCount[item.name] || 0) + (item.qty || 1);
+                    }
                 }
             }
         }
         const sorted = Object.entries(itemCount).sort((a, b) => b[1] - a[1]).slice(0, 10);
         if (sorted.length === 0) {
-            document.getElementById('popularList').innerHTML = '<div style="padding:40px; text-align:center;">No orders yet.</div>';
+            document.getElementById('popularList').innerHTML = '<div style="padding:40px; text-align:center; background:white; border-radius:15px;">📊 No items ordered yet. Start selling!</div>';
             return;
         }
-        document.getElementById('popularList').innerHTML = sorted.map(([name, qty]) => `<div class="popular-badge">🔥 ${name} — ordered ${qty} times</div>`).join('');
+        document.getElementById('popularList').innerHTML = sorted.map(([name, qty]) => `<div class="popular-badge">🔥 ${name} — ordered ${qty} time${qty !== 1 ? 's' : ''}</div>`).join('');
     }
     
     // ==================== CLEAN OLD ORDERS ====================
     async function cleanOldOrders() {
-        if (!confirm('⚠️ Delete all orders older than 24 hours?')) return;
+        if (!confirm('⚠️ Delete all orders older than 24 hours? This action is permanent.')) return;
         const cutoff = Date.now() - 86400000;
         const snapshot = await rtdb.ref('orders').once('value');
         const orders = snapshot.val();
@@ -827,6 +669,7 @@
         toast(`🧹 Deleted ${deleted} old order(s)`);
         await updateDashboard();
         await renderOrders();
+        await renderPopularItems();
     }
     
     // ==================== PANEL SWITCHING ====================
@@ -877,8 +720,24 @@
     });
     
     document.getElementById('cleanOrdersBtn').addEventListener('click', cleanOldOrders);
+    const resetBtn = document.getElementById('resetVisitorsBtn');
+    if (resetBtn) resetBtn.addEventListener('click', resetVisitorCounter);
     
+    // Request notification permission
     if (Notification.permission === 'default') Notification.requestPermission();
+    
+    // Auto-refresh dashboard every 15 seconds when visible
+    let refreshInterval = null;
+    function startAutoRefresh() {
+        if (refreshInterval) clearInterval(refreshInterval);
+        refreshInterval = setInterval(() => {
+            const activePanel = document.querySelector('.panel.active');
+            if (activePanel && activePanel.id === 'dashboardPanel') {
+                updateDashboard();
+            }
+        }, 15000);
+    }
+    startAutoRefresh();
 </script>
 </body>
 </html>
