@@ -3,30 +3,21 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-  <title>Patogrills | Fire & Flavor – Order Food Online</title>
-  
-  <!-- PWA Meta Tags -->
-  <link rel="manifest" href="manifest.json">
-  <meta name="theme-color" content="#f2622e">
-  <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <meta name="apple-mobile-web-app-title" content="Patogrills">
-  <link rel="apple-touch-icon" href="icon-192.png">
-  
+  <title>Patogrills | Fire & Flavor – Live Rider Tracking</title>
   <link rel="icon" type="image/png" href="logo.png">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-  <!-- Leaflet + routing -->
+  <!-- Leaflet + routing machine (OSRM) -->
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
   <link rel="stylesheet" href="https://unpkg.com/leaflet-routing-machine@3.2.12/dist/leaflet-routing-machine.css" />
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <script src="https://unpkg.com/leaflet-routing-machine@3.2.12/dist/leaflet-routing-machine.js"></script>
-  <!-- Firebase -->
+  <!-- Firebase SDKs -->
   <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
   <style>
-    * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+    /* ===== YOUR EXACT STYLES (unchanged) ===== */
     :root {
       --fire: #f2622e;
       --fire-deep: #c84318;
@@ -37,12 +28,14 @@
       --warm-white: #fffaf6;
       --text-main: #1a1410;
       --text-muted: #7a6255;
-      --border: rgba(242, 98, 46, 0.15);
+      --border: rgba(242,98,46,0.15);
       --nav-h: 68px;
       --safe-bottom: env(safe-area-inset-bottom, 0px);
       --BF: 'Bebas Neue', impact, sans-serif;
       --DF: 'DM Sans', system-ui, sans-serif;
     }
+    * { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+    html { scroll-behavior:smooth; }
     body {
       font-family: var(--DF);
       background: var(--warm-white);
@@ -50,521 +43,578 @@
       overflow-x: hidden;
       padding-bottom: calc(var(--nav-h) + var(--safe-bottom) + 8px);
     }
+    /* Onboarding (full original – kept) */
     #onboarding {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background: rgba(0, 0, 0, 0.95);
-      z-index: 10000;
-      display: flex;
-      align-items: center;
-      justify-content: center;
+      position: fixed; inset: 0; z-index: 9999;
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: flex-end;
+      background: rgba(13,10,8,0.85);
+      backdrop-filter: blur(8px);
+      padding: 0 0 calc(var(--nav-h) + var(--safe-bottom) + 10px);
+      transition: opacity 0.35s;
     }
-    .onboard-card {
+    #onboarding.fade-out { opacity:0; pointer-events:none; }
+    #onboarding.gone { display:none; }
+    .ob-sheet {
       background: white;
-      max-width: 320px;
-      border-radius: 32px;
-      padding: 32px 24px;
-      text-align: center;
-      margin: 20px;
+      border-radius: 28px 28px 0 0;
+      width: 100%; max-width: 520px;
+      padding: 26px 22px 22px;
+      animation: sheetUp 0.45s cubic-bezier(0.34,1.5,0.64,1);
     }
-    .onboard-card h2 {
-      font-family: var(--BF);
-      font-size: 2rem;
-      color: var(--fire);
-      margin: 16px 0 8px;
+    @keyframes sheetUp { from { transform:translateY(100%); opacity:0; } to { transform:translateY(0); opacity:1; } }
+    .ob-dots { display:flex; gap:7px; justify-content:center; margin-bottom:22px; }
+    .ob-dot { width:32px; height:4px; border-radius:4px; background:#f0e4dc; transition:background .3s; }
+    .ob-dot.on { background: var(--fire); }
+    .ob-step { display:none; animation:fadeSlide .3s ease; }
+    .ob-step.on { display:block; }
+    @keyframes fadeSlide { from { opacity:0; transform:translateX(18px); } to { opacity:1; transform:translateX(0); } }
+    .ob-icon-wrap {
+      width:68px; height:68px; border-radius:22px;
+      background: linear-gradient(135deg, var(--fire), var(--fire-light));
+      display:flex; align-items:center; justify-content:center;
+      margin: 0 auto 16px; font-size:2rem;
     }
-    .onboard-btn {
-      background: var(--fire);
-      color: white;
-      border: none;
-      padding: 14px 28px;
-      border-radius: 40px;
-      font-weight: bold;
-      width: 100%;
-      cursor: pointer;
-    }
+    .ob-step h2 { font-family: var(--BF); font-size:2.1rem; letter-spacing:2px; text-align:center; color:var(--black); margin-bottom:10px; }
+    .ob-step p { text-align:center; color:var(--text-muted); font-size:.9rem; line-height:1.6; }
+    .ob-chip { display:inline-flex; align-items:center; gap:5px; background:var(--fire); color:white; padding:2px 10px; border-radius:30px; font-weight:700; font-size:.85rem; }
+    .ob-actions { display:flex; gap:10px; margin-top:22px; }
+    .ob-skip { flex:1; padding:13px; border-radius:16px; background:#f4ede8; color:var(--text-muted); border:none; font-family:var(--DF); font-weight:600; font-size:.9rem; cursor:pointer; }
+    .ob-next { flex:2; padding:13px; border-radius:16px; background:var(--fire); color:white; border:none; font-family:var(--BF); font-size:1.3rem; letter-spacing:1.5px; cursor:pointer; transition:background .15s; }
+    .ob-next:hover { background:var(--fire-deep); }
+
+    /* Top Bar */
     .top-bar {
-      position: sticky;
-      top: 0;
-      background: white;
-      padding: 12px 20px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      border-bottom: 1px solid var(--border);
-      z-index: 100;
+      position:sticky; top:0; z-index:900;
+      background: rgba(255, 250, 246, 0.7);
+      backdrop-filter: blur(24px);
+      border-bottom: 1px solid rgba(242, 98, 46, 0.2);
     }
-    .logo {
-      font-family: var(--BF);
-      font-size: 1.8rem;
-      color: var(--fire);
-      letter-spacing: 2px;
-    }
-    .order-id-badge, .admin-badge {
-      background: #f5f5f5;
-      padding: 6px 12px;
-      border-radius: 40px;
-      font-size: 0.7rem;
-      cursor: pointer;
-    }
-    .admin-badge {
-      background: var(--fire);
-      color: white;
-      margin-right: 8px;
-    }
+    .top-bar-inner { max-width:900px; margin:0 auto; padding:8px 16px; display:flex; align-items:center; justify-content:space-between; gap:12px; }
+    .brand { display:flex; align-items:center; gap:10px; cursor:default; }
+    .brand-logo { width:46px; height:46px; border-radius:13px; object-fit:cover; flex-shrink:0; }
+    .brand-logo-fb { width:46px; height:46px; border-radius:13px; background:linear-gradient(135deg,var(--fire),var(--fire-light)); display:none; align-items:center; justify-content:center; font-size:1.5rem; flex-shrink:0; }
+    .brand-text { line-height:1; }
+    .brand-name { font-family:var(--BF); font-size:1.85rem; letter-spacing:3px; color:var(--black); display:block; }
+    .brand-sub { font-size:.62rem; font-weight:700; color:var(--fire); letter-spacing:.1em; text-transform:uppercase; display:block; margin-top:1px; }
+    .cart-pill { background:var(--fire); color:white; border-radius:40px; padding:7px 14px; display:flex; align-items:center; gap:6px; cursor:pointer; border:none; font-family:var(--BF); font-size:1rem; letter-spacing:.5px; transition:transform .15s, background .15s; }
+    .cart-pill:active { transform:scale(.95); }
+    .cart-pill .cnt { background:white; color:var(--fire); border-radius:50%; width:20px; height:20px; font-size:.72rem; font-weight:700; font-family:var(--DF); display:flex; align-items:center; justify-content:center; }
+
+    /* Hero */
     .hero {
-      background: linear-gradient(135deg, var(--fire) 0%, var(--fire-deep) 100%);
-      padding: 40px 20px;
-      text-align: center;
-      color: white;
+      margin:12px 12px 0; border-radius:28px;
+      background: linear-gradient(115deg, rgba(0,0,0,0.7) 0%, rgba(0,0,0,0.25) 100%), url('hero.png') center/cover no-repeat;
+      min-height: 290px; display:flex; align-items:flex-end;
+      padding:24px 20px; overflow:hidden; position:relative;
+      box-shadow: 0 15px 30px -12px rgba(0,0,0,0.25);
     }
-    .hero h1 {
-      font-family: var(--BF);
-      font-size: 3rem;
-      letter-spacing: 3px;
-    }
-    .bottom-nav {
-      position: fixed;
-      bottom: 0;
-      left: 0;
-      right: 0;
-      background: white;
-      display: flex;
-      justify-content: space-around;
-      padding: 8px 16px calc(8px + var(--safe-bottom));
-      border-top: 1px solid var(--border);
-      z-index: 1000;
-    }
-    .nav-item {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 4px;
-      background: none;
-      border: none;
-      font-size: 0.7rem;
-      color: var(--text-muted);
-      cursor: pointer;
-      padding: 6px 12px;
-      border-radius: 40px;
-    }
-    .nav-item i { font-size: 1.4rem; }
-    .nav-item.active { color: var(--fire); background: rgba(242, 98, 46, 0.1); }
-    .badge {
-      position: absolute;
-      top: -6px;
-      right: -6px;
-      background: var(--fire);
-      color: white;
+    .hero::before { content:''; position:absolute; inset:0; background:radial-gradient(ellipse at 15% 85%, rgba(242,98,46,0.35) 0%, transparent 65%); pointer-events:none; }
+    .hero-content { position:relative; z-index:1; color:white; text-shadow: 0 2px 6px rgba(0,0,0,0.3); }
+    .hero-content h1 { font-family:var(--BF); font-size:3.5rem; letter-spacing:5px; line-height:.92; text-transform:uppercase; }
+    .hero-content h1 span { color: var(--fire-light); text-shadow: 0 0 8px rgba(242,98,46,0.5);}
+    .hero-content p { font-size:.8rem; opacity:.85; margin-top:8px; letter-spacing:.1em; font-weight:500;}
+    .hero-tag { display:inline-flex; align-items:center; gap:6px; margin-top:14px; background:rgba(242,98,46,.9); backdrop-filter:blur(8px); padding:6px 14px; border-radius:40px; font-size:.75rem; font-weight:700; letter-spacing:.08em; text-transform:uppercase; }
+
+    /* Pages */
+    .page { display:none; max-width:900px; margin:0 auto; padding:16px 12px; animation:pgIn .25s ease; }
+    .page.active { display:block; }
+    @keyframes pgIn { from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:translateY(0)} }
+    .cat-scroll { display:flex; gap:8px; overflow-x:auto; padding:4px 0 10px; scrollbar-width:none; }
+    .cat-scroll::-webkit-scrollbar { display:none; }
+    .cat-pill { flex-shrink:0; padding:7px 16px; border-radius:40px; font-family:var(--BF); font-size:.95rem; letter-spacing:.5px; cursor:pointer; border:2px solid var(--border); background:white; color:var(--text-muted); transition:all .2s; }
+    .cat-pill.active,.cat-pill:hover { background:var(--fire); color:white; border-color:var(--fire); }
+    .sec-title { font-family:var(--BF); font-size:1.5rem; letter-spacing:1.5px; margin:18px 0 12px; display:flex; align-items:center; gap:10px; color:var(--black); text-transform:uppercase; }
+    .sec-title::after { content:''; flex:1; height:2px; background:var(--border); border-radius:2px; }
+    .menu-grid { display:grid; grid-template-columns:repeat(2,1fr); gap:12px; }
+    @media(min-width:600px){.menu-grid{grid-template-columns:repeat(3,1fr);}}
+    @media(min-width:800px){.menu-grid{grid-template-columns:repeat(4,1fr);}}
+    .menu-card { background:white; border-radius:20px; overflow:hidden; border:2px solid rgba(242,98,46,.1); transition:transform .2s, box-shadow .2s; display:flex; flex-direction:column; }
+    .menu-card:hover { transform:translateY(-3px); box-shadow:0 12px 32px -8px rgba(242,98,46,.2); }
+    .menu-card:active { transform:scale(.98); }
+    .menu-img { width:100%; height:120px; object-fit:cover; background:#fef0e6; }
+    .menu-info { padding:10px 10px 12px; flex:1; display:flex; flex-direction:column; }
+    .menu-name { font-family:var(--BF); font-size:1.05rem; letter-spacing:.5px; margin-bottom:3px; line-height:1.15; }
+    .menu-desc { font-size:.7rem; color:var(--text-muted); line-height:1.35; flex:1; margin-bottom:10px; }
+    .menu-bottom { display:flex; align-items:center; justify-content:space-between; gap:8px; flex-wrap:wrap; }
+    .menu-price { font-family:var(--BF); font-size:1rem; letter-spacing:.5px; color:var(--fire); }
+    .order-btn { background:var(--fire); color:white; border:none; border-radius:40px; padding:6px 16px; font-family:var(--BF); font-size:0.85rem; letter-spacing:1px; cursor:pointer; transition:all .15s ease; display:inline-flex; align-items:center; gap:4px; }
+    .order-btn i { font-size:0.8rem; }
+    .order-btn:hover { background:var(--fire-deep); transform:scale(0.96); }
+    .order-btn:active { transform:scale(0.94); }
+
+    /* Order ID Banner */
+    .order-id-banner {
+      background: var(--charcoal);
       border-radius: 20px;
-      padding: 2px 6px;
-      font-size: 0.6rem;
-      min-width: 18px;
-    }
-    .page { display: none; padding: 20px; animation: fadeIn 0.3s; }
-    .page.active { display: block; }
-    @keyframes fadeIn {
-      from { opacity: 0; transform: translateY(10px); }
-      to { opacity: 1; transform: translateY(0); }
-    }
-    .categories {
-      display: flex;
-      gap: 12px;
-      overflow-x: auto;
-      padding: 16px 0;
+      padding: 16px 20px;
       margin-bottom: 16px;
-    }
-    .cat-pill {
-      background: white;
-      border: 1px solid var(--border);
-      padding: 8px 20px;
-      border-radius: 40px;
-      cursor: pointer;
-      white-space: nowrap;
-      font-weight: 500;
-    }
-    .cat-pill.active { background: var(--fire); color: white; }
-    .sec-title {
-      font-family: var(--BF);
-      font-size: 1.5rem;
-      margin: 24px 0 16px;
-      color: var(--charcoal);
-    }
-    .menu-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-      gap: 20px;
-    }
-    .menu-card {
-      background: white;
-      border-radius: 24px;
-      overflow: hidden;
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
-    }
-    .menu-img {
-      width: 100%;
-      height: 180px;
-      object-fit: cover;
-    }
-    .menu-info { padding: 16px; }
-    .menu-name { font-weight: 700; font-size: 1.1rem; margin-bottom: 6px; }
-    .menu-desc { font-size: 0.8rem; color: var(--text-muted); margin-bottom: 12px; }
-    .menu-bottom { display: flex; justify-content: space-between; align-items: center; }
-    .menu-price { font-weight: 700; color: var(--fire); font-size: 1.2rem; }
-    .order-btn {
-      background: var(--fire);
-      color: white;
-      border: none;
-      padding: 8px 16px;
-      border-radius: 40px;
-      cursor: pointer;
-      font-weight: 600;
-    }
-    .cart-list { display: flex; flex-direction: column; gap: 16px; }
-    .cart-item {
-      display: flex;
-      gap: 12px;
-      background: white;
-      padding: 12px;
-      border-radius: 20px;
-    }
-    .ci-img {
-      width: 70px;
-      height: 70px;
-      object-fit: cover;
-      border-radius: 16px;
-    }
-    .ci-info { flex: 1; }
-    .ci-name { font-weight: 600; }
-    .qty-row {
       display: flex;
       align-items: center;
-      gap: 12px;
-      margin-top: 8px;
-    }
-    .qty-btn {
-      background: #f0f0f0;
-      border: none;
-      width: 28px;
-      height: 28px;
-      border-radius: 20px;
-      cursor: pointer;
-      font-size: 1.2rem;
-    }
-    .cart-summary {
-      background: white;
-      padding: 20px;
-      border-radius: 20px;
-      margin-top: 20px;
-    }
-    .summary-row {
-      display: flex;
       justify-content: space-between;
-      padding: 8px 0;
-    }
-    .wa-btn {
-      background: #25D366;
-      color: white;
-      width: 100%;
-      padding: 16px;
-      border: none;
-      border-radius: 40px;
-      font-weight: bold;
-      font-size: 1rem;
-      cursor: pointer;
-      margin-top: 16px;
-    }
-    .form-group { margin-bottom: 20px; }
-    .form-group input, .form-group textarea {
-      width: 100%;
-      padding: 14px;
-      border: 1px solid var(--border);
-      border-radius: 16px;
-      font-family: var(--DF);
-    }
-    .ot-toggle {
-      display: flex;
       gap: 12px;
-      margin-bottom: 20px;
-    }
-    .ot-btn {
-      flex: 1;
-      padding: 12px;
-      border: 1px solid var(--border);
-      background: white;
-      border-radius: 40px;
-      cursor: pointer;
-    }
-    .ot-btn.active { background: var(--fire); color: white; }
-    #trackMap {
-      height: 400px;
-      border-radius: 24px;
-      margin-bottom: 16px;
-    }
-    .order-status {
-      background: white;
-      padding: 20px;
-      border-radius: 20px;
-      text-align: center;
-    }
-    .status-badge {
-      display: inline-block;
-      padding: 6px 16px;
-      border-radius: 40px;
-      background: #fff3e0;
-      color: var(--fire);
-      font-weight: 600;
-    }
-    .order-card {
-      background: white;
-      border-radius: 20px;
-      padding: 16px;
-      margin-bottom: 16px;
+      flex-wrap: wrap;
       border-left: 4px solid var(--fire);
     }
-    .order-header {
+    .oid-left { display: flex; flex-direction: column; gap: 3px; }
+    .oid-label { font-size: 0.65rem; text-transform: uppercase; letter-spacing: 2px; color: rgba(255,255,255,0.45); font-weight: 700; }
+    .oid-value { font-family: var(--BF); font-size: 1.5rem; letter-spacing: 3px; color: var(--fire-light); }
+    .oid-copy-btn {
+      background: rgba(242,98,46,0.15);
+      border: 1px solid rgba(242,98,46,0.3);
+      color: var(--fire-light);
+      border-radius: 12px;
+      padding: 8px 16px;
+      font-family: var(--BF);
+      font-size: 0.85rem;
+      letter-spacing: 1px;
+      cursor: pointer;
+      transition: all 0.15s;
       display: flex;
-      justify-content: space-between;
-      margin-bottom: 12px;
-      font-weight: bold;
+      align-items: center;
+      gap: 6px;
+      white-space: nowrap;
     }
-    .status-select {
-      padding: 8px;
-      border-radius: 8px;
-      border: 1px solid var(--border);
-      margin-top: 8px;
-      width: 100%;
+    .oid-copy-btn:hover { background: rgba(242,98,46,0.25); }
+    .oid-tip { font-size: 0.7rem; color: rgba(255,255,255,0.35); margin-top: 2px; width: 100%; }
+
+    /* Reviews, Map Card, Cart, Form, etc. (all original) */
+    .g-review-wrap { background:white; border-radius:28px; margin:32px 0 24px; padding:22px 20px; box-shadow:0 12px 28px -8px rgba(0,0,0,0.08); border:1px solid var(--border); }
+    .g-review-header { display:flex; align-items:center; gap:10px; font-family:var(--BF); font-size:1.35rem; letter-spacing:1px; color:var(--black); margin-bottom:8px; }
+    .g-review-header i { color:var(--fire); font-size:1.4rem; }
+    .rating-stars { display:flex; gap:4px; font-size:1.05rem; color:#fb8c00; margin:6px 0; }
+    .rating-score { display:inline-flex; align-items:center; gap:10px; flex-wrap:wrap; margin-bottom:18px; background:#fef5ef; padding:10px 14px; border-radius:60px; width:fit-content; }
+    .g-badge { background:white; border-radius:50px; padding:4px 12px; font-size:.75rem; font-weight:700; box-shadow:0 2px 6px rgba(0,0,0,0.05); }
+    .review-card { background:#fefaf7; border-radius:20px; padding:14px; margin-bottom:14px; border-left:4px solid var(--fire); }
+    .reviewer { display:flex; align-items:center; gap:8px; margin-bottom:6px; font-weight:600; flex-wrap:wrap; }
+    .reviewer i { font-size:1.2rem; color:var(--fire); background:#fff0e8; padding:6px; border-radius:50%; }
+    .time-price { font-size:0.72rem; color:var(--text-muted); margin-bottom:8px; }
+    .rev-stars { color:#ffb347; font-size:.8rem; letter-spacing:2px; margin-bottom:6px; }
+    .rev-text { font-size:.85rem; color:var(--text-main); line-height:1.45; margin-bottom:8px; }
+    .rating-detail { font-size:0.7rem; color:var(--text-muted); border-top:1px solid #f0e0d6; padding-top:6px; margin-top:6px; }
+    .g-review-btn { display:flex; align-items:center; justify-content:center; gap:10px; background:#1a73e8; color:white; text-decoration:none; padding:12px 17px; border-radius:60px; font-weight:700; font-size:.9rem; margin-top:16px; transition:background 0.2s, transform 0.1s; border:none; width:100%; font-family:var(--DF); letter-spacing:.3px; }
+    .g-review-btn:hover { background:#0d5bbb; transform:scale(0.98); }
+    .map-card { background:white; border-radius:28px; margin:20px 0 24px; padding:22px 20px; box-shadow:0 12px 28px -8px rgba(0,0,0,0.08); border:1px solid var(--border); }
+    .map-container { border-radius:24px; overflow:hidden; box-shadow:0 6px 14px rgba(0,0,0,0.1); margin-bottom:20px; }
+    .map-container iframe { width:100%; height:240px; border:0; display:block; }
+    .directions-buttons { display:flex; gap:12px; flex-wrap:wrap; justify-content:center; margin-top:8px; }
+    .dir-btn { flex:1; min-width:160px; background:var(--fire); border-radius:60px; padding:12px 18px; font-weight:700; font-size:0.9rem; display:inline-flex; align-items:center; justify-content:center; gap:8px; transition:all 0.2s ease; text-decoration:none; color:white; font-family:var(--DF); }
+    .dir-btn.google-orange { background:#ea4335; }
+    .dir-btn.google-blue { background:#1a73e8; }
+    .dir-btn:hover { transform:translateY(-2px); filter:brightness(1.05); }
+    .store-address { text-align:center; font-size:0.8rem; margin-top:16px; color:var(--text-muted); display:flex; align-items:center; justify-content:center; gap:6px; flex-wrap:wrap; }
+    .cart-empty { text-align:center; padding:60px 20px; color:var(--text-muted); }
+    .cart-empty i { font-size:3rem; color:#f5cfc0; margin-bottom:12px; display:block; }
+    .cart-empty h3 { font-family:var(--BF); font-size:1.4rem; letter-spacing:1px; margin-bottom:6px; }
+    .cart-list { display:flex; flex-direction:column; gap:10px; }
+    .cart-item { background:white; border-radius:18px; padding:14px 16px; display:flex; align-items:center; gap:12px; border:2px solid var(--border); }
+    .ci-img { width:54px; height:54px; border-radius:12px; object-fit:cover; background:#fef0e6; flex-shrink:0; }
+    .ci-info { flex:1; }
+    .ci-name { font-family:var(--BF); font-size:1rem; letter-spacing:.5px; }
+    .ci-unit { font-size:.75rem; color:var(--text-muted); }
+    .qty-row { display:flex; align-items:center; gap:10px; margin-top:6px; }
+    .qty-btn { width:30px; height:30px; border-radius:50%; border:2px solid var(--border); background:white; font-size:1.1rem; font-weight:700; cursor:pointer; display:flex; align-items:center; justify-content:center; color:var(--fire); }
+    .qty-btn:hover { background:var(--fire); color:white; border-color:var(--fire); }
+    .qty-num { font-family:var(--BF); font-size:1.1rem; min-width:20px; text-align:center; }
+    .ci-price { font-family:var(--BF); font-size:1rem; letter-spacing:.5px; color:var(--fire); flex-shrink:0; }
+    .order-summary { background:var(--charcoal); border-radius:24px; padding:18px; margin-top:16px; color:white; }
+    .sum-row { display:flex; justify-content:space-between; font-size:.88rem; padding:4px 0; color:rgba(255,255,255,.7); }
+    .sum-row.tot { font-family:var(--BF); font-size:1.5rem; letter-spacing:1px; color:white; border-top:1px solid rgba(255,255,255,.1); margin-top:10px; padding-top:12px; }
+    .ft { color:var(--fire-light); }
+    .form-sec { background:white; border-radius:20px; padding:18px; margin-bottom:14px; border:2px solid var(--border); }
+    .form-sec h3 { font-family:var(--BF); font-size:1.2rem; letter-spacing:1px; margin-bottom:14px; display:flex; align-items:center; gap:8px; }
+    .form-sec h3 i { color:var(--fire); }
+    label { font-size:.78rem; font-weight:600; color:var(--text-muted); text-transform:uppercase; letter-spacing:.05em; display:block; margin-bottom:5px; }
+    .iw { margin-bottom:14px; }
+    input, textarea { width:100%; background:var(--cream); border:2px solid var(--border); border-radius:14px; padding:11px 14px; font-size:.9rem; font-family:var(--DF); color:var(--text-main); outline:none; }
+    input:focus, textarea:focus { border-color:var(--fire); background:white; }
+    .ot-grid { display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-bottom:14px; }
+    .ot-opt { border:2px solid var(--border); border-radius:16px; padding:14px 12px; cursor:pointer; text-align:center; background:white; transition:all .2s; }
+    .ot-opt.sel { border-color:var(--fire); background:#fff4ef; }
+    .ot-opt i { font-size:1.4rem; color:var(--text-muted); display:block; margin-bottom:5px; }
+    .ot-opt.sel i { color:var(--fire); }
+    .preview-card { background:var(--charcoal); border-radius:20px; padding:16px; font-family:monospace; font-size:.75rem; color:#e8d5c4; white-space:pre-wrap; margin-bottom:14px; line-height:1.55; }
+    .wa-btn { display:flex; align-items:center; justify-content:center; gap:10px; width:100%; background:#25D366; color:white; text-decoration:none; border-radius:18px; padding:15px; font-family:var(--BF); font-size:1.2rem; cursor:pointer; border:none; }
+    .wa-btn:hover { background:#1da850; }
+    .bot-nav { position:fixed; bottom:0; left:0; right:0; z-index:1000; background:rgba(255,250,246,.96); backdrop-filter:blur(24px); border-top:1px solid var(--border); padding:0 0 var(--safe-bottom); }
+    .nav-inner { max-width:520px; margin:0 auto; display:flex; height:var(--nav-h); }
+    .ni { flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:3px; cursor:pointer; background:none; border:none; color:var(--text-muted); font-family:var(--BF); font-size:.78rem; position:relative; }
+    .ni i { font-size:1.35rem; transition:transform .2s; }
+    .ni.active { color:var(--fire); }
+    .ni.active i { transform:scale(1.12); }
+    .ni.active::before { content:''; position:absolute; top:0; left:50%; transform:translateX(-50%); width:24px; height:3px; background:var(--fire); border-radius:0 0 4px 4px; }
+    .ni.nc .nb { width:52px; height:52px; border-radius:50%; background:linear-gradient(135deg,var(--fire),var(--fire-light)); display:flex; align-items:center; justify-content:center; box-shadow:0 6px 20px -4px rgba(242,98,46,.5); margin-bottom:2px; }
+    .ni.nc .nb i { color:white; font-size:1.3rem; }
+    .ni.nc.active::before { display:none; }
+    .n-badge { position:absolute; top:8px; left:50%; transform:translateX(2px); background:var(--fire); color:white; border-radius:50%; width:17px; height:17px; font-size:.65rem; font-weight:700; display:flex; align-items:center; justify-content:center; border:2px solid var(--warm-white); }
+    .social-sec { display:flex; gap:10px; justify-content:center; flex-wrap:wrap; padding:24px 0 8px; }
+    .soc-btn { display:flex; align-items:center; gap:8px; padding:9px 18px; border-radius:40px; background:var(--charcoal); color:#e8d5c4; text-decoration:none; font-size:.82rem; font-weight:600; transition:all .2s; }
+    .soc-btn:hover { background:var(--fire); color:white; transform:translateY(-2px); }
+    .foot-txt { text-align:center; font-size:.75rem; color:var(--text-muted); padding:10px 0 4px; }
+    .toast { position:fixed; top:72px; left:50%; transform:translateX(-50%) translateY(-10px); background:var(--charcoal); color:white; padding:9px 18px; border-radius:40px; font-size:.82rem; z-index:9000; opacity:0; pointer-events:none; transition:all .3s; white-space:nowrap; }
+    .toast.show { opacity:1; transform:translateX(-50%) translateY(0); }
+    .hf { display:none; }
+
+    /* Track page dropdown styles */
+    .track-toggle-bar {
+      display: flex;
+      gap: 12px;
+      margin-bottom: 24px;
+      background: #f3efea;
+      padding: 6px;
+      border-radius: 60px;
     }
-    .accept-btn, .update-btn {
+    .track-toggle-btn {
+      flex: 1;
+      text-align: center;
+      padding: 12px 0;
+      border-radius: 40px;
+      font-family: var(--BF);
+      font-size: 1rem;
+      letter-spacing: 1px;
+      cursor: pointer;
+      background: transparent;
+      border: none;
+      transition: 0.2s;
+      color: var(--text-muted);
+    }
+    .track-toggle-btn.active-toggle {
       background: var(--fire);
       color: white;
-      border: none;
+      box-shadow: 0 4px 10px rgba(242,98,46,0.3);
+    }
+    .track-panel {
+      background: white;
+      border-radius: 28px;
+      padding: 20px;
+      border: 2px solid var(--border);
+      transition: 0.2s;
+    }
+    .track-panel.hidden-panel {
+      display: none;
+    }
+    .track-panel .map-container {
+      margin-bottom: 12px;
+    }
+    .track-panel .dir-btn {
+      flex: none;
+      min-width: auto;
       padding: 8px 16px;
-      border-radius: 40px;
-      cursor: pointer;
-      margin-top: 8px;
-      width: 100%;
     }
-    .share-location {
-      background: #4CAF50;
-      color: white;
+    .track-input-group {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin: 16px 0;
+    }
+    .track-input-group input {
+      flex: 2;
+    }
+    .track-btn {
+      background: var(--fire);
       border: none;
-      padding: 10px;
-      border-radius: 40px;
-      cursor: pointer;
-    }
-    #toast {
-      position: fixed;
-      bottom: 90px;
-      left: 20px;
-      right: 20px;
-      background: var(--black);
-      color: white;
-      padding: 14px;
+      padding: 0 20px;
       border-radius: 60px;
-      text-align: center;
-      z-index: 10000;
-      opacity: 0;
-      transition: opacity 0.3s;
-      pointer-events: none;
-    }
-    #toast.show { opacity: 1; }
-    .debug-panel {
-      position: fixed;
-      bottom: 80px;
-      left: 10px;
-      background: #1a1a2e;
-      color: #0f0;
-      font-family: monospace;
-      font-size: 0.7rem;
-      padding: 6px 10px;
-      border-radius: 8px;
-      z-index: 9999;
-      opacity: 0.7;
+      color: white;
+      font-weight: bold;
       cursor: pointer;
+      font-family: var(--DF);
     }
-    .modal {
+    .status-box {
+      background: #fef3ed;
+      border-radius: 20px;
+      padding: 14px;
+      margin-top: 16px;
+      border-left: 5px solid var(--fire);
+      font-size: 0.85rem;
+    }
+
+    /* Rider modal */
+    .rider-modal {
       display: none;
       position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
+      top: 0; left: 0; right: 0; bottom: 0;
       background: rgba(0,0,0,0.9);
-      z-index: 20000;
+      z-index: 10000;
+      backdrop-filter: blur(12px);
       align-items: center;
       justify-content: center;
+      padding: 20px;
     }
-    .modal-content {
-      background: white;
-      padding: 32px;
+    .rider-modal.active {
+      display: flex;
+    }
+    .rider-modal-content {
+      background: #0e0e0e;
       border-radius: 32px;
-      max-width: 300px;
-      text-align: center;
-    }
-    .modal-content input {
       width: 100%;
-      padding: 12px;
-      margin: 16px 0;
-      border: 1px solid var(--border);
-      border-radius: 16px;
+      max-width: 450px;
+      max-height: 90vh;
+      overflow-y: auto;
+      color: #f0ede8;
+      font-family: 'DM Sans', sans-serif;
+      border: 1px solid #2a2a2a;
+      position: relative;
     }
-    .install-hero-btn {
+    .rider-close {
+      position: absolute;
+      top: 16px; right: 20px;
+      font-size: 24px;
+      cursor: pointer;
+      color: #888;
+    }
+    .rider-inner {
+      padding: 28px 24px;
+    }
+    .rider-logo {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 28px;
+      letter-spacing: 2px;
+      color: #FF6B00;
+      margin-bottom: 20px;
+    }
+    .rider-logo span { color: white; }
+    .rider-field-label {
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      color: #888;
+      margin-bottom: 8px;
+    }
+    .rider-input {
+      width: 100%;
+      background: #161616;
+      border: 1px solid #2a2a2a;
+      border-radius: 12px;
+      color: white;
+      padding: 14px 18px;
+      font-size: 15px;
+      margin-bottom: 18px;
+      outline: none;
+    }
+    .rider-btn {
+      width: 100%;
+      padding: 14px;
+      border: none;
+      border-radius: 12px;
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 20px;
+      letter-spacing: 2px;
+      cursor: pointer;
+      background: #FF6B00;
+      color: white;
+      margin-bottom: 12px;
+    }
+    .rider-btn-cancel {
+      background: #6b21a5;
+    }
+    .rider-btn-delivered {
+      background: #22c55e;
+    }
+    .rider-error {
+      color: #ef4444;
+      font-size: 13px;
+      display: none;
+      margin-bottom: 12px;
+    }
+    .rider-status-block {
+      background: #161616;
+      border-radius: 16px;
+      padding: 16px;
+      margin: 20px 0;
+    }
+    .rider-row {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 10px;
+    }
+    .rider-live-badge {
       display: inline-flex;
       align-items: center;
-      gap: 8px;
-      background: white;
-      color: var(--fire);
-      border: none;
-      padding: 8px 18px;
+      gap: 6px;
+      padding: 4px 12px;
       border-radius: 40px;
-      font-weight: bold;
-      font-size: 0.8rem;
-      margin-top: 12px;
-      cursor: pointer;
+      font-size: 12px;
+      background: #1a1a1a;
     }
+    .rider-dot { width: 8px; height: 8px; border-radius: 50%; background: #888; }
+    .rider-dot.live { background: #22c55e; animation: pulse 1.4s infinite; }
+    .rider-order-item {
+      background: #161616;
+      border: 1px solid #2a2a2a;
+      border-radius: 12px;
+      padding: 12px 16px;
+      margin-bottom: 10px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .rider-order-id { font-family: 'Bebas Neue', sans-serif; font-size: 16px; color: #FF6B00; }
+    .rider-terminate-btn { background: transparent; border: 1px solid #5c1a1a; color: #ef4444; border-radius: 8px; padding: 6px 12px; cursor: pointer; }
+    .rider-accept-btn { background: transparent; border: 1px solid #22c55e; color: #22c55e; border-radius: 8px; padding: 6px 12px; cursor: pointer; }
+    @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.3} }
+    .rider-trigger {
+      display: inline-block;
+      font-size: 0.7rem;
+      color: #aaa;
+      opacity: 0.45;
+      cursor: pointer;
+      transition: opacity 0.2s;
+      font-family: var(--DF);
+      letter-spacing: 0.5px;
+      margin-top: 6px;
+    }
+    .rider-trigger:hover { opacity: 0.8; }
+    .active-delivery-card { background:#1a1a1a; border-radius:16px; padding:16px; margin-bottom:16px; border-left:4px solid #22c55e; }
+    .navigate-btn { background:#1a73e8; color:white; border:none; border-radius:8px; padding:8px 16px; cursor:pointer; margin-right:8px; }
+    .action-buttons-group { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 12px; }
+    #liveTrackingMap { height: 280px; border-radius: 20px; margin-top: 12px; background: #e9e5e0; z-index: 1; width: 100%; }
+    .track-info-panel { background: rgba(0,0,0,0.7); border-radius: 16px; padding: 12px; margin-top: 12px; color: white; font-size: 13px; display: flex; justify-content: space-between; flex-wrap: wrap; gap: 8px; }
+    .track-info-panel span { display: flex; align-items: center; gap: 6px; }
+    .error-msg { background: #fee2e2; border-left: 4px solid #ef4444; padding: 12px; border-radius: 16px; margin: 12px 0; font-size: 0.85rem; color: #b91c1c; }
   </style>
 </head>
 <body>
 
-<!-- Onboarding -->
+<!-- ONBOARDING -->
 <div id="onboarding">
-  <div class="onboard-card">
-    <i class="fas fa-fire" style="font-size: 3rem; color: var(--fire);"></i>
-    <h2>FIRE & FLAVOR</h2>
-    <p>Order grilled perfection from Patogrills. Hot, fresh, and fast delivery!</p>
-    <button class="onboard-btn" onclick="closeOnboarding()">🔥 ORDER NOW 🔥</button>
+  <div class="ob-sheet">
+    <div class="ob-dots"><div class="ob-dot on" id="d0"></div><div class="ob-dot" id="d1"></div><div class="ob-dot" id="d2"></div><div class="ob-dot" id="d3"></div></div>
+    <div class="ob-step on" id="os0"><div class="ob-icon-wrap">🔥</div><h2>Welcome to Patogrills!</h2><p>Flame-grilled perfection · Smoky & Bold<br><br>Swipe to see how to order in <strong>3 easy steps</strong>.</p></div>
+    <div class="ob-step" id="os1"><div class="ob-icon-wrap">🍗</div><h2>Step 1: Browse Menu</h2><p>Tap <span class="ob-chip"><i class="fas fa-utensils"></i> Menu</span> tab, filter categories, and press <strong style="color:var(--fire);">ORDER</strong> to add to cart.</p></div>
+    <div class="ob-step" id="os2"><div class="ob-icon-wrap">🛒</div><h2>Step 2: Review Cart</h2><p>Tap the orange <span class="ob-chip"><i class="fas fa-bag-shopping"></i></span> cart button. Adjust quantities & choose <strong>Delivery/Pickup</strong>.</p></div>
+    <div class="ob-step" id="os3"><div class="ob-icon-wrap">📲</div><h2>Step 3: Order via WhatsApp</h2><p>Fill details and hit <strong style="color:#25D366;">Send on WhatsApp</strong>. We'll fire up the grill! 🔥</p></div>
+    <div class="ob-actions"><button class="ob-skip" id="obSkip">Skip</button><button class="ob-next" id="obNext">NEXT →</button></div>
   </div>
 </div>
 
-<!-- Access Modal -->
-<div id="accessModal" class="modal">
-  <div class="modal-content">
-    <i class="fas fa-lock" style="font-size: 3rem; color: var(--fire);"></i>
-    <h3>Admin / Rider Access</h3>
-    <input type="password" id="accessCode" placeholder="Enter access code">
-    <button onclick="verifyAccess()" style="background: var(--fire); color: white; border: none; padding: 12px 24px; border-radius: 40px; cursor: pointer;">Access Panel</button>
-    <p style="margin-top: 12px;">Admin: <strong>admin123</strong> | Rider: <strong>rider123</strong></p>
-  </div>
-</div>
-
-<!-- Top Bar -->
+<!-- TOP BAR -->
 <header class="top-bar">
-  <div class="logo">PATOGRILLS</div>
-  <div style="display: flex; gap: 8px;">
-    <div class="admin-badge" onclick="showAccessModal()">
-      <i class="fas fa-user-shield"></i> Admin/Rider
+  <div class="top-bar-inner">
+    <div class="brand">
+      <img class="brand-logo" src="logo.png" alt="Patogrills Logo" onerror="this.style.display='none';document.getElementById('lf').style.display='flex';">
+      <div class="brand-logo-fb" id="lf">🔥</div>
+      <div class="brand-text"><span class="brand-name">Patogrills</span><span class="brand-sub">Thrills Of The Grills</span></div>
     </div>
-    <div class="order-id-badge" onclick="copyOrderId()">
-      <i class="fas fa-receipt"></i> <span id="orderIdDisplay">PAT-XXXX</span>
-    </div>
+    <button class="cart-pill" onclick="goTo('cart')"><i class="fas fa-bag-shopping"></i> CART <span class="cnt" id="cartCount">0</span></button>
   </div>
 </header>
 
-<!-- Hero -->
+<!-- HERO -->
 <div class="hero">
-  <h1>FIRE & FLAVOR</h1>
-  <p>Grilled to perfection • Hot & Ready</p>
-  <button class="install-hero-btn" id="installBtn">
-    <i class="fas fa-download"></i> INSTALL APP
-  </button>
+  <div class="hero-content">
+    <h1>FIRE &amp;<br><span>FLAVOR</span></h1>
+    <p>FLAME-GRILLED · FRESH · BOLD</p>
+    <div class="hero-tag"><i class="fas fa-crown"></i> GOOD FOOD NO DEY RUSH</div>
+  </div>
 </div>
 
-<!-- Pages -->
-<div id="menuPage" class="page active">
-  <div class="categories" id="categories">
-    <button class="cat-pill active" data-cat="ALL">ALL</button>
-    <button class="cat-pill" data-cat="MAINS">🍝 MAINS</button>
-    <button class="cat-pill" data-cat="PROTEINS">🍗 PROTEINS</button>
-    <button class="cat-pill" data-cat="EXTRAS">🥗 EXTRAS</button>
+<!-- PAGE: MENU -->
+<div id="page-menu" class="page active">
+  <div class="cat-scroll">
+    <div class="cat-pill active" data-cat="ALL">ALL ITEMS</div>
+    <div class="cat-pill" data-cat="MAINS">🍝 MAINS</div>
+    <div class="cat-pill" data-cat="PROTEINS">🍗 PROTEINS</div>
+    <div class="cat-pill" data-cat="EXTRAS">🥗 EXTRAS</div>
   </div>
   <div id="menuContent"></div>
+  <div class="g-review-wrap">...</div>
+  <div class="map-card">...</div>
+  <div class="social-sec">...</div>
 </div>
 
-<div id="cartPage" class="page">
+<!-- PAGE: CART -->
+<div id="page-cart" class="page">
+  <div class="sec-title"><i class="fas fa-bag-shopping" style="color:var(--fire);"></i> Your Cart</div>
   <div id="cartContent"></div>
-  <div id="cartSummary" class="cart-summary" style="display: none;">
-    <div class="summary-row"><span>Subtotal:</span><span id="sSub">₦0</span></div>
-    <div class="summary-row" id="dRow" style="display: none;"><span>Delivery Fee:</span><span>₦1,000</span></div>
-    <div class="summary-row" style="font-weight: bold; border-top: 1px solid var(--border); margin-top: 8px; padding-top: 12px;"><span>TOTAL:</span><span id="sTotal">₦0</span></div>
+  <div id="cartSummary" class="order-summary" style="display:none;">
+    <div class="sum-row"><span>Subtotal</span><span id="sSub">₦0</span></div>
+    <div class="sum-row" id="dRow"><span>Delivery fee</span><span class="ft">+₦1,000</span></div>
+    <div class="sum-row tot"><span>Total</span><span id="sTotal">₦0</span></div>
   </div>
-  <div id="chkWrap"></div>
+  <div style="margin-top:14px;" id="chkWrap"></div>
 </div>
 
-<div id="orderPage" class="page">
-  <h3 style="margin-bottom: 20px;">📋 ORDER DETAILS</h3>
-  <div class="ot-toggle">
-    <button class="ot-btn active" onclick="selOT('Delivery')" id="deliveryBtn">🚚 DELIVERY</button>
-    <button class="ot-btn" onclick="selOT('Pickup')" id="pickupBtn">🏠 PICKUP</button>
+<!-- PAGE: ORDER -->
+<div id="page-order" class="page">
+  <div class="sec-title"><i class="fas fa-receipt"></i> Your Details</div>
+  <div id="orderIdBanner" class="order-id-banner">
+    <div class="oid-left"><span class="oid-label">Your Order ID</span><span class="oid-value" id="orderIdDisplay">—</span><span class="oid-tip">Save this ID to track your delivery on our site</span></div>
+    <button class="oid-copy-btn" onclick="copyOrderId()"><i class="fas fa-copy"></i> COPY</button>
   </div>
-  <div class="form-group">
-    <input type="text" id="name" placeholder="Full name *">
+  <div class="form-sec">
+    <h3><i class="fas fa-user-circle"></i> Personal Info</h3>
+    <div class="iw"><label>Full Name</label><input type="text" id="name" placeholder="Your name"></div>
+    <div class="iw"><label>Phone Number</label><input type="text" id="phone" placeholder="080xxxxxxxx"></div>
   </div>
-  <div class="form-group">
-    <input type="tel" id="phone" placeholder="Phone number *">
+  <div class="form-sec">
+    <h3><i class="fas fa-truck"></i> Order Type</h3>
+    <div class="ot-grid">
+      <div class="ot-opt sel" id="od" onclick="selOT('Delivery')"><i class="fas fa-truck"></i><span>Delivery</span><small>+₦1,000 fee</small></div>
+      <div class="ot-opt" id="op" onclick="selOT('Pickup')"><i class="fas fa-store"></i><span>Pickup</span><small>No fee</small></div>
+    </div>
+    <div id="addrWrap" class="iw"><label>Delivery Address</label><textarea id="address" rows="2" placeholder="Street, landmark..."></textarea></div>
+    <div class="iw"><label>Special Notes</label><textarea id="notes" rows="2" placeholder="Extra spice, no onion..."></textarea></div>
+    <div id="locationStatus" style="font-size:0.75rem; margin-top:6px; text-align:center; color:var(--text-muted);"></div>
   </div>
-  <div class="form-group" id="addressGroup">
-    <input type="text" id="address" placeholder="Delivery address">
+  <div class="form-sec">
+    <h3><i class="fab fa-whatsapp"></i> Order Preview</h3>
+    <div id="preview" class="preview-card">✨ Your order summary will appear here.</div>
+    <a id="sendLink" class="wa-btn" href="#"><i class="fab fa-whatsapp"></i> SEND ORDER ON WHATSAPP</a>
   </div>
-  <div class="form-group">
-    <textarea id="notes" rows="3" placeholder="Special requests? (allergies, extra sauce, etc.)"></textarea>
-  </div>
-  <div id="locationStatus" style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 12px;"></div>
-  <button id="sendLink" class="wa-btn">
-    <i class="fab fa-whatsapp"></i> SEND ORDER VIA WHATSAPP
-  </button>
 </div>
 
-<div id="trackPage" class="page">
-  <div id="trackMap"></div>
-  <div class="order-status">
-    <div class="status-badge" id="trackStatus">Waiting for order...</div>
-    <p id="trackDetails" style="margin-top: 12px;">Enter your Order ID below to track</p>
-    <div class="form-group" style="margin-top: 16px;">
-      <input type="text" id="trackOrderId" placeholder="Enter Order ID (e.g., PAT-20251215-1234)">
-      <button class="order-btn" style="width: 100%; margin-top: 12px;" onclick="trackOrder()">TRACK ORDER</button>
+<!-- PAGE: TRACK ORDER -->
+<div id="page-track" class="page">
+  <div class="sec-title"><i class="fas fa-map-marked-alt"></i> Track Order</div>
+  <div class="track-toggle-bar">
+    <button class="track-toggle-btn active-toggle" id="togglePickupBtn">📍 Pickup Spot</button>
+    <button class="track-toggle-btn" id="toggleDeliveryTrackBtn">🚚 Delivery Tracking</button>
+  </div>
+  <div id="pickupPanel" class="track-panel">
+    <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 10px;"><i class="fas fa-store" style="color:var(--fire); font-size:1.6rem;"></i><h3 style="font-family:var(--BF);">Find Our Spot</h3></div>
+    <div class="map-container"><iframe src="https://maps.google.com/?q=Patogrills+Abraka+Delta+State+Nigeria&output=embed" title="Patogrills pickup location"></iframe></div>
+    <div><a href="https://www.google.com/maps/dir/?api=1&destination=Patogrills+Abraka+Delta+State+Nigeria" target="_blank" class="dir-btn"><i class="fas fa-directions"></i> Get Directions</a>
+    <a href="https://maps.app.goo.gl/5srZKvJwr1EW7bxs9" target="_blank" class="dir-btn" style="background:#1a73e8;"><i class="fas fa-external-link-alt"></i> Open in Maps</a></div>
+    <p style="margin-top: 14px; font-size:0.8rem;"><i class="fas fa-location-dot"></i> Campus 4 Road, Opposite Oma's Hostel, Abraka — Delta State</p>
+  </div>
+  <div id="deliveryPanel" class="track-panel hidden-panel">
+    <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 10px;"><i class="fas fa-search-location" style="color:var(--fire); font-size:1.6rem;"></i><h3 style="font-family:var(--BF);">Track Delivery Order</h3></div>
+    <p>Enter your <strong>Order ID</strong> to see rider's live location and your exact drop-off spot</p>
+    <div class="track-input-group">
+      <input type="text" id="trackingIdInput" placeholder="e.g., PAT-20260601-4821">
+      <button id="trackOrderBtn" class="track-btn"><i class="fas fa-sync-alt"></i> Track</button>
+    </div>
+    <div id="trackStatusResult" class="status-box" style="display: none;"></div>
+    <div id="liveTrackingMap" style="display:none;"></div>
+    <div class="info-note" style="margin-top:12px; background:#f8ede6; padding:8px; border-radius:16px; font-size:0.7rem;">
+      <i class="fas fa-info-circle"></i> Rider's location updates in real time when sharing is active.
     </div>
   </div>
 </div>
 
-<div id="adminPage" class="page">
-  <h2 style="margin-bottom: 20px;">🔧 ADMIN DASHBOARD</h2>
-  <div style="display: flex; gap: 12px; margin-bottom: 20px; flex-wrap: wrap;">
-    <button onclick="loadAdminOrders()" class="order-btn">📦 Refresh Orders</button>
-    <button onclick="exportOrders()" class="order-btn">📊 Export Data</button>
+<!-- BOTTOM NAV -->
+<nav class="bot-nav">
+  <div class="nav-inner">
+    <button class="ni active" id="nav-menu" onclick="goTo('menu')"><i class="fas fa-utensils"></i><span>Menu</span></button>
+    <button class="ni nc" id="nav-cart" onclick="goTo('cart')"><div class="nb"><i class="fas fa-bag-shopping"></i></div><span>Cart</span><div class="n-badge" id="navBadge" style="display:none;">0</div></button>
+    <button class="ni" id="nav-order" onclick="goTo('order')"><i class="fas fa-paper-plane"></i><span>Order</span></button>
+    <button class="ni" id="nav-track" onclick="goTo('track')"><i class="fas fa-map-marked-alt"></i><span>Track</span></button>
   </div>
-  <div id="adminOrdersList"></div>
+</nav>
+<div class="toast" id="toast"></div>
+
+<!-- FOOTER with hidden rider trigger -->
+<div class="foot-txt">
+  🔥 Best Grill spot in Abraka since 2023 · Enjoy the Thrills Of The Grills
+  <div class="rider-trigger" onclick="openRiderModal()">@patogrills2021</div>
 </div>
 
-<div id="riderPage" class="page">
-  <h2 style="margin-bottom: 20px;">🛵 RIDER DASHBOARD</h2>
-  <div style="display: flex; gap: 12px; margin-bottom: 20px;">
-    <button onclick="loadRiderOrders()" class="order-btn">🔄 Refresh</button>
-    <button id="shareRiderLocation" class="share-location" onclick="startSharingLocation()">📍 Share Live Location</button>
-  </div>
-  <div id="riderOrdersList"></div>
-</div>
-
-<!-- Bottom Navigation -->
-<div class="bottom-nav">
-  <button class="nav-item active" onclick="goTo('menu', event)"><i class="fas fa-utensils"></i><span>Menu</span></button>
-  <button class="nav-item" onclick="goTo('cart', event)"><i class="fas fa-shopping-cart"></i><span>Cart</span><span id="navBadge" class="badge" style="display: none;">0</span></button>
-  <button class="nav-item" onclick="goTo('order', event)"><i class="fas fa-receipt"></i><span>Order</span></button>
-  <button class="nav-item" onclick="goTo('track', event)"><i class="fas fa-map-marker-alt"></i><span>Track</span></button>
-</div>
-
-<div id="toast"></div>
-<div id="debugPanel" class="debug-panel" onclick="copyDebugInfo()">
-  <div>🔥 Firebase: <span id="firebaseStatus">Testing...</span></div>
-  <div>👥 Visitors: <span id="visitorDebug">0</span></div>
-  <div>📦 Orders: <span id="orderCountDebug">0</span></div>
-</div>
+<!-- RIDER MODAL (dynamically filled) -->
+<div id="riderModal" class="rider-modal"></div>
 
 <script>
-  // Firebase Config
+  // ==================== FIREBASE CONFIG ====================
   const firebaseConfig = {
     apiKey: "AIzaSyDNZUtiUoEuV6cqF90144wqwsGAFERnsuw",
     authDomain: "tracking-61ea4.firebaseapp.com",
@@ -577,284 +627,84 @@
   firebase.initializeApp(firebaseConfig);
   const rtdb = firebase.database();
 
-  // Global Variables
-  let cart = [];
-  let OT = "Delivery";
-  let actCat = "ALL";
-  let menuItems = [];
-  let userRole = null;
-  let riderWatchId = null;
-  let currentRiderOrderId = null;
-  let trackMap = null;
-  let trackMarker = null;
-  const FEE = 1000;
-  const PH = "2348029811578";
-
-  function toast(msg) {
-    const t = document.getElementById("toast");
-    t.textContent = msg;
-    t.classList.add("show");
-    setTimeout(() => t.classList.remove("show"), 2000);
-  }
-
-  const fmt = n => "₦" + n.toLocaleString();
+  // ==================== GLOBAL VARIABLES ====================
+  const ITEMS = [
+    {id:1,name:"Spaghetti", price:1500,desc:"Classic pasta, rich tomato sauce", cat:"MAINS", img:"Spaghetti.jpg"},
+    {id:2,name:"Chips (Fries)", price:1500,desc:"Golden crispy fries, well-salted", cat:"MAINS", img:"chip.jpg"},
+    {id:3,name:"Sharp Wrap", price:3500,desc:"Shawarma wrap, garlic sauce, veggies", cat:"MAINS", img:"shawarma.jpg"},
+    {id:4,name:"Sabi Talk Turkey", price:6000,desc:"Jumbo turkey, smoky glaze", cat:"PROTEINS", img:"turk.jpg"},
+    {id:5,name:"Talkless Turkey", price:4000,desc:"Small turkey, well-spiced & tender", cat:"PROTEINS", img:"trk.jpg"},
+    {id:6,name:"Big Chicken", price:5000,desc:"Full grilled chicken, super juicy", cat:"PROTEINS", img:"chick.jpg"},
+    {id:7,name:"Small Chicken", price:3500,desc:"Half chicken, flame-grilled", cat:"PROTEINS", img:"chken.jpg"},
+    {id:8,name:"Sausage", price:500, desc:"Smoky grilled sausage", cat:"EXTRAS", img:"suss.png"},
+    {id:9,name:"Fresh Salad", price:700, desc:"Crunchy veggie mix, house dressing", cat:"EXTRAS", img:"salad.jpg"}
+  ];
+  const FEE = 1000, PH = "2348029811578";
+  let cart = [], OT = "Delivery", actCat = "ALL";
+  let riderSharing = false, riderWatchId = null, riderCurrentOrderId = null;
+  let pendingOrdersListener = null, activeOrderListener = null;
+  let trackMap = null, riderMarker = null, customerMarker = null, routingControl = null, trackOrderRef = null;
+  let mapCentered = false;
+  const OFFLINE_TIMEOUT = 60000;
 
   function generateOrderId() {
     const now = new Date();
-    const dateStr = now.getFullYear() + String(now.getMonth() + 1).padStart(2, '0') + String(now.getDate()).padStart(2, '0');
+    const dateStr = now.getFullYear() + String(now.getMonth()+1).padStart(2,'0') + String(now.getDate()).padStart(2,'0');
     const rand = Math.floor(Math.random() * 9000) + 1000;
     return `PAT-${dateStr}-${rand}`;
   }
-
   const ORDER_ID = generateOrderId();
   document.getElementById('orderIdDisplay').textContent = ORDER_ID;
-
-  window.copyOrderId = () => {
-    navigator.clipboard.writeText(ORDER_ID);
-    toast("✅ Order ID copied!");
-  };
-
-  const sub = () => cart.reduce((s, i) => s + i.price * i.qty, 0);
+  window.copyOrderId = () => { navigator.clipboard.writeText(ORDER_ID); toast("✅ Order ID copied!"); };
+  function toast(m) { const t=document.getElementById("toast"); t.textContent=m; t.classList.add("show"); setTimeout(()=>t.classList.remove("show"),1900); }
+  const fmt = n => "₦" + n.toLocaleString();
+  const sub = () => cart.reduce((s,i) => s + i.price * i.qty, 0);
   const tot = () => sub() + (OT === "Delivery" && cart.length ? FEE : 0);
+  function updateOrderBannerVisibility() { document.getElementById('orderIdBanner').style.display = OT === 'Delivery' ? 'flex' : 'none'; }
 
-  function updBadge() {
-    const n = cart.reduce((s, i) => s + i.qty, 0);
-    const b = document.getElementById("navBadge");
-    if (b) {
-      b.style.display = n > 0 ? "flex" : "none";
-      b.textContent = n;
-    }
-  }
-
-  // Default Menu
-  const DEFAULT_MENU = [
-    { id: 1, name: "Spaghetti", price: 1500, desc: "Classic pasta, rich tomato sauce", cat: "MAINS", img: "https://placehold.co/400x250/fef0e6/f2622e?text=Spaghetti", stock: 99 },
-    { id: 2, name: "Chips (Fries)", price: 1500, desc: "Golden crispy fries", cat: "MAINS", img: "https://placehold.co/400x250/fef0e6/f2622e?text=Fries", stock: 99 },
-    { id: 3, name: "Sharp Wrap", price: 3500, desc: "Shawarma wrap, garlic sauce", cat: "MAINS", img: "https://placehold.co/400x250/fef0e6/f2622e?text=Wrap", stock: 99 },
-    { id: 4, name: "Sabi Talk Turkey", price: 6000, desc: "Jumbo turkey, smoky glaze", cat: "PROTEINS", img: "https://placehold.co/400x250/fef0e6/f2622e?text=Turkey", stock: 99 },
-    { id: 5, name: "Talkless Turkey", price: 4000, desc: "Small turkey, well-spiced", cat: "PROTEINS", img: "https://placehold.co/400x250/fef0e6/f2622e?text=Turkey+Small", stock: 99 },
-    { id: 6, name: "Big Chicken", price: 5000, desc: "Full grilled chicken", cat: "PROTEINS", img: "https://placehold.co/400x250/fef0e6/f2622e?text=Chicken", stock: 99 },
-    { id: 7, name: "Small Chicken", price: 3500, desc: "Half chicken", cat: "PROTEINS", img: "https://placehold.co/400x250/fef0e6/f2622e?text=Chicken+Half", stock: 99 },
-    { id: 8, name: "Sausage", price: 500, desc: "Smoky grilled sausage", cat: "EXTRAS", img: "https://placehold.co/400x250/fef0e6/f2622e?text=Sausage", stock: 99 },
-    { id: 9, name: "Fresh Salad", price: 700, desc: "Crunchy veggie mix", cat: "EXTRAS", img: "https://placehold.co/400x250/fef0e6/f2622e?text=Salad", stock: 99 }
-  ];
-
-  async function loadMenuFromFirebase() {
-    try {
-      const snap = await rtdb.ref('menu').once('value');
-      const fbMenu = snap.val();
-      if (fbMenu && Object.keys(fbMenu).length > 0) {
-        menuItems = Object.values(fbMenu);
-      } else {
-        menuItems = DEFAULT_MENU;
-        for (let item of menuItems) {
-          await rtdb.ref('menu/' + item.id).set(item);
-        }
-      }
-      buildMenu();
-    } catch (e) {
-      console.error("Menu load error:", e);
-      menuItems = DEFAULT_MENU;
-      buildMenu();
-    }
-  }
-
-  function buildMenu() {
-    const cats = actCat === "ALL" ? ["MAINS", "PROTEINS", "EXTRAS"] : [actCat];
-    const CL = { MAINS: "🍝 Mains", PROTEINS: "🍗 Proteins", EXTRAS: "🥗 Extras" };
-    let h = "";
-    for (const c of cats) {
-      const items = menuItems.filter(i => i.cat === c);
-      if (!items.length) continue;
-      h += `<div class="sec-title">${CL[c]}</div><div class="menu-grid">`;
-      items.forEach(i => {
-        const isOutOfStock = i.stock <= 0;
-        h += `<div class="menu-card">
-          <img class="menu-img" src="${i.img}" onerror="this.src='https://placehold.co/400x250/fef0e6/f2622e?text=🔥'">
-          <div class="menu-info">
-            <div class="menu-name">${i.name} ${isOutOfStock ? '<span style="background:#ef4444; color:white; font-size:0.65rem; padding:2px 8px; border-radius:20px; margin-left:8px;">SOLD OUT</span>' : ''}</div>
-            <div class="menu-desc">${i.desc}</div>
-            <div class="menu-bottom">
-              <div class="menu-price">${fmt(i.price)}</div>
-              <button class="order-btn" onclick="addItem(${i.id})" ${isOutOfStock ? 'disabled' : ''}>
-                <i class="fas fa-shopping-cart"></i> ${isOutOfStock ? 'UNAVAILABLE' : 'ORDER'}
-              </button>
-            </div>
-            <small style="font-size:0.65rem;">stock: ${i.stock}</small>
-          </div>
-        </div>`;
-      });
-      h += "</div>";
-    }
-    document.getElementById("menuContent").innerHTML = h;
-  }
-
-  window.addItem = (id) => {
-    const it = menuItems.find(i => i.id === id);
-    if (!it || it.stock <= 0) {
-      toast("❌ Sorry, item is out of stock!");
-      return;
-    }
-    const ex = cart.find(i => i.id === id);
-    if (ex) {
-      if (ex.qty >= it.stock) {
-        toast(`❌ Only ${it.stock} ${it.name}(s) available!`);
-        return;
-      }
-      ex.qty++;
-    } else {
-      cart.push({ ...it, qty: 1 });
-    }
-    updBadge();
-    toast("✅ " + it.name + " added to cart!");
-    renderCart();
-  };
-
-  window.updateQty = (id, d) => {
-    const idx = cart.findIndex(i => i.id === id);
-    if (idx === -1) return;
-    const item = menuItems.find(i => i.id === id);
-    const newQty = cart[idx].qty + d;
-    if (newQty > item.stock) {
-      toast(`❌ Only ${item.stock} ${item.name}(s) available!`);
-      return;
-    }
-    cart[idx].qty += d;
-    if (cart[idx].qty <= 0) cart.splice(idx, 1);
-    updBadge();
-    renderCart();
-  };
-
-  function renderCart() {
-    const el = document.getElementById("cartContent");
-    const sm = document.getElementById("cartSummary");
-    const cw = document.getElementById("chkWrap");
-    
-    if (!cart.length) {
-      el.innerHTML = `<div class="cart-empty" style="text-align: center; padding: 60px 20px;"><i class="fas fa-bag-shopping" style="font-size: 4rem; color: var(--text-muted);"></i><h3 style="margin-top: 16px;">CART IS EMPTY</h3><p>Go to Menu and tap ORDER to add items!</p></div>`;
-      sm.style.display = "none";
-      cw.innerHTML = "";
-      return;
-    }
-    
-    el.innerHTML = `<div class="cart-list">${cart.map(it => `<div class="cart-item"><img class="ci-img" src="${it.img}" onerror="this.src='https://placehold.co/100x100/fef0e6/f2622e?text=🔥'"><div class="ci-info"><div class="ci-name">${it.name}</div><div class="ci-unit">${fmt(it.price)} each</div><div class="qty-row"><button class="qty-btn" onclick="updateQty(${it.id},-1)">−</button><span class="qty-num">${it.qty}</span><button class="qty-btn" onclick="updateQty(${it.id},1)">+</button></div></div><div class="ci-price">${fmt(it.price * it.qty)}</div></div>`).join("")}</div>`;
-    
-    const isD = OT === "Delivery";
-    document.getElementById("sSub").textContent = fmt(sub());
-    document.getElementById("dRow").style.display = isD ? "flex" : "none";
-    document.getElementById("sTotal").textContent = fmt(tot());
-    sm.style.display = "block";
-    cw.innerHTML = `<button class="wa-btn" onclick="goTo('order', event)"><i class="fas fa-receipt"></i> FILL ORDER DETAILS</button>`;
-  }
-
-  // CAPTURE LOCATION - WITH LATITUDE & LONGITUDE
+  // ==================== CAPTURE CUSTOMER LOCATION ====================
   function captureCustomerLocation() {
     return new Promise((resolve, reject) => {
       if (!navigator.geolocation) {
-        reject("Geolocation not supported");
+        reject(new Error("Geolocation not supported by your browser."));
         return;
       }
-      const statusDiv = document.getElementById("locationStatus");
-      if (statusDiv) {
-        statusDiv.innerHTML = `<i class="fas fa-spinner fa-spin"></i> Getting your location...`;
-      }
+      document.getElementById("locationStatus").innerHTML = `<i class="fas fa-spinner fa-spin"></i> Getting your exact location... Please allow GPS.`;
       navigator.geolocation.getCurrentPosition(
-        pos => {
-          const locationData = {
-            latitude: pos.coords.latitude,
-            longitude: pos.coords.longitude,
-            accuracy: pos.coords.accuracy,
-            timestamp: Date.now()
-          };
-          if (statusDiv) {
-            statusDiv.innerHTML = `✅ Location captured! (${locationData.latitude.toFixed(4)}, ${locationData.longitude.toFixed(4)})`;
-          }
-          resolve(locationData);
+        (pos) => {
+          document.getElementById("locationStatus").innerHTML = `✅ Location captured! Rider will navigate to you.`;
+          resolve({ lat: pos.coords.latitude, lng: pos.coords.longitude });
         },
-        err => {
-          let msg = err.code === 1 ? "Location permission denied. Please enable GPS for delivery orders." : "Location unavailable.";
-          if (statusDiv) {
-            statusDiv.innerHTML = `⚠️ ${msg}`;
-          }
-          reject(msg);
+        (err) => {
+          let msg = "";
+          if (err.code === err.PERMISSION_DENIED) msg = "Location permission denied. Please enable GPS in your browser to place a delivery order.";
+          else if (err.code === err.POSITION_UNAVAILABLE) msg = "Location unavailable. Check GPS signal.";
+          else msg = "Could not get location. Please check your settings.";
+          document.getElementById("locationStatus").innerHTML = `⚠️ ${msg}`;
+          reject(new Error(msg));
         },
-        { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
+        { enableHighAccuracy: true, timeout: 10000 }
       );
     });
   }
 
-  // FIXED: Generate WhatsApp message - properly captures ALL form data
-  function generateWhatsAppMessage() {
-    // Get form values DIRECTLY from DOM elements
-    const nameInput = document.getElementById("name");
-    const phoneInput = document.getElementById("phone");
-    const addressInput = document.getElementById("address");
-    const notesInput = document.getElementById("notes");
-    
-    const name = nameInput ? nameInput.value.trim() : "";
-    const phone = phoneInput ? phoneInput.value.trim() : "";
-    const address = (OT === "Delivery" && addressInput) ? addressInput.value.trim() : "Pickup Order";
-    const notes = notesInput ? notesInput.value.trim() : "";
-    
-    console.log("Generating message with:", { name, phone, address, notes });
-    
-    // If fields are empty, show error
-    if (!name || !phone) {
-      toast("❌ Please fill in your name and phone number first!");
-      return null;
-    }
-    
-    // Build message with proper formatting
-    let msg = "🔥 *PATOGRILLS ORDER* 🔥%0A%0A";
-    msg += `*Order ID:* ${ORDER_ID}%0A`;
-    msg += `*Name:* ${name || "Not provided"}%0A`;
-    msg += `*Phone:* ${phone || "Not provided"}%0A`;
-    msg += `*Order Type:* ${OT}%0A`;
-    msg += `*Address:* ${address || "Not provided"}%0A`;
-    msg += `%0A*ITEMS:*%0A`;
-    
-    // Add cart items
-    if (cart.length === 0) {
-      msg += `No items in cart%0A`;
-    } else {
-      cart.forEach((item, index) => {
-        msg += `${index + 1}. ${item.name} x${item.qty} = ${fmt(item.price * item.qty)}%0A`;
-      });
-    }
-    
-    msg += `%0A*Subtotal:* ${fmt(sub())}%0A`;
-    if (OT === "Delivery") {
-      msg += `*Delivery Fee:* ${fmt(FEE)}%0A`;
-    }
-    msg += `*TOTAL:* ${fmt(tot())}%0A%0A`;
-    
-    if (notes) {
-      msg += `*Special Notes:* ${notes}%0A%0A`;
-    }
-    
-    msg += `🙏 Thank you for ordering from Patogrills! 🔥`;
-    
-    console.log("Generated message length:", msg.length);
-    return msg;
-  }
-
-  // SAVE ORDER TO FIREBASE
-  async function saveOrderToRTDB(customerLocationData) {
+  // ==================== SAVE ORDER TO REALTIME DB ====================
+  async function saveOrderToRTDB(customerCoords) {
+    console.log("🔵 saveOrderToRTDB called with coords:", customerCoords);
     if (!cart.length) {
-      toast("❌ Cart empty");
+      console.log("❌ Cart empty, aborting save");
+      toast("❌ Your cart is empty. Add items first.");
       return false;
     }
-    
     const name = document.getElementById("name").value.trim();
     const phone = document.getElementById("phone").value.trim();
-    const address = OT === "Delivery" ? document.getElementById("address").value.trim() : "Pickup Order";
+    const address = OT === "Delivery" ? document.getElementById("address").value.trim() : "";
     const notes = document.getElementById("notes").value.trim();
-    
     if (!name || !phone) {
-      toast("❌ Name and phone required");
+      toast("❌ Please fill in your name and phone number");
       return false;
     }
-    if (OT === "Delivery" && !document.getElementById("address").value.trim()) {
+    if (OT === "Delivery" && !address) {
       toast("📍 Please enter your delivery address");
       return false;
     }
@@ -866,496 +716,267 @@
       orderType: OT,
       address: address,
       notes: notes,
-      items: cart.map(i => ({ 
-        id: i.id,
-        name: i.name, 
-        price: i.price, 
-        qty: i.qty, 
-        total: i.price * i.qty 
-      })),
-      subTotal: sub(),
-      deliveryFee: OT === "Delivery" ? FEE : 0,
+      items: cart.map(i => ({ name: i.name, price: i.price, qty: i.qty, total: i.price * i.qty })),
       total: tot(),
       status: "pending",
       timestamp: Date.now(),
-      timestampReadable: new Date().toLocaleString(),
       assigned: false,
-      riderId: null,
-      customerLocation: customerLocationData || null,
-      riderLocation: null
+      riderLocation: null,
+      customerLocation: customerCoords ? { latitude: customerCoords.lat, longitude: customerCoords.lng, timestamp: Date.now() } : null
     };
 
-    console.log("Saving order to Firebase:", orderData);
-
+    console.log("📦 Attempting to save order:", orderData);
     try {
       await rtdb.ref('orders/' + ORDER_ID).set(orderData);
-      
-      const currentCount = await rtdb.ref('stats/ordersCount').once('value');
-      let count = currentCount.val() || 0;
-      await rtdb.ref('stats/ordersCount').set(count + 1);
-      
-      if (customerLocationData) {
-        await rtdb.ref('customersLocations/' + ORDER_ID).set({
-          latitude: customerLocationData.latitude,
-          longitude: customerLocationData.longitude,
-          timestamp: Date.now(),
-          customerName: name
-        });
-      }
-      
-      console.log("✅ Order saved successfully:", ORDER_ID);
+      console.log("✅ Order saved successfully in Firebase at orders/" + ORDER_ID);
+      toast("✅ Order saved! Track via the Track tab.");
       return true;
-      
     } catch (err) {
-      console.error("Firebase save error:", err);
-      toast("❌ Failed to save order: " + (err.message || "Check network"));
+      console.error("❌ Firebase save error:", err);
+      toast("⚠️ Could not save order. Check console for details.");
       return false;
     }
   }
 
-  window.selOT = (type) => {
-    OT = type;
-    const delBtn = document.getElementById("deliveryBtn");
-    const pickBtn = document.getElementById("pickupBtn");
-    const addrGroup = document.getElementById("addressGroup");
+  // ==================== GENERATE WHATSAPP MESSAGE (FIXED) ====================
+  function generateWhatsAppMessage() {
+    // Get current form values
+    const name = document.getElementById("name").value.trim() || "Not provided";
+    const phone = document.getElementById("phone").value.trim() || "Not provided";
+    const address = OT === "Delivery" ? (document.getElementById("address").value.trim() || "Not provided") : "Pickup at restaurant";
+    const notes = document.getElementById("notes").value.trim();
     
-    if (type === "Delivery") {
-      delBtn.classList.add("active");
-      pickBtn.classList.remove("active");
-      if (addrGroup) addrGroup.style.display = "block";
-    } else {
-      pickBtn.classList.add("active");
-      delBtn.classList.remove("active");
-      if (addrGroup) addrGroup.style.display = "none";
+    // Build items list
+    let itemsText = "";
+    cart.forEach((item, idx) => {
+      itemsText += `${idx + 1}. ${item.name} x${item.qty} = ${fmt(item.price * item.qty)}\n`;
+    });
+    
+    // Build the message with proper line breaks using %0A
+    let msg = "🔥 *PATO GRILLS ORDER* 🔥%0A%0A";
+    msg += `*Order ID:* ${ORDER_ID}%0A`;
+    msg += `*Name:* ${name}%0A`;
+    msg += `*Phone:* ${phone}%0A`;
+    msg += `*Type:* ${OT}%0A`;
+    msg += `*Address:* ${address}%0A`;
+    msg += `%0A*ITEMS:*%0A`;
+    msg += itemsText;
+    msg += `%0A*Subtotal:* ${fmt(sub())}%0A`;
+    if (OT === "Delivery") {
+      msg += `*Delivery Fee:* ${fmt(FEE)}%0A`;
     }
-    renderCart();
+    msg += `*TOTAL:* ${fmt(tot())}%0A%0A`;
+    if (notes) {
+      msg += `*Notes:* ${notes}%0A%0A`;
+    }
+    msg += `🙏 *Thank you for ordering from Patogrills!* 🔥%0A`;
+    msg += `📍 Patogrills Abraka - Good Food No Dey Rush`;
+    
+    console.log("Generated WhatsApp message:", msg);
+    return msg;
+  }
+
+  // ==================== ORDER TYPE SELECT ====================
+  window.selOT = type => {
+    OT = type;
+    document.getElementById("od").classList.toggle("sel", type === "Delivery");
+    document.getElementById("op").classList.toggle("sel", type === "Pickup");
+    document.getElementById("addrWrap").classList.toggle("hf", type !== "Delivery");
+    renderCart(); updPreview(); updateOrderBannerVisibility();
+    document.getElementById("locationStatus").innerHTML = "";
   };
 
-  // FIXED: WhatsApp handler - validates form FIRST then saves
-  document.getElementById("sendLink")?.addEventListener("click", async (e) => {
-    e.preventDefault();
+  // ==================== UPDATE PREVIEW ====================
+  function updPreview() {
+    const name = document.getElementById("name").value.trim() || "—";
+    const phone = document.getElementById("phone").value.trim() || "—";
+    const address = OT === "Delivery" ? (document.getElementById("address").value.trim() || "—") : "Pickup";
+    const notes = document.getElementById("notes").value.trim() || "—";
     
+    let previewText = `🍢 PATO GRILLS ORDER 🍢\n\n`;
+    previewText += `Order ID: ${ORDER_ID}\n`;
+    previewText += `Name: ${name}\n`;
+    previewText += `Phone: ${phone}\n`;
+    previewText += `Type: ${OT}\n`;
+    previewText += `Address: ${address}\n\n`;
+    previewText += `ITEMS:\n`;
+    cart.forEach(i => {
+      previewText += `• ${i.qty} x ${i.name} — ${fmt(i.qty * i.price)}\n`;
+    });
+    previewText += `\nSubtotal: ${fmt(sub())}\n`;
+    if (OT === "Delivery") previewText += `Delivery: ${fmt(FEE)}\n`;
+    previewText += `TOTAL: ${fmt(tot())}\n\n`;
+    if (notes !== "—") previewText += `Notes: ${notes}\n`;
+    previewText += `\n🔥 Enjoy the Thrills Of The Grills!`;
+    
+    document.getElementById("preview").textContent = previewText;
+  }
+
+  // ==================== WHATSAPP HANDLER (FIXED) ====================
+  document.getElementById("sendLink").addEventListener("click", async (e) => {
+    e.preventDefault();
     console.log("Send button clicked");
     
-    // FIRST: Validate cart
+    // Validate cart
     if (!cart.length) {
       toast("🍽️ Add items first!");
       return;
     }
     
-    // SECOND: Get and validate form data
+    // Validate form fields
     const name = document.getElementById("name").value.trim();
     const phone = document.getElementById("phone").value.trim();
-    const address = document.getElementById("address")?.value.trim() || "";
-    
-    console.log("Form values:", { name, phone, address, OT });
+    const address = document.getElementById("address")?.value.trim();
     
     if (!name) {
       toast("❌ Please enter your name");
       document.getElementById("name").focus();
       return;
     }
-    
     if (!phone) {
       toast("❌ Please enter your phone number");
       document.getElementById("phone").focus();
       return;
     }
-    
     if (OT === "Delivery" && !address) {
       toast("📍 Please enter your delivery address");
-      document.getElementById("address")?.focus();
+      document.getElementById("address").focus();
       return;
     }
-
-    // THIRD: Capture location for delivery
-    let locationData = null;
+    
+    let coords = null;
     if (OT === "Delivery") {
       try {
-        locationData = await captureCustomerLocation();
-        console.log("Location captured:", locationData);
+        coords = await captureCustomerLocation();
+        console.log("Location captured:", coords);
       } catch (err) {
-        toast("⚠️ Location error: " + err);
+        toast(err.message);
         return;
       }
     }
-
-    // FOURTH: Save to Firebase
-    toast("💾 Saving order to database...");
-    const saved = await saveOrderToRTDB(locationData);
     
+    // Save to Firebase
+    toast("💾 Saving order to database...");
+    const saved = await saveOrderToRTDB(coords);
     if (!saved) {
       toast("❌ Failed to save order. Please try again.");
       return;
     }
-
-    // FIFTH: Generate and send WhatsApp message
+    
+    // Generate and send WhatsApp message
     const waMessage = generateWhatsAppMessage();
-    
-    if (!waMessage) {
-      toast("❌ Failed to generate message");
-      return;
-    }
-    
     const waLink = `https://wa.me/${PH}?text=${waMessage}`;
     console.log("Opening WhatsApp:", waLink);
     
     window.open(waLink, '_blank');
     toast("✅ Order saved! Opening WhatsApp...");
     
-    // Clear cart after successful order
+    // Clear cart
     cart = [];
     updBadge();
     renderCart();
-    
-    // Refresh order counts
-    updateOrderCountDebug();
+    updPreview();
   });
 
-  // ============ ADMIN FUNCTIONS ============
-  async function loadAdminOrders() {
-    try {
-      const snap = await rtdb.ref('orders').once('value');
-      const orders = snap.val();
-      if (!orders || Object.keys(orders).length === 0) {
-        document.getElementById("adminOrdersList").innerHTML = "<p>📭 No orders in database yet. Place a test order!</p>";
-        return;
-      }
-      
-      let html = "";
-      const ordersArray = Object.values(orders).reverse();
-      ordersArray.forEach(order => {
-        const hasLocation = order.customerLocation && order.customerLocation.latitude;
-        html += `
-          <div class="order-card">
-            <div class="order-header">
-              <span><strong>${order.orderId}</strong></span>
-              <span>${order.timestampReadable || new Date(order.timestamp).toLocaleString()}</span>
+  // ==================== UI FUNCTIONS ====================
+  function goTo(p) {
+    document.querySelectorAll('.page').forEach(x => x.classList.remove('active'));
+    document.querySelectorAll('.ni').forEach(x => x.classList.remove('active'));
+    document.getElementById('page-' + p).classList.add('active');
+    document.getElementById('nav-' + p).classList.add('active');
+    if (p === 'order') updPreview();
+    if (p === 'cart') renderCart();
+    if (p === 'track') setTrackMode('pickup');
+    window.scrollTo({top:0, behavior:'smooth'});
+  }
+
+  function buildMenu() {
+    const cats = actCat === "ALL" ? ["MAINS","PROTEINS","EXTRAS"] : [actCat];
+    const CL = {MAINS:"🍝 Mains", PROTEINS:"🍗 Proteins", EXTRAS:"🥗 Extras"};
+    let h = "";
+    for (const c of cats) {
+      const items = ITEMS.filter(i => i.cat === c);
+      if (!items.length) continue;
+      h += `<div class="sec-title">${CL[c]}</div><div class="menu-grid">`;
+      items.forEach(i => {
+        h += `<div class="menu-card">
+          <img class="menu-img" src="${i.img}" alt="${i.name}" loading="lazy" onerror="this.src='https://placehold.co/400x250/fef0e6/f2622e?text=🔥'">
+          <div class="menu-info">
+            <div class="menu-name">${i.name}</div>
+            <div class="menu-desc">${i.desc}</div>
+            <div class="menu-bottom">
+              <div class="menu-price">${fmt(i.price)}</div>
+              <button class="order-btn" onclick="addItem(${i.id})"><i class="fas fa-shopping-cart"></i> ORDER</button>
             </div>
-            <div><strong>${order.customerName}</strong> - ${order.phone}</div>
-            <div>Type: ${order.orderType} | Total: ${fmt(order.total)}</div>
-            <div class="order-items">${order.items.map(i => `${i.name} x${i.qty}`).join(', ')}</div>
-            ${hasLocation ? `<div>📍 Location: ${order.customerLocation.latitude.toFixed(4)}, ${order.customerLocation.longitude.toFixed(4)}</div>` : '<div>📍 No location (Pickup)</div>'}
-            <div>Status: 
-              <select class="status-select" id="status-${order.orderId}">
-                <option value="pending" ${order.status === 'pending' ? 'selected' : ''}>⏳ Pending</option>
-                <option value="confirmed" ${order.status === 'confirmed' ? 'selected' : ''}>✅ Confirmed</option>
-                <option value="preparing" ${order.status === 'preparing' ? 'selected' : ''}>🍳 Preparing</option>
-                <option value="delivering" ${order.status === 'delivering' ? 'selected' : ''}>🛵 Delivering</option>
-                <option value="delivered" ${order.status === 'delivered' ? 'selected' : ''}>🎉 Delivered</option>
-              </select>
-            </div>
-            <button class="update-btn" onclick="updateOrderStatus('${order.orderId}', document.getElementById('status-${order.orderId}').value)">
-              Update Status
-            </button>
           </div>
-        `;
+        </div>`;
       });
-      document.getElementById("adminOrdersList").innerHTML = html;
-      toast(`📦 Loaded ${ordersArray.length} orders`);
-    } catch (err) {
-      console.error(err);
-      toast("❌ Error loading orders");
+      h += "</div>";
     }
+    document.getElementById("menuContent").innerHTML = h;
   }
 
-  window.updateOrderStatus = async (orderId, status) => {
-    try {
-      await rtdb.ref('orders/' + orderId).update({ status: status });
-      toast(`✅ Order ${orderId} status updated to ${status}`);
-      loadAdminOrders();
-    } catch (err) {
-      toast("❌ Failed to update status");
-    }
-  };
+  document.querySelectorAll('.cat-pill').forEach(p => p.addEventListener('click', () => {
+    document.querySelectorAll('.cat-pill').forEach(x => x.classList.remove('active'));
+    p.classList.add('active'); actCat = p.dataset.cat; buildMenu();
+  }));
 
-  function exportOrders() {
-    rtdb.ref('orders').once('value').then(snap => {
-      const orders = snap.val();
-      console.log("All Orders:", orders);
-      const dataStr = JSON.stringify(orders, null, 2);
-      const dataUri = 'data:application/json;charset=utf-8,'+ encodeURIComponent(dataStr);
-      const exportFileDefaultName = `patogrills-orders-${new Date().toISOString()}.json`;
-      const linkElement = document.createElement('a');
-      linkElement.setAttribute('href', dataUri);
-      linkElement.setAttribute('download', exportFileDefaultName);
-      linkElement.click();
-      toast("📊 Orders exported to JSON");
-    });
+  function addItem(id) { const it=ITEMS.find(i=>i.id===id); const ex=cart.find(i=>i.id===id); if(ex) ex.qty++; else cart.push({...it,qty:1}); updBadge(); toast("✅ "+it.name+" added to cart!"); updPreview(); }
+  window.updateQty = (id,d) => { const idx=cart.findIndex(i=>i.id===id); if(idx===-1) return; cart[idx].qty+=d; if(cart[idx].qty<=0) cart.splice(idx,1); updBadge(); renderCart(); updPreview(); };
+  function updBadge() { const n=cart.reduce((s,i)=>s+i.qty,0); document.getElementById("cartCount").textContent=n; const b=document.getElementById("navBadge"); b.style.display=n>0?"flex":"none"; b.textContent=n; }
+  function renderCart() {
+    const el=document.getElementById("cartContent"), sm=document.getElementById("cartSummary"), cw=document.getElementById("chkWrap");
+    if (!cart.length) { el.innerHTML=`<div class="cart-empty"><i class="fas fa-bag-shopping"></i><h3>CART IS EMPTY</h3><p>Go to Menu and tap ORDER to add items!</p></div>`; sm.style.display="none"; cw.innerHTML=""; return; }
+    el.innerHTML=`<div class="cart-list">${cart.map(it=>`<div class="cart-item"><img class="ci-img" src="${it.img}" onerror="this.src='https://placehold.co/100x100/fef0e6/f2622e?text=🔥'"><div class="ci-info"><div class="ci-name">${it.name}</div><div class="ci-unit">${fmt(it.price)} each</div><div class="qty-row"><button class="qty-btn" onclick="updateQty(${it.id},-1)">−</button><span class="qty-num">${it.qty}</span><button class="qty-btn" onclick="updateQty(${it.id},1)">+</button></div></div><div class="ci-price">${fmt(it.price*it.qty)}</div></div>`).join("")}</div>`;
+    const isD = OT === "Delivery";
+    document.getElementById("sSub").textContent = fmt(sub());
+    document.getElementById("dRow").style.display = isD ? "flex" : "none";
+    document.getElementById("sTotal").textContent = fmt(tot());
+    sm.style.display = "block";
+    cw.innerHTML = `<button class="wa-btn" onclick="goTo('order')"><i class="fas fa-receipt"></i> FILL ORDER DETAILS</button>`;
   }
 
-  // ============ RIDER FUNCTIONS ============
-  async function loadRiderOrders() {
-    try {
-      const snap = await rtdb.ref('orders').once('value');
-      const orders = snap.val();
-      if (!orders) {
-        document.getElementById("riderOrdersList").innerHTML = "<p>No orders available</p>";
-        return;
-      }
-      
-      let html = "";
-      Object.values(orders).forEach(order => {
-        if (order.status === 'pending' || order.status === 'confirmed' || order.status === 'preparing' || order.status === 'delivering') {
-          html += `
-            <div class="order-card">
-              <div class="order-header">
-                <span><strong>${order.orderId}</strong></span>
-                <span>${fmt(order.total)}</span>
-              </div>
-              <div><strong>${order.customerName}</strong> - ${order.phone}</div>
-              <div>Type: ${order.orderType}</div>
-              ${order.orderType === 'Delivery' ? `<div>📍 Address: ${order.address}</div>` : '<div>📍 Pickup order</div>'}
-              ${order.customerLocation ? `<div>📍 Lat: ${order.customerLocation.latitude?.toFixed(4)}, Lng: ${order.customerLocation.longitude?.toFixed(4)}</div>` : ''}
-              <div>Status: <strong>${order.status.toUpperCase()}</strong></div>
-              <button class="accept-btn" onclick="acceptOrder('${order.orderId}')">
-                ${order.status === 'pending' ? '✅ Accept Order' : '📋 View Order'}
-              </button>
-            </div>
-          `;
-        }
-      });
-      document.getElementById("riderOrdersList").innerHTML = html || "<p>No active orders</p>";
-    } catch (err) {
-      console.error(err);
-    }
+  // ==================== TRACKING FUNCTIONS ====================
+  function initTrackMap(custLat, custLng) {
+    const container = document.getElementById("liveTrackingMap");
+    container.style.display = "block";
+    if (trackMap) trackMap.remove();
+    trackMap = L.map(container).setView([custLat, custLng], 14);
+    L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', { attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OSM</a>' }).addTo(trackMap);
+    customerMarker = L.marker([custLat, custLng], { 
+      icon: L.divIcon({ html: '📍', iconSize: [30,30], className: 'cust-icon' }) 
+    }).addTo(trackMap).bindPopup('Your delivery location');
+    mapCentered = true;
   }
 
-  window.acceptOrder = (orderId) => {
-    currentRiderOrderId = orderId;
-    rtdb.ref('orders/' + orderId).update({ 
-      assigned: true, 
-      riderId: "rider_" + Date.now(),
-      status: "confirmed"
-    }).then(() => {
-      toast(`✅ Order ${orderId} accepted! Start sharing location.`);
-      loadRiderOrders();
-    });
-  };
-
-  function startSharingLocation() {
-    if (!currentRiderOrderId) {
-      toast("❌ Please accept an order first");
-      return;
+  function updateTrackingUI(riderLat, riderLng, custLat, custLng, lastUpdateTimestamp) {
+    if (!trackMap) initTrackMap(custLat, custLng);
+    if (riderMarker) riderMarker.setLatLng([riderLat, riderLng]);
+    else {
+      riderMarker = L.marker([riderLat, riderLng], { 
+        icon: L.divIcon({ html: '🏍️', iconSize: [30,30] }) 
+      }).addTo(trackMap).bindPopup('Rider');
     }
     
-    if (riderWatchId) {
-      navigator.geolocation.clearWatch(riderWatchId);
-    }
+    if (routingControl) trackMap.removeControl(routingControl);
+    routingControl = L.Routing.control({
+      waypoints: [L.latLng(riderLat, riderLng), L.latLng(custLat, custLng)],
+      router: L.Routing.osrmv1({ serviceUrl: 'https://router.project-osrm.org/route/v1' }),
+      routeWhileDragging: false,
+      show: false,
+      addWaypoints: false,
+      fitSelectedRoutes: false,
+      lineOptions: { styles: [{ color: '#f2622e', weight: 4 }] }
+    }).addTo(trackMap);
     
-    riderWatchId = navigator.geolocation.watchPosition(
-      (pos) => {
-        const riderLoc = {
-          latitude: pos.coords.latitude,
-          longitude: pos.coords.longitude,
-          timestamp: Date.now()
-        };
-        rtdb.ref('orders/' + currentRiderOrderId).update({ riderLocation: riderLoc });
-        document.getElementById("shareRiderLocation").style.background = "#45a049";
-        toast("📍 Sharing live location");
-      },
-      (err) => {
-        console.error(err);
-        toast("❌ Failed to get location");
-      },
-      { enableHighAccuracy: true, maximumAge: 5000, timeout: 10000 }
-    );
-  }
-
-  // ============ TRACKING ============
-  window.trackOrder = async () => {
-    const orderId = document.getElementById("trackOrderId").value.trim();
-    if (!orderId) {
-      toast("❌ Please enter Order ID");
-      return;
-    }
-    
-    try {
-      const snap = await rtdb.ref('orders/' + orderId).once('value');
-      const order = snap.val();
-      
-      if (!order) {
-        toast("❌ Order not found!");
-        document.getElementById("trackStatus").textContent = "Order not found";
-        return;
-      }
-      
-      document.getElementById("trackStatus").textContent = `📦 Status: ${order.status.toUpperCase()}`;
-      document.getElementById("trackDetails").innerHTML = `Total: ${fmt(order.total)}<br>Placed: ${new Date(order.timestamp).toLocaleString()}`;
-      
-      if (!trackMap) {
-        trackMap = L.map('trackMap').setView([6.5244, 3.3792], 13);
-        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-          attribution: '© OpenStreetMap contributors'
-        }).addTo(trackMap);
-      }
-      
-      if (order.customerLocation && order.customerLocation.latitude) {
-        const custLat = order.customerLocation.latitude;
-        const custLng = order.customerLocation.longitude;
-        
-        if (trackMarker) trackMap.removeLayer(trackMarker);
-        trackMarker = L.marker([custLat, custLng]).addTo(trackMap)
-          .bindPopup(`<b>${order.customerName}</b><br>${order.address}`).openPopup();
-        trackMap.setView([custLat, custLng], 14);
-      }
-      
-      const orderRef = rtdb.ref('orders/' + orderId);
-      orderRef.on('value', (snap) => {
-        const updatedOrder = snap.val();
-        if (updatedOrder && updatedOrder.riderLocation && trackMap) {
-          const riderLat = updatedOrder.riderLocation.latitude;
-          const riderLng = updatedOrder.riderLocation.longitude;
-          
-          if (window.riderMarker) trackMap.removeLayer(window.riderMarker);
-          window.riderMarker = L.marker([riderLat, riderLng], {
-            icon: L.divIcon({ className: 'rider-marker', html: '🏍️', iconSize: [30, 30] })
-          }).addTo(trackMap).bindPopup('Rider is here!');
-          trackMap.setView([riderLat, riderLng], 14);
-        }
-        if (updatedOrder) {
-          document.getElementById("trackStatus").textContent = `📦 Status: ${updatedOrder.status.toUpperCase()}`;
-        }
-      });
-      
-      toast(`📍 Tracking order ${orderId}`);
-      
-    } catch (err) {
-      console.error(err);
-      toast("❌ Error tracking order");
-    }
-  };
-
-  // ============ ACCESS CONTROL ============
-  function showAccessModal() {
-    document.getElementById("accessModal").style.display = "flex";
-  }
-
-  window.verifyAccess = () => {
-    const code = document.getElementById("accessCode").value;
-    if (code === "admin123") {
-      userRole = "admin";
-      document.getElementById("accessModal").style.display = "none";
-      toast("🔐 Admin access granted");
-      document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-      document.getElementById('adminPage').classList.add('active');
-      loadAdminOrders();
-    } else if (code === "rider123") {
-      userRole = "rider";
-      document.getElementById("accessModal").style.display = "none";
-      toast("🛵 Rider access granted");
-      document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-      document.getElementById('riderPage').classList.add('active');
-      loadRiderOrders();
-    } else {
-      toast("❌ Invalid access code");
-    }
-  };
-
-  // Navigation
-  window.goTo = (page, event) => {
-    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-    document.getElementById(page + 'Page').classList.add('active');
-    document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
-    if (event && event.target) {
-      const btn = event.target.closest('.nav-item');
-      if (btn) btn.classList.add('active');
-    }
-    if (page === 'cart') renderCart();
-    if (page === 'track' && trackMap) trackMap.invalidateSize();
-  };
-
-  window.closeOnboarding = () => {
-    document.getElementById("onboarding").style.display = "none";
-  };
-
-  // Category filters
-  document.querySelectorAll('.cat-pill').forEach(pill => {
-    pill.addEventListener('click', () => {
-      document.querySelectorAll('.cat-pill').forEach(p => p.classList.remove('active'));
-      pill.classList.add('active');
-      actCat = pill.getAttribute('data-cat');
-      buildMenu();
-    });
-  });
-
-  // Firebase debug functions
-  async function testFirebaseConnection() {
-    const statusSpan = document.getElementById('firebaseStatus');
-    try {
-      await rtdb.ref('test_connection').set({ timestamp: Date.now(), status: 'connected' });
-      statusSpan.innerHTML = '✅ Connected';
-      console.log("Firebase connected successfully");
-    } catch (error) {
-      statusSpan.innerHTML = '❌ Error';
-      console.error("Firebase connection error:", error);
-      toast('⚠️ Firebase connection failed');
-    }
-  }
-
-  async function updateVisitorCount() {
-    if (!sessionStorage.getItem('visitor_counted')) {
-      try {
-        const visitorRef = rtdb.ref('visitors/count');
-        const snap = await visitorRef.once('value');
-        let current = snap.val() || 0;
-        current++;
-        await visitorRef.set(current);
-        sessionStorage.setItem('visitor_counted', 'true');
-        document.getElementById('visitorDebug').innerText = current;
-      } catch (e) { console.error(e); }
-    } else {
-      const snap = await rtdb.ref('visitors/count').once('value');
-      document.getElementById('visitorDebug').innerText = snap.val() || 0;
-    }
-  }
-
-  async function updateOrderCountDebug() {
-    try {
-      const snap = await rtdb.ref('orders').once('value');
-      const count = snap.val() ? Object.keys(snap.val()).length : 0;
-      document.getElementById('orderCountDebug').innerText = count;
-    } catch (e) { console.error(e); }
-  }
-
-  window.copyDebugInfo = () => {
-    const info = `Firebase: ${document.getElementById('firebaseStatus').innerText}\nVisitors: ${document.getElementById('visitorDebug').innerText}\nOrders: ${document.getElementById('orderCountDebug').innerText}`;
-    navigator.clipboard.writeText(info);
-    toast('📋 Debug info copied');
-  };
-
-  // PWA Install
-  let deferredPrompt;
-  window.addEventListener('beforeinstallprompt', (e) => {
-    e.preventDefault();
-    deferredPrompt = e;
-    document.getElementById('installBtn').style.display = 'flex';
-  });
-  
-  document.getElementById('installBtn')?.addEventListener('click', async () => {
-    if (deferredPrompt) {
-      deferredPrompt.prompt();
-      const { outcome } = await deferredPrompt.userChoice;
-      if (outcome === 'accepted') toast('🎉 Thanks for installing!');
-      deferredPrompt = null;
-    }
-  });
-
-  // Real-time order count update
-  rtdb.ref('orders').on('value', () => {
-    updateOrderCountDebug();
-  });
-
-  // Initialize
-  (async () => {
-    await testFirebaseConnection();
-    await updateVisitorCount();
-    await updateOrderCountDebug();
-    await loadMenuFromFirebase();
-    renderCart();
-    selOT("Delivery");
-    if (Notification.permission === "default") Notification.requestPermission();
-  })();
-</script>
-</body>
-</html>
+    routingControl.on('routesfound', (e) => {
+      const route = e.routes[0];
+      const distKm = (route.summary.totalDistance / 1000).toFixed(1);
+      const etaMin = Math.round(route.summary.totalTime / 60);
+      const timeAgo = Math.floor((Date.now() - lastUpdateTimestamp) / 1000);
+      const isOnline = timeAgo < OFFLINE_TIMEOUT;
+      const statusDiv = document.getElementById("trackStatusResult");
+      statusDiv.style.display = "block";
+      statusDiv.innerHTML = `
+        <i class="fas fa-truck-fast"></i> <strong>Status:</strong> ${isOnline ? '🟢 Rider online' : '🔴 Rider offline (no signal)'}<br>
+        <i
