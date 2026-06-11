@@ -1,0 +1,23 @@
+# Secret files - NEVER commit these
+admin-login.html
+config.js
+.env
+*.secret
+
+# OS files
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Logs
+*.log
+npm-debug.log*
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Local config
+local-config.js
