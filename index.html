@@ -783,6 +783,48 @@
     });
   }
 
+  // FIXED: Generate WhatsApp message - properly formatted
+  function generateWhatsAppMessage() {
+    // Get form values
+    const name = document.getElementById("name").value.trim();
+    const phone = document.getElementById("phone").value.trim();
+    const address = OT === "Delivery" ? document.getElementById("address").value.trim() : "Pickup Order";
+    const notes = document.getElementById("notes").value.trim();
+    
+    // Build message
+    let msg = "🔥 *PATOGRILLS ORDER* 🔥%0A%0A";
+    msg += `*Order ID:* ${ORDER_ID}%0A`;
+    msg += `*Name:* ${name || "Not provided"}%0A`;
+    msg += `*Phone:* ${phone || "Not provided"}%0A`;
+    msg += `*Type:* ${OT}%0A`;
+    msg += `*Address:* ${address || "Not provided"}%0A`;
+    msg += `%0A*ITEMS:*%0A`;
+    
+    // Add items
+    if (cart.length === 0) {
+      msg += `No items in cart%0A`;
+    } else {
+      cart.forEach(item => {
+        msg += `• ${item.name} x${item.qty} = ${fmt(item.price * item.qty)}%0A`;
+      });
+    }
+    
+    msg += `%0A*Subtotal:* ${fmt(sub())}%0A`;
+    if (OT === "Delivery") {
+      msg += `*Delivery Fee:* ${fmt(FEE)}%0A`;
+    }
+    msg += `*TOTAL:* ${fmt(tot())}%0A%0A`;
+    
+    if (notes) {
+      msg += `*Notes:* ${notes}%0A%0A`;
+    }
+    
+    msg += `🙏 Thank you for ordering from Patogrills! 🔥`;
+    
+    console.log("Generated message:", msg);
+    return msg;
+  }
+
   // SAVE ORDER TO FIREBASE - WORKS FOR BOTH PICKUP AND DELIVERY
   async function saveOrderToRTDB(customerLocationData) {
     if (!cart.length) {
@@ -827,20 +869,13 @@
       timestampReadable: new Date().toLocaleString(),
       assigned: false,
       riderId: null,
-      // THIS IS CRITICAL - LOCATION DATA WITH LATITUDE & LONGITUDE
-      customerLocation: customerLocationData ? {
-        latitude: customerLocationData.latitude,
-        longitude: customerLocationData.longitude,
-        accuracy: customerLocationData.accuracy,
-        timestamp: customerLocationData.timestamp
-      } : null,
+      customerLocation: customerLocationData || null,
       riderLocation: null
     };
 
     console.log("Saving order to Firebase:", orderData);
 
     try {
-      // Save to main orders path
       await rtdb.ref('orders/' + ORDER_ID).set(orderData);
       
       // Update stats counter
@@ -859,40 +894,13 @@
       }
       
       console.log("✅ Order saved successfully:", ORDER_ID);
-      
-      // VERIFY the save worked
-      const verify = await rtdb.ref('orders/' + ORDER_ID).once('value');
-      if (verify.exists()) {
-        toast("✅ Order #" + ORDER_ID + " saved to database!");
-        return true;
-      } else {
-        console.error("❌ Verification failed - order not found after save");
-        toast("⚠️ Order saved but verification failed");
-        return false;
-      }
+      return true;
       
     } catch (err) {
       console.error("Firebase save error:", err);
       toast("❌ Failed to save order: " + (err.message || "Check network"));
       return false;
     }
-  }
-
-  function genMsg() {
-    let msg = `🔥 *PATOGRILLS ORDER* 🔥\n\n`;
-    msg += `*Order ID:* ${ORDER_ID}\n`;
-    msg += `*Name:* ${document.getElementById("name").value.trim()}\n`;
-    msg += `*Phone:* ${document.getElementById("phone").value.trim()}\n`;
-    msg += `*Type:* ${OT}\n`;
-    if (OT === "Delivery") msg += `*Address:* ${document.getElementById("address").value.trim()}\n`;
-    msg += `\n*ITEMS:*\n`;
-    cart.forEach(i => { msg += `• ${i.name} x${i.qty} = ${fmt(i.price * i.qty)}\n`; });
-    msg += `\n*Subtotal:* ${fmt(sub())}\n`;
-    if (OT === "Delivery") msg += `*Delivery Fee:* ${fmt(FEE)}\n`;
-    msg += `*TOTAL:* ${fmt(tot())}\n\n`;
-    if (document.getElementById("notes").value.trim()) msg += `*Notes:* ${document.getElementById("notes").value.trim()}\n\n`;
-    msg += `🙏 Thank you for ordering from Patogrills! 🔥`;
-    return msg;
   }
 
   window.selOT = (type) => {
@@ -913,12 +921,22 @@
     renderCart();
   };
 
-  // WHATSAPP HANDLER - Saves order FIRST then opens WhatsApp
+  // FIXED: WhatsApp handler - saves order THEN opens WhatsApp
   document.getElementById("sendLink")?.addEventListener("click", async (e) => {
     e.preventDefault();
     
+    console.log("Send button clicked");
+    
     if (!cart.length) {
       toast("🍽️ Add items first!");
+      return;
+    }
+    
+    const name = document.getElementById("name").value.trim();
+    const phone = document.getElementById("phone").value.trim();
+    
+    if (!name || !phone) {
+      toast("❌ Please enter your name and phone number");
       return;
     }
     
@@ -935,15 +953,13 @@
         locationData = await captureCustomerLocation();
         console.log("Location captured:", locationData);
       } catch (err) {
-        toast("⚠️ Location error: " + err + ". Try Pickup or enable GPS.");
+        toast("⚠️ Location error: " + err);
         return;
       }
-    } else {
-      // For pickup orders, still save but with null location
-      console.log("Pickup order - no location needed");
     }
 
     // SAVE TO FIREBASE FIRST
+    toast("💾 Saving order to database...");
     const saved = await saveOrderToRTDB(locationData);
     
     if (!saved) {
@@ -951,17 +967,22 @@
       return;
     }
 
-    // ONLY OPEN WHATSAPP IF SAVE SUCCEEDED
-    const waLink = `https://wa.me/${PH}?text=${encodeURIComponent(genMsg())}`;
+    // Generate WhatsApp message
+    const waMessage = generateWhatsAppMessage();
+    const waLink = `https://wa.me/${PH}?text=${waMessage}`;
+    
+    console.log("Opening WhatsApp with link:", waLink);
+    
+    // Open WhatsApp
     window.open(waLink, '_blank');
-    toast("📱 Order saved! Redirecting to WhatsApp...");
+    toast("✅ Order saved! Opening WhatsApp...");
     
     // Clear cart after successful order
     cart = [];
     updBadge();
     renderCart();
     
-    // Refresh order counts in debug panel
+    // Refresh order counts
     updateOrderCountDebug();
   });
 
@@ -1143,7 +1164,6 @@
         }).addTo(trackMap);
       }
       
-      // Show customer location if available
       if (order.customerLocation && order.customerLocation.latitude) {
         const custLat = order.customerLocation.latitude;
         const custLng = order.customerLocation.longitude;
@@ -1152,8 +1172,6 @@
         trackMarker = L.marker([custLat, custLng]).addTo(trackMap)
           .bindPopup(`<b>${order.customerName}</b><br>${order.address}`).openPopup();
         trackMap.setView([custLat, custLng], 14);
-      } else {
-        toast("📍 No location available for this order (Pickup)");
       }
       
       // Listen for rider location updates
