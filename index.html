@@ -627,6 +627,11 @@
   firebase.initializeApp(firebaseConfig);
   const rtdb = firebase.database();
 
+  // ==================== CONNECTION TEST ====================
+  rtdb.ref('test/connection').set({ timestamp: Date.now(), status: 'Patogrills connected' })
+    .then(() => console.log('✅ Firebase write successful! Database is writable.'))
+    .catch(err => console.error('❌ Firebase write FAILED:', err));
+
   // ==================== GLOBAL VARIABLES ====================
   const ITEMS = [
     {id:1,name:"Spaghetti", price:1500,desc:"Classic pasta, rich tomato sauce", cat:"MAINS", img:"Spaghetti.jpg"},
@@ -639,7 +644,7 @@
     {id:8,name:"Sausage", price:500, desc:"Smoky grilled sausage", cat:"EXTRAS", img:"suss.png"},
     {id:9,name:"Fresh Salad", price:700, desc:"Crunchy veggie mix, house dressing", cat:"EXTRAS", img:"salad.jpg"}
   ];
-  const FEE = 1000, PH = "2348029811578";
+  const FEE = 1000, PH = "2348029811578";  // ✅ UPDATED PHONE NUMBER
   let cart = [], OT = "Delivery", actCat = "ALL";
   let riderSharing = false, riderWatchId = null, riderCurrentOrderId = null;
   let pendingOrdersListener = null, activeOrderListener = null;
@@ -738,42 +743,23 @@
     }
   }
 
-  // ==================== GENERATE WHATSAPP MESSAGE (FIXED) ====================
-  function generateWhatsAppMessage() {
-    // Get current form values
-    const name = document.getElementById("name").value.trim() || "Not provided";
-    const phone = document.getElementById("phone").value.trim() || "Not provided";
-    const address = OT === "Delivery" ? (document.getElementById("address").value.trim() || "Not provided") : "Pickup at restaurant";
-    const notes = document.getElementById("notes").value.trim();
-    
-    // Build items list
-    let itemsText = "";
-    cart.forEach((item, idx) => {
-      itemsText += `${idx + 1}. ${item.name} x${item.qty} = ${fmt(item.price * item.qty)}\n`;
-    });
-    
-    // Build the message with proper line breaks using %0A
-    let msg = "🔥 *PATO GRILLS ORDER* 🔥%0A%0A";
-    msg += `*Order ID:* ${ORDER_ID}%0A`;
-    msg += `*Name:* ${name}%0A`;
-    msg += `*Phone:* ${phone}%0A`;
-    msg += `*Type:* ${OT}%0A`;
-    msg += `*Address:* ${address}%0A`;
-    msg += `%0A*ITEMS:*%0A`;
-    msg += itemsText;
-    msg += `%0A*Subtotal:* ${fmt(sub())}%0A`;
-    if (OT === "Delivery") {
-      msg += `*Delivery Fee:* ${fmt(FEE)}%0A`;
-    }
-    msg += `*TOTAL:* ${fmt(tot())}%0A%0A`;
-    if (notes) {
-      msg += `*Notes:* ${notes}%0A%0A`;
-    }
-    msg += `🙏 *Thank you for ordering from Patogrills!* 🔥%0A`;
-    msg += `📍 Patogrills Abraka - Good Food No Dey Rush`;
-    
-    console.log("Generated WhatsApp message:", msg);
-    return msg;
+  // ==================== GENERATE WHATSAPP MESSAGE ====================
+  function genMsg() {
+    if (!cart.length) return "🔥 Patogrills: Cart is empty.";
+    const lines = cart.map(i => `• ${i.qty} x ${i.name} — ${fmt(i.qty * i.price)}`).join("\n");
+    const nm = document.getElementById("name").value.trim() || "—";
+    const ph = document.getElementById("phone").value.trim() || "—";
+    const ad = OT === "Delivery" ? (document.getElementById("address").value.trim() || "—") : null;
+    const nt = document.getElementById("notes").value.trim() || "—";
+    const dl = OT === "Delivery" ? `\n🚚 Delivery fee: ${fmt(FEE)}` : "";
+    return `🍢 *PATO GRILLS ORDER* 🍢\n\n🔖 *Order ID:* ${ORDER_ID}\n\n${lines}${dl}\n\n────────────────\n📦 *Total:* ${fmt(tot())}\n\n📌 *Order type:* ${OT}\n👤 *Name:* ${nm}\n📞 *Phone:* ${ph}${ad !== null ? `\n📍 *Address:* ${ad}` : ""}\n📝 *Notes:* ${nt}\n\n🔥 *Enjoy the Thrills Of The Grills — Good Food No Dey Rush*`;
+  }
+
+  function updPreview() {
+    document.getElementById("preview").textContent = genMsg();
+    const lk = document.getElementById("sendLink");
+    if (!cart.length) { lk.href = "#"; return; }
+    lk.href = `https://wa.me/${PH}?text=${encodeURIComponent(genMsg())}`;
   }
 
   // ==================== ORDER TYPE SELECT ====================
@@ -786,99 +772,30 @@
     document.getElementById("locationStatus").innerHTML = "";
   };
 
-  // ==================== UPDATE PREVIEW ====================
-  function updPreview() {
-    const name = document.getElementById("name").value.trim() || "—";
-    const phone = document.getElementById("phone").value.trim() || "—";
-    const address = OT === "Delivery" ? (document.getElementById("address").value.trim() || "—") : "Pickup";
-    const notes = document.getElementById("notes").value.trim() || "—";
-    
-    let previewText = `🍢 PATO GRILLS ORDER 🍢\n\n`;
-    previewText += `Order ID: ${ORDER_ID}\n`;
-    previewText += `Name: ${name}\n`;
-    previewText += `Phone: ${phone}\n`;
-    previewText += `Type: ${OT}\n`;
-    previewText += `Address: ${address}\n\n`;
-    previewText += `ITEMS:\n`;
-    cart.forEach(i => {
-      previewText += `• ${i.qty} x ${i.name} — ${fmt(i.qty * i.price)}\n`;
-    });
-    previewText += `\nSubtotal: ${fmt(sub())}\n`;
-    if (OT === "Delivery") previewText += `Delivery: ${fmt(FEE)}\n`;
-    previewText += `TOTAL: ${fmt(tot())}\n\n`;
-    if (notes !== "—") previewText += `Notes: ${notes}\n`;
-    previewText += `\n🔥 Enjoy the Thrills Of The Grills!`;
-    
-    document.getElementById("preview").textContent = previewText;
-  }
-
-  // ==================== WHATSAPP HANDLER (FIXED) ====================
+  // ==================== WHATSAPP HANDLER ====================
   document.getElementById("sendLink").addEventListener("click", async (e) => {
-    e.preventDefault();
     console.log("Send button clicked");
-    
-    // Validate cart
-    if (!cart.length) {
-      toast("🍽️ Add items first!");
-      return;
-    }
-    
-    // Validate form fields
-    const name = document.getElementById("name").value.trim();
-    const phone = document.getElementById("phone").value.trim();
-    const address = document.getElementById("address")?.value.trim();
-    
-    if (!name) {
-      toast("❌ Please enter your name");
-      document.getElementById("name").focus();
-      return;
-    }
-    if (!phone) {
-      toast("❌ Please enter your phone number");
-      document.getElementById("phone").focus();
-      return;
-    }
-    if (OT === "Delivery" && !address) {
-      toast("📍 Please enter your delivery address");
-      document.getElementById("address").focus();
-      return;
-    }
-    
-    let coords = null;
+    if (!cart.length) { e.preventDefault(); toast("🍽️ Add items first!"); return; }
+    if (OT === "Delivery" && !document.getElementById("address").value.trim()) { e.preventDefault(); toast("📍 Please enter your delivery address first"); return; }
     if (OT === "Delivery") {
       try {
-        coords = await captureCustomerLocation();
-        console.log("Location captured:", coords);
+        const coords = await captureCustomerLocation();
+        const saved = await saveOrderToRTDB(coords);
+        if (!saved) { e.preventDefault(); return; }
       } catch (err) {
-        toast(err.message);
+        e.preventDefault();
+        toast(err.message || "Location permission required. Please enable GPS to place delivery order.");
         return;
       }
+    } else {
+      const saved = await saveOrderToRTDB(null);
+      if (!saved) e.preventDefault();
     }
-    
-    // Save to Firebase
-    toast("💾 Saving order to database...");
-    const saved = await saveOrderToRTDB(coords);
-    if (!saved) {
-      toast("❌ Failed to save order. Please try again.");
-      return;
-    }
-    
-    // Generate and send WhatsApp message
-    const waMessage = generateWhatsAppMessage();
-    const waLink = `https://wa.me/${PH}?text=${waMessage}`;
-    console.log("Opening WhatsApp:", waLink);
-    
-    window.open(waLink, '_blank');
-    toast("✅ Order saved! Opening WhatsApp...");
-    
-    // Clear cart
-    cart = [];
-    updBadge();
-    renderCart();
-    updPreview();
   });
 
-  // ==================== UI FUNCTIONS ====================
+  ["name","phone","address","notes"].forEach(id => { const el = document.getElementById(id); if (el) el.addEventListener("input", updPreview); });
+
+  // ==================== UI MENU, CART FUNCTIONS ====================
   function goTo(p) {
     document.querySelectorAll('.page').forEach(x => x.classList.remove('active'));
     document.querySelectorAll('.ni').forEach(x => x.classList.remove('active'));
@@ -979,4 +896,25 @@
       statusDiv.style.display = "block";
       statusDiv.innerHTML = `
         <i class="fas fa-truck-fast"></i> <strong>Status:</strong> ${isOnline ? '🟢 Rider online' : '🔴 Rider offline (no signal)'}<br>
-        <i
+        <i class="fas fa-route"></i> <strong>Distance:</strong> ${distKm} km<br>
+        <i class="fas fa-clock"></i> <strong>ETA:</strong> ~${etaMin} min<br>
+        <i class="fas fa-sync-alt"></i> <strong>Last update:</strong> ${timeAgo} sec ago
+      `;
+      if (!isOnline) statusDiv.innerHTML += `<br><span style="color:red;">⚠️ Rider connection lost. Please refresh.</span>`;
+    });
+    setTimeout(() => {
+      if (!routingControl || !routingControl._routes || routingControl._routes.length === 0) {
+        const R = 6371;
+        const dLat = (custLat - riderLat) * Math.PI / 180;
+        const dLon = (custLng - riderLng) * Math.PI / 180;
+        const a = Math.sin(dLat/2)**2 + Math.cos(riderLat * Math.PI/180) * Math.cos(custLat * Math.PI/180) * Math.sin(dLon/2)**2;
+        const distKm = R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+        const etaMin = Math.round(distKm / 0.03 * 60);
+        const timeAgo = Math.floor((Date.now() - lastUpdateTimestamp) / 1000);
+        const isOnline = timeAgo < OFFLINE_TIMEOUT;
+        const statusDiv = document.getElementById("trackStatusResult");
+        statusDiv.style.display = "block";
+        statusDiv.innerHTML = `
+          <i class="fas fa-truck-fast"></i> <strong>Status:</strong> ${isOnline ? '🟢 Rider online' : '🔴 Rider offline (no signal)'}<br>
+          <i class="fas fa-route"></i> <strong>Distance (approx):</strong> ${distKm.toFixed(1)} km<br>
+          <i class="fas fa-clock"></i> <strong>
