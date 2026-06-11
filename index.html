@@ -26,7 +26,7 @@
   <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
   <style>
-    /* ===== ALL EXISTING STYLES (kept intact) ===== */
+    /* ===== YOUR EXISTING STYLES (kept intact) ===== */
     :root {
       --fire: #f2622e;
       --fire-deep: #c84318;
@@ -131,7 +131,7 @@
       padding:6px 14px; border-radius:40px;
       font-size:.75rem; font-weight:700; letter-spacing:.08em; text-transform:uppercase;
     }
-    /* NEW: Install button inside hero */
+    /* INSTALL BUTTON - ALWAYS VISIBLE */
     .install-hero-btn {
       display: inline-flex;
       align-items: center;
@@ -148,6 +148,7 @@
       transition: all 0.2s;
       font-family: var(--BF);
       letter-spacing: 1px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
     }
     .install-hero-btn i { font-size: 1rem; }
     .install-hero-btn:hover {
@@ -370,6 +371,24 @@
     .navigate-btn { background:#1a73e8; color:white; border:none; border-radius:8px; padding:8px 16px; cursor:pointer; margin-right:8px; }
     .action-buttons-group { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 12px; }
     #liveTrackingMap { height: 280px; border-radius: 20px; margin-top: 12px; background: #e9e5e0; width: 100%; }
+    
+    /* Debug panel (optional, can be removed later) */
+    .debug-panel {
+      position: fixed;
+      bottom: 80px;
+      left: 10px;
+      background: #1a1a2e;
+      color: #0f0;
+      font-family: monospace;
+      font-size: 0.7rem;
+      padding: 6px 10px;
+      border-radius: 8px;
+      z-index: 9999;
+      opacity: 0.7;
+      cursor: pointer;
+      max-width: 200px;
+    }
+    .debug-panel:hover { opacity: 1; }
   </style>
 </head>
 <body>
@@ -404,7 +423,6 @@
     <h1>FIRE &amp;<br><span>FLAVOR</span></h1>
     <p>FLAME-GRILLED · FRESH · BOLD</p>
     <div class="hero-tag"><i class="fas fa-crown"></i> GOOD FOOD NO DEY RUSH</div>
-    <!-- INSTALL BUTTON ADDED HERE -->
     <button class="install-hero-btn" id="heroInstallBtn">
       <i class="fas fa-download"></i> INSTALL APP
     </button>
@@ -509,6 +527,13 @@
 <!-- RIDER MODAL -->
 <div id="riderModal" class="rider-modal"></div>
 
+<!-- Debug Panel (click to copy info) -->
+<div id="debugPanel" class="debug-panel" onclick="copyDebugInfo()">
+  🔍 Firebase: <span id="firebaseStatus">Checking...</span><br>
+  👥 Visitors: <span id="visitorDebug">0</span><br>
+  📦 Orders: <span id="orderCountDebug">0</span>
+</div>
+
 <script>
   // ==================== FIREBASE CONFIG ====================
   const firebaseConfig = {
@@ -523,6 +548,62 @@
   firebase.initializeApp(firebaseConfig);
   const rtdb = firebase.database();
 
+  // ==================== DEBUG & FIREBASE TEST ====================
+  async function testFirebaseConnection() {
+    const statusSpan = document.getElementById('firebaseStatus');
+    try {
+      const testRef = rtdb.ref('test_connection');
+      await testRef.set({ timestamp: Date.now(), status: 'connected' });
+      statusSpan.innerHTML = '✅ Connected';
+      statusSpan.style.color = '#0f0';
+      console.log('Firebase write successful');
+    } catch (error) {
+      statusSpan.innerHTML = '❌ Error';
+      statusSpan.style.color = '#f00';
+      console.error('Firebase connection error:', error);
+      toast('⚠️ Firebase connection issue. Check console.');
+    }
+  }
+  
+  // Visitor counter (increment once per session)
+  async function updateVisitorCount() {
+    if (!sessionStorage.getItem('visitor_counted')) {
+      try {
+        const visitorRef = rtdb.ref('visitors/count');
+        const snapshot = await visitorRef.once('value');
+        let current = snapshot.val() || 0;
+        current++;
+        await visitorRef.set(current);
+        sessionStorage.setItem('visitor_counted', 'true');
+        document.getElementById('visitorDebug').innerText = current;
+      } catch (error) {
+        console.error('Visitor count error:', error);
+      }
+    } else {
+      const snap = await rtdb.ref('visitors/count').once('value');
+      document.getElementById('visitorDebug').innerText = snap.val() || 0;
+    }
+  }
+  
+  // Order count debug
+  async function updateOrderCountDebug() {
+    try {
+      const snap = await rtdb.ref('orders').once('value');
+      const orders = snap.val();
+      const count = orders ? Object.keys(orders).length : 0;
+      document.getElementById('orderCountDebug').innerText = count;
+    } catch (e) {
+      console.error(e);
+    }
+  }
+  
+  // Copy debug info to clipboard
+  function copyDebugInfo() {
+    const info = `Firebase: ${document.getElementById('firebaseStatus').innerText}\nVisitors: ${document.getElementById('visitorDebug').innerText}\nOrders: ${document.getElementById('orderCountDebug').innerText}`;
+    navigator.clipboard.writeText(info);
+    toast('📋 Debug info copied');
+  }
+  
   // ==================== GLOBAL VARIABLES ====================
   let cart = [], OT = "Delivery", actCat = "ALL", menuItems = [];
   const FEE = 1000, PH = "2348029811578";
@@ -635,7 +716,7 @@
 
   // ==================== TRACKING ====================
   function initTrackMap(custLat, custLng) { const container = document.getElementById("liveTrackingMap"); container.style.display = "block"; if(window.trackMap) window.trackMap.remove(); window.trackMap = L.map(container).setView([custLat, custLng], 14); L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png').addTo(window.trackMap); L.marker([custLat, custLng]).addTo(window.trackMap).bindPopup('Your location'); }
-  function trackDeliveryOrder(orderId) { if(trackOrderRef) trackOrderRef.off(); const resultDiv = document.getElementById("trackStatusResult"); resultDiv.style.display = "block"; resultDiv.innerHTML = `<i class="fas fa-spinner fa-spin"></i> Looking up order...`; rtdb.ref('orders/'+orderId).once('value').then(async (snap) => { if(!snap.exists()){ resultDiv.innerHTML="❌ No order found."; return; } const orderData=snap.val(); const custLoc=orderData.customerLocation; if(!custLoc?.latitude){ resultDiv.innerHTML="⚠️ No GPS on this order."; return; } initTrackMap(custLoc.latitude, custLoc.longitude); trackOrderRef = rtdb.ref('orders/'+orderId).on('value', (riderSnap) => { const riderData=riderSnap.val(); if(riderData?.riderLocation?.latitude){ if(window.riderMarker) window.riderMarker.setLatLng([riderData.riderLocation.latitude, riderData.riderLocation.longitude]); else window.riderMarker = L.marker([riderData.riderLocation.latitude, riderData.riderLocation.longitude]).addTo(window.trackMap).bindPopup('Rider'); } else resultDiv.innerHTML=`Status: ${riderData.status}`; }); }).catch(err=>{ resultDiv.innerHTML="Error fetching order."; }); }
+  function trackDeliveryOrder(orderId) { if(trackOrderRef) trackOrderRef.off(); const resultDiv = document.getElementById("trackStatusResult"); resultDiv.style.display = "block"; resultDiv.innerHTML = `<i class="fas fa-spinner fa-spin"></i> Looking up order...`; rtdb.ref('orders/'+orderId).once('value').then(async (snap) => { if(!snap.exists()){ resultDiv.innerHTML="❌ No order found. Please check ID."; return; } const orderData=snap.val(); const custLoc=orderData.customerLocation; if(!custLoc?.latitude){ resultDiv.innerHTML="⚠️ Order found but no GPS location. Contact restaurant for update."; return; } initTrackMap(custLoc.latitude, custLoc.longitude); trackOrderRef = rtdb.ref('orders/'+orderId).on('value', (riderSnap) => { const riderData=riderSnap.val(); if(riderData?.riderLocation?.latitude){ if(window.riderMarker) window.riderMarker.setLatLng([riderData.riderLocation.latitude, riderData.riderLocation.longitude]); else window.riderMarker = L.marker([riderData.riderLocation.latitude, riderData.riderLocation.longitude]).addTo(window.trackMap).bindPopup('Rider'); } else resultDiv.innerHTML=`Status: ${riderData.status}<br><br>📍 Customer location set. Waiting for rider.`; }); }).catch(err=>{ resultDiv.innerHTML="Error fetching order. Try again later."; }); }
   document.getElementById("trackOrderBtn")?.addEventListener("click", () => { const id=document.getElementById("trackingIdInput").value.trim().toUpperCase(); if(!id){ toast("Enter Order ID"); return; } if(window.trackMap){ window.trackMap.remove(); window.trackMap=null; } if(trackOrderRef) trackOrderRef.off(); trackDeliveryOrder(id); });
 
   // ==================== RIDER PANEL ====================
@@ -659,32 +740,24 @@
   async function deleteOldOrders() { const cutoff=Date.now()-86400000; const snap=await rtdb.ref('orders').once('value'); const orders=snap.val(); if(!orders){ toast("No orders to clean"); return; } let deleted=0; for(let [key,ord] of Object.entries(orders)) if(ord.timestamp && ord.timestamp<cutoff){ await rtdb.ref('orders/'+key).remove(); deleted++; } toast(`🧹 Deleted ${deleted} old orders (>24h)`); }
   window.deleteOldOrders = deleteOldOrders;
 
-  // ==================== PWA INSTALL (Hero Button + Event) ====================
+  // ==================== PWA INSTALL BUTTON ====================
   let deferredPrompt;
   const heroInstallBtn = document.getElementById('heroInstallBtn');
   
-  // Detect if already installed as app
   function isAppInstalled() {
     return window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
   }
   
-  // Hide install button if already installed
-  if (isAppInstalled() && heroInstallBtn) {
-    heroInstallBtn.style.display = 'none';
-  }
+  if (isAppInstalled() && heroInstallBtn) heroInstallBtn.style.display = 'none';
   
   window.addEventListener('beforeinstallprompt', (e) => {
     e.preventDefault();
     deferredPrompt = e;
-    // Show button if not installed
-    if (!isAppInstalled() && heroInstallBtn) {
-      heroInstallBtn.style.display = 'inline-flex';
-    }
+    if (!isAppInstalled() && heroInstallBtn) heroInstallBtn.style.display = 'inline-flex';
   });
   
   heroInstallBtn?.addEventListener('click', async () => {
     if (!deferredPrompt) {
-      // Fallback instructions for iOS or browsers without prompt
       const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
       if (isIOS) {
         alert('📱 To install Patogrills on iPhone:\n\n1. Tap the Share button (📤)\n2. Scroll down and tap "Add to Home Screen"\n3. Tap "Add"');
@@ -723,8 +796,17 @@
   if(togglePickup) togglePickup.onclick=()=>{ pickupPanel.classList.remove("hidden-panel"); deliveryPanel.classList.add("hidden-panel"); togglePickup.classList.add("active-toggle"); toggleDelivery.classList.remove("active-toggle"); };
   if(toggleDelivery) toggleDelivery.onclick=()=>{ pickupPanel.classList.add("hidden-panel"); deliveryPanel.classList.remove("hidden-panel"); toggleDelivery.classList.add("active-toggle"); togglePickup.classList.remove("active-toggle"); };
   if(localStorage.getItem("pg_ob2")) document.getElementById("onboarding").classList.add("gone"); else { let obI=0; function showOBStep(i){ for(let j=0;j<4;j++){ document.getElementById("os"+j).classList.toggle("on",j===i); document.getElementById("d"+j).classList.toggle("on",j===i); } document.getElementById("obNext").innerText=i===3?"LET'S EAT! 🔥":"NEXT →"; } document.getElementById("obNext").onclick=()=>{ if(obI<3){ obI++; showOBStep(obI); } else { localStorage.setItem("pg_ob2","1"); document.getElementById("onboarding").classList.add("fade-out"); setTimeout(()=>document.getElementById("onboarding").classList.add("gone"),380); } }; document.getElementById("obSkip").onclick=()=>{ localStorage.setItem("pg_ob2","1"); document.getElementById("onboarding").classList.add("fade-out"); setTimeout(()=>document.getElementById("onboarding").classList.add("gone"),380); }; showOBStep(0); }
-  loadMenuFromFirebase(); renderCart(); selOT("Delivery");
-  if(Notification.permission === "default") Notification.requestPermission();
+  
+  // Start everything
+  (async () => {
+    await testFirebaseConnection();
+    await updateVisitorCount();
+    await updateOrderCountDebug();
+    await loadMenuFromFirebase();
+    renderCart();
+    selOT("Delivery");
+    if(Notification.permission === "default") Notification.requestPermission();
+  })();
 </script>
 </body>
 </html>
