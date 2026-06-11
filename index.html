@@ -26,13 +26,7 @@
   <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
   <style>
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-      -webkit-tap-highlight-color: transparent;
-    }
-
+    * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
     :root {
       --fire: #f2622e;
       --fire-deep: #c84318;
@@ -49,7 +43,6 @@
       --BF: 'Bebas Neue', impact, sans-serif;
       --DF: 'DM Sans', system-ui, sans-serif;
     }
-
     body {
       font-family: var(--DF);
       background: var(--warm-white);
@@ -57,8 +50,6 @@
       overflow-x: hidden;
       padding-bottom: calc(var(--nav-h) + var(--safe-bottom) + 8px);
     }
-
-    /* Onboarding Modal */
     #onboarding {
       position: fixed;
       top: 0;
@@ -70,7 +61,6 @@
       display: flex;
       align-items: center;
       justify-content: center;
-      transition: opacity 0.3s;
     }
     .onboard-card {
       background: white;
@@ -86,10 +76,6 @@
       color: var(--fire);
       margin: 16px 0 8px;
     }
-    .onboard-card p {
-      color: var(--text-muted);
-      margin-bottom: 24px;
-    }
     .onboard-btn {
       background: var(--fire);
       color: white;
@@ -100,8 +86,6 @@
       width: 100%;
       cursor: pointer;
     }
-
-    /* Top Bar */
     .top-bar {
       position: sticky;
       top: 0;
@@ -119,7 +103,7 @@
       color: var(--fire);
       letter-spacing: 2px;
     }
-    .order-id-badge {
+    .order-id-badge, .admin-badge {
       background: #f5f5f5;
       padding: 6px 12px;
       border-radius: 40px;
@@ -129,13 +113,8 @@
     .admin-badge {
       background: var(--fire);
       color: white;
-      padding: 6px 12px;
-      border-radius: 40px;
-      font-size: 0.7rem;
-      cursor: pointer;
+      margin-right: 8px;
     }
-
-    /* Hero Section */
     .hero {
       background: linear-gradient(135deg, var(--fire) 0%, var(--fire-deep) 100%);
       padding: 40px 20px;
@@ -147,12 +126,6 @@
       font-size: 3rem;
       letter-spacing: 3px;
     }
-    .hero p {
-      opacity: 0.9;
-      margin: 12px 0;
-    }
-
-    /* Bottom Navigation */
     .bottom-nav {
       position: fixed;
       bottom: 0;
@@ -175,20 +148,11 @@
       font-size: 0.7rem;
       color: var(--text-muted);
       cursor: pointer;
-      transition: 0.2s;
       padding: 6px 12px;
       border-radius: 40px;
     }
-    .nav-item i {
-      font-size: 1.4rem;
-    }
-    .nav-item.active {
-      color: var(--fire);
-      background: rgba(242, 98, 46, 0.1);
-    }
-    .cart-badge {
-      position: relative;
-    }
+    .nav-item i { font-size: 1.4rem; }
+    .nav-item.active { color: var(--fire); background: rgba(242, 98, 46, 0.1); }
     .badge {
       position: absolute;
       top: -6px;
@@ -200,22 +164,12 @@
       font-size: 0.6rem;
       min-width: 18px;
     }
-
-    /* Pages */
-    .page {
-      display: none;
-      padding: 20px;
-      animation: fadeIn 0.3s;
-    }
-    .page.active {
-      display: block;
-    }
+    .page { display: none; padding: 20px; animation: fadeIn 0.3s; }
+    .page.active { display: block; }
     @keyframes fadeIn {
       from { opacity: 0; transform: translateY(10px); }
       to { opacity: 1; transform: translateY(0); }
     }
-
-    /* Category Pills */
     .categories {
       display: flex;
       gap: 12px;
@@ -232,13 +186,7 @@
       white-space: nowrap;
       font-weight: 500;
     }
-    .cat-pill.active {
-      background: var(--fire);
-      color: white;
-      border-color: var(--fire);
-    }
-
-    /* Menu Grid */
+    .cat-pill.active { background: var(--fire); color: white; }
     .sec-title {
       font-family: var(--BF);
       font-size: 1.5rem;
@@ -255,39 +203,17 @@
       border-radius: 24px;
       overflow: hidden;
       box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
-      transition: transform 0.2s;
-    }
-    .menu-card:hover {
-      transform: translateY(-4px);
     }
     .menu-img {
       width: 100%;
       height: 180px;
       object-fit: cover;
     }
-    .menu-info {
-      padding: 16px;
-    }
-    .menu-name {
-      font-weight: 700;
-      font-size: 1.1rem;
-      margin-bottom: 6px;
-    }
-    .menu-desc {
-      font-size: 0.8rem;
-      color: var(--text-muted);
-      margin-bottom: 12px;
-    }
-    .menu-bottom {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-    .menu-price {
-      font-weight: 700;
-      color: var(--fire);
-      font-size: 1.2rem;
-    }
+    .menu-info { padding: 16px; }
+    .menu-name { font-weight: 700; font-size: 1.1rem; margin-bottom: 6px; }
+    .menu-desc { font-size: 0.8rem; color: var(--text-muted); margin-bottom: 12px; }
+    .menu-bottom { display: flex; justify-content: space-between; align-items: center; }
+    .menu-price { font-weight: 700; color: var(--fire); font-size: 1.2rem; }
     .order-btn {
       background: var(--fire);
       color: white;
@@ -297,17 +223,7 @@
       cursor: pointer;
       font-weight: 600;
     }
-    .order-btn:disabled {
-      opacity: 0.5;
-      cursor: not-allowed;
-    }
-
-    /* Cart Styles */
-    .cart-list {
-      display: flex;
-      flex-direction: column;
-      gap: 16px;
-    }
+    .cart-list { display: flex; flex-direction: column; gap: 16px; }
     .cart-item {
       display: flex;
       gap: 12px;
@@ -321,12 +237,8 @@
       object-fit: cover;
       border-radius: 16px;
     }
-    .ci-info {
-      flex: 1;
-    }
-    .ci-name {
-      font-weight: 600;
-    }
+    .ci-info { flex: 1; }
+    .ci-name { font-weight: 600; }
     .qty-row {
       display: flex;
       align-items: center;
@@ -365,12 +277,8 @@
       cursor: pointer;
       margin-top: 16px;
     }
-
-    /* Order Form */
-    .form-group {
-      margin-bottom: 20px;
-    }
-    .form-group input, .form-group textarea, .form-group select {
+    .form-group { margin-bottom: 20px; }
+    .form-group input, .form-group textarea {
       width: 100%;
       padding: 14px;
       border: 1px solid var(--border);
@@ -390,12 +298,7 @@
       border-radius: 40px;
       cursor: pointer;
     }
-    .ot-btn.active {
-      background: var(--fire);
-      color: white;
-    }
-
-    /* Track Page */
+    .ot-btn.active { background: var(--fire); color: white; }
     #trackMap {
       height: 400px;
       border-radius: 24px;
@@ -415,8 +318,6 @@
       color: var(--fire);
       font-weight: 600;
     }
-
-    /* Admin & Rider Styles */
     .order-card {
       background: white;
       border-radius: 20px;
@@ -429,11 +330,6 @@
       justify-content: space-between;
       margin-bottom: 12px;
       font-weight: bold;
-    }
-    .order-items {
-      font-size: 0.9rem;
-      color: var(--text-muted);
-      margin: 12px 0;
     }
     .status-select {
       padding: 8px;
@@ -459,10 +355,7 @@
       padding: 10px;
       border-radius: 40px;
       cursor: pointer;
-      margin-top: 8px;
     }
-
-    /* Toast */
     #toast {
       position: fixed;
       bottom: 90px;
@@ -478,11 +371,7 @@
       transition: opacity 0.3s;
       pointer-events: none;
     }
-    #toast.show {
-      opacity: 1;
-    }
-
-    /* Debug Panel */
+    #toast.show { opacity: 1; }
     .debug-panel {
       position: fixed;
       bottom: 80px;
@@ -497,24 +386,6 @@
       opacity: 0.7;
       cursor: pointer;
     }
-    .debug-panel:hover { opacity: 1; }
-
-    .install-hero-btn {
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-      background: white;
-      color: var(--fire);
-      border: none;
-      padding: 8px 18px;
-      border-radius: 40px;
-      font-weight: bold;
-      font-size: 0.8rem;
-      margin-top: 12px;
-      cursor: pointer;
-    }
-
-    /* Modal for Rider/Admin Access */
     .modal {
       display: none;
       position: fixed;
@@ -541,6 +412,20 @@
       border: 1px solid var(--border);
       border-radius: 16px;
     }
+    .install-hero-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: white;
+      color: var(--fire);
+      border: none;
+      padding: 8px 18px;
+      border-radius: 40px;
+      font-weight: bold;
+      font-size: 0.8rem;
+      margin-top: 12px;
+      cursor: pointer;
+    }
   </style>
 </head>
 <body>
@@ -555,14 +440,14 @@
   </div>
 </div>
 
-<!-- Access Modal for Admin/Rider -->
+<!-- Access Modal -->
 <div id="accessModal" class="modal">
   <div class="modal-content">
     <i class="fas fa-lock" style="font-size: 3rem; color: var(--fire);"></i>
     <h3>Admin / Rider Access</h3>
     <input type="password" id="accessCode" placeholder="Enter access code">
     <button onclick="verifyAccess()" style="background: var(--fire); color: white; border: none; padding: 12px 24px; border-radius: 40px; cursor: pointer;">Access Panel</button>
-    <p style="margin-top: 12px; font-size: 0.8rem;">Admin: <strong>admin123</strong> | Rider: <strong>rider123</strong></p>
+    <p style="margin-top: 12px;">Admin: <strong>admin123</strong> | Rider: <strong>rider123</strong></p>
   </div>
 </div>
 
@@ -645,18 +530,15 @@
   </div>
 </div>
 
-<!-- ADMIN PANEL -->
 <div id="adminPage" class="page">
   <h2 style="margin-bottom: 20px;">🔧 ADMIN DASHBOARD</h2>
   <div style="display: flex; gap: 12px; margin-bottom: 20px; flex-wrap: wrap;">
     <button onclick="loadAdminOrders()" class="order-btn">📦 Refresh Orders</button>
     <button onclick="exportOrders()" class="order-btn">📊 Export Data</button>
-    <button onclick="debugShowAllOrders()" class="order-btn" style="background: #4CAF50;">🔍 Show All Orders</button>
   </div>
   <div id="adminOrdersList"></div>
 </div>
 
-<!-- RIDER PANEL -->
 <div id="riderPage" class="page">
   <h2 style="margin-bottom: 20px;">🛵 RIDER DASHBOARD</h2>
   <div style="display: flex; gap: 12px; margin-bottom: 20px;">
@@ -668,10 +550,10 @@
 
 <!-- Bottom Navigation -->
 <div class="bottom-nav">
-  <button class="nav-item active" onclick="goTo('menu')"><i class="fas fa-utensils"></i><span>Menu</span></button>
-  <button class="nav-item" onclick="goTo('cart')"><i class="fas fa-shopping-cart cart-badge"></i><span>Cart</span><span id="navBadge" class="badge" style="display: none;">0</span></button>
-  <button class="nav-item" onclick="goTo('order')"><i class="fas fa-receipt"></i><span>Order</span></button>
-  <button class="nav-item" onclick="goTo('track')"><i class="fas fa-map-marker-alt"></i><span>Track</span></button>
+  <button class="nav-item active" onclick="goTo('menu', event)"><i class="fas fa-utensils"></i><span>Menu</span></button>
+  <button class="nav-item" onclick="goTo('cart', event)"><i class="fas fa-shopping-cart"></i><span>Cart</span><span id="navBadge" class="badge" style="display: none;">0</span></button>
+  <button class="nav-item" onclick="goTo('order', event)"><i class="fas fa-receipt"></i><span>Order</span></button>
+  <button class="nav-item" onclick="goTo('track', event)"><i class="fas fa-map-marker-alt"></i><span>Track</span></button>
 </div>
 
 <div id="toast"></div>
@@ -696,12 +578,17 @@
   const rtdb = firebase.database();
 
   // Global Variables
-  let cart = [], OT = "Delivery", actCat = "ALL", menuItems = [];
+  let cart = [];
+  let OT = "Delivery";
+  let actCat = "ALL";
+  let menuItems = [];
   let userRole = null;
   let riderWatchId = null;
   let currentRiderOrderId = null;
-  const FEE = 1000, PH = "2348029811578";
-  let trackMap = null, trackMarker = null;
+  let trackMap = null;
+  let trackMarker = null;
+  const FEE = 1000;
+  const PH = "2348029811578";
 
   function toast(msg) {
     const t = document.getElementById("toast");
@@ -804,8 +691,8 @@
 
   window.addItem = (id) => {
     const it = menuItems.find(i => i.id === id);
-    if (it.stock <= 0) {
-      toast("❌ Sorry, " + it.name + " is out of stock!");
+    if (!it || it.stock <= 0) {
+      toast("❌ Sorry, item is out of stock!");
       return;
     }
     const ex = cart.find(i => i.id === id);
@@ -857,31 +744,47 @@
     document.getElementById("dRow").style.display = isD ? "flex" : "none";
     document.getElementById("sTotal").textContent = fmt(tot());
     sm.style.display = "block";
-    cw.innerHTML = `<button class="wa-btn" onclick="goTo('order')"><i class="fas fa-receipt"></i> FILL ORDER DETAILS</button>`;
+    cw.innerHTML = `<button class="wa-btn" onclick="goTo('order', event)"><i class="fas fa-receipt"></i> FILL ORDER DETAILS</button>`;
   }
 
+  // CAPTURE LOCATION - WITH LATITUDE & LONGITUDE
   function captureCustomerLocation() {
     return new Promise((resolve, reject) => {
-      if (!navigator.geolocation) reject("Geolocation not supported");
+      if (!navigator.geolocation) {
+        reject("Geolocation not supported");
+        return;
+      }
       const statusDiv = document.getElementById("locationStatus");
-      if (statusDiv) statusDiv.innerHTML = `<i class="fas fa-spinner fa-spin"></i> Getting your location...`;
+      if (statusDiv) {
+        statusDiv.innerHTML = `<i class="fas fa-spinner fa-spin"></i> Getting your location...`;
+      }
       navigator.geolocation.getCurrentPosition(
         pos => {
-          if (statusDiv) statusDiv.innerHTML = `✅ Location captured!`;
-          resolve({ lat: pos.coords.latitude, lng: pos.coords.longitude });
+          const locationData = {
+            latitude: pos.coords.latitude,
+            longitude: pos.coords.longitude,
+            accuracy: pos.coords.accuracy,
+            timestamp: Date.now()
+          };
+          if (statusDiv) {
+            statusDiv.innerHTML = `✅ Location captured! (${locationData.latitude.toFixed(4)}, ${locationData.longitude.toFixed(4)})`;
+          }
+          resolve(locationData);
         },
         err => {
           let msg = err.code === 1 ? "Location permission denied. Please enable GPS for delivery orders." : "Location unavailable.";
-          if (statusDiv) statusDiv.innerHTML = `⚠️ ${msg}`;
+          if (statusDiv) {
+            statusDiv.innerHTML = `⚠️ ${msg}`;
+          }
           reject(msg);
         },
-        { enableHighAccuracy: true, timeout: 10000 }
+        { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
       );
     });
   }
 
-  // IMPROVED: Save order to Firebase with verification
-  async function saveOrderToRTDB(customerCoords) {
+  // SAVE ORDER TO FIREBASE - WORKS FOR BOTH PICKUP AND DELIVERY
+  async function saveOrderToRTDB(customerLocationData) {
     if (!cart.length) {
       toast("❌ Cart empty");
       return false;
@@ -889,18 +792,19 @@
     
     const name = document.getElementById("name").value.trim();
     const phone = document.getElementById("phone").value.trim();
-    const address = OT === "Delivery" ? document.getElementById("address").value.trim() : "";
+    const address = OT === "Delivery" ? document.getElementById("address").value.trim() : "Pickup Order";
     const notes = document.getElementById("notes").value.trim();
     
     if (!name || !phone) {
       toast("❌ Name and phone required");
       return false;
     }
-    if (OT === "Delivery" && !address) {
+    if (OT === "Delivery" && !document.getElementById("address").value.trim()) {
       toast("📍 Please enter your delivery address");
       return false;
     }
 
+    // Build order object with location data
     const orderData = {
       orderId: ORDER_ID,
       customerName: name,
@@ -923,13 +827,17 @@
       timestampReadable: new Date().toLocaleString(),
       assigned: false,
       riderId: null,
-      riderLocation: null,
-      customerLocation: customerCoords ? { 
-        latitude: customerCoords.lat, 
-        longitude: customerCoords.lng, 
-        timestamp: Date.now() 
-      } : null
+      // THIS IS CRITICAL - LOCATION DATA WITH LATITUDE & LONGITUDE
+      customerLocation: customerLocationData ? {
+        latitude: customerLocationData.latitude,
+        longitude: customerLocationData.longitude,
+        accuracy: customerLocationData.accuracy,
+        timestamp: customerLocationData.timestamp
+      } : null,
+      riderLocation: null
     };
+
+    console.log("Saving order to Firebase:", orderData);
 
     try {
       // Save to main orders path
@@ -940,17 +848,17 @@
       let count = currentCount.val() || 0;
       await rtdb.ref('stats/ordersCount').set(count + 1);
       
-      // Also save to customersLocations for backward compatibility
-      if (customerCoords) {
+      // Also save to customersLocations for tracking
+      if (customerLocationData) {
         await rtdb.ref('customersLocations/' + ORDER_ID).set({
-          latitude: customerCoords.lat,
-          longitude: customerCoords.lng,
-          timestamp: Date.now()
+          latitude: customerLocationData.latitude,
+          longitude: customerLocationData.longitude,
+          timestamp: Date.now(),
+          customerName: name
         });
       }
       
       console.log("✅ Order saved successfully:", ORDER_ID);
-      console.log("Order data:", orderData);
       
       // VERIFY the save worked
       const verify = await rtdb.ref('orders/' + ORDER_ID).once('value');
@@ -958,7 +866,7 @@
         toast("✅ Order #" + ORDER_ID + " saved to database!");
         return true;
       } else {
-        console.error("❌ Verification failed");
+        console.error("❌ Verification failed - order not found after save");
         toast("⚠️ Order saved but verification failed");
         return false;
       }
@@ -1005,41 +913,56 @@
     renderCart();
   };
 
-  // WhatsApp handler
+  // WHATSAPP HANDLER - Saves order FIRST then opens WhatsApp
   document.getElementById("sendLink")?.addEventListener("click", async (e) => {
     e.preventDefault();
+    
     if (!cart.length) {
       toast("🍽️ Add items first!");
       return;
     }
+    
     if (OT === "Delivery" && !document.getElementById("address").value.trim()) {
       toast("📍 Please enter your delivery address");
       return;
     }
 
-    let coords = null;
+    let locationData = null;
+    
+    // Capture location ONLY for delivery orders
     if (OT === "Delivery") {
       try {
-        coords = await captureCustomerLocation();
+        locationData = await captureCustomerLocation();
+        console.log("Location captured:", locationData);
       } catch (err) {
         toast("⚠️ Location error: " + err + ". Try Pickup or enable GPS.");
         return;
       }
+    } else {
+      // For pickup orders, still save but with null location
+      console.log("Pickup order - no location needed");
     }
 
-    const saved = await saveOrderToRTDB(coords);
+    // SAVE TO FIREBASE FIRST
+    const saved = await saveOrderToRTDB(locationData);
+    
     if (!saved) {
+      toast("❌ Failed to save order. Please try again.");
       return;
     }
 
+    // ONLY OPEN WHATSAPP IF SAVE SUCCEEDED
     const waLink = `https://wa.me/${PH}?text=${encodeURIComponent(genMsg())}`;
     window.open(waLink, '_blank');
-    toast("📱 Redirecting to WhatsApp...");
+    toast("📱 Order saved! Redirecting to WhatsApp...");
     
-    // Clear cart after order
+    // Clear cart after successful order
     cart = [];
     updBadge();
     renderCart();
+    
+    // Refresh order counts in debug panel
+    updateOrderCountDebug();
   });
 
   // ============ ADMIN FUNCTIONS ============
@@ -1048,13 +971,14 @@
       const snap = await rtdb.ref('orders').once('value');
       const orders = snap.val();
       if (!orders || Object.keys(orders).length === 0) {
-        document.getElementById("adminOrdersList").innerHTML = "<p>📭 No orders in database yet</p>";
+        document.getElementById("adminOrdersList").innerHTML = "<p>📭 No orders in database yet. Place a test order!</p>";
         return;
       }
       
       let html = "";
-      const ordersArray = Object.values(orders).reverse(); // Show newest first
+      const ordersArray = Object.values(orders).reverse();
       ordersArray.forEach(order => {
+        const hasLocation = order.customerLocation && order.customerLocation.latitude;
         html += `
           <div class="order-card">
             <div class="order-header">
@@ -1064,8 +988,9 @@
             <div><strong>${order.customerName}</strong> - ${order.phone}</div>
             <div>Type: ${order.orderType} | Total: ${fmt(order.total)}</div>
             <div class="order-items">${order.items.map(i => `${i.name} x${i.qty}`).join(', ')}</div>
+            ${hasLocation ? `<div>📍 Location: ${order.customerLocation.latitude.toFixed(4)}, ${order.customerLocation.longitude.toFixed(4)}</div>` : '<div>📍 No location (Pickup)</div>'}
             <div>Status: 
-              <select class="status-select" id="status-${order.orderId}" onchange="updateOrderStatus('${order.orderId}', this.value)">
+              <select class="status-select" id="status-${order.orderId}">
                 <option value="pending" ${order.status === 'pending' ? 'selected' : ''}>⏳ Pending</option>
                 <option value="confirmed" ${order.status === 'confirmed' ? 'selected' : ''}>✅ Confirmed</option>
                 <option value="preparing" ${order.status === 'preparing' ? 'selected' : ''}>🍳 Preparing</option>
@@ -1112,41 +1037,6 @@
     });
   }
 
-  // Debug function to show all orders
-  window.debugShowAllOrders = async () => {
-    console.log("=== FETCHING ALL ORDERS FROM FIREBASE ===");
-    try {
-      const snap = await rtdb.ref('orders').once('value');
-      const orders = snap.val();
-      
-      if (!orders) {
-        console.log("No orders found in database");
-        toast("📭 No orders in database");
-        return;
-      }
-      
-      const orderCount = Object.keys(orders).length;
-      console.log(`📦 Total orders found: ${orderCount}`);
-      console.log("Order IDs:", Object.keys(orders));
-      
-      Object.entries(orders).forEach(([id, order]) => {
-        console.log(`\nOrder: ${id}`);
-        console.log(`  Customer: ${order.customerName}`);
-        console.log(`  Phone: ${order.phone}`);
-        console.log(`  Total: ₦${order.total}`);
-        console.log(`  Status: ${order.status}`);
-        console.log(`  Time: ${new Date(order.timestamp).toLocaleString()}`);
-      });
-      
-      toast(`📊 Found ${orderCount} orders in database`);
-      document.getElementById('orderCountDebug').innerText = orderCount;
-      
-    } catch (err) {
-      console.error("Error fetching orders:", err);
-      toast("❌ Failed to fetch orders");
-    }
-  };
-
   // ============ RIDER FUNCTIONS ============
   async function loadRiderOrders() {
     try {
@@ -1168,7 +1058,8 @@
               </div>
               <div><strong>${order.customerName}</strong> - ${order.phone}</div>
               <div>Type: ${order.orderType}</div>
-              ${order.orderType === 'Delivery' ? `<div>📍 Address: ${order.address}</div>` : ''}
+              ${order.orderType === 'Delivery' ? `<div>📍 Address: ${order.address}</div>` : '<div>📍 Pickup order</div>'}
+              ${order.customerLocation ? `<div>📍 Lat: ${order.customerLocation.latitude?.toFixed(4)}, Lng: ${order.customerLocation.longitude?.toFixed(4)}</div>` : ''}
               <div>Status: <strong>${order.status.toUpperCase()}</strong></div>
               <button class="accept-btn" onclick="acceptOrder('${order.orderId}')">
                 ${order.status === 'pending' ? '✅ Accept Order' : '📋 View Order'}
@@ -1192,7 +1083,6 @@
     }).then(() => {
       toast(`✅ Order ${orderId} accepted! Start sharing location.`);
       loadRiderOrders();
-      startSharingLocation();
     });
   };
 
@@ -1215,7 +1105,7 @@
         };
         rtdb.ref('orders/' + currentRiderOrderId).update({ riderLocation: riderLoc });
         document.getElementById("shareRiderLocation").style.background = "#45a049";
-        toast("📍 Sharing live location", 1000);
+        toast("📍 Sharing live location");
       },
       (err) => {
         console.error(err);
@@ -1253,14 +1143,17 @@
         }).addTo(trackMap);
       }
       
-      if (order.customerLocation) {
+      // Show customer location if available
+      if (order.customerLocation && order.customerLocation.latitude) {
         const custLat = order.customerLocation.latitude;
         const custLng = order.customerLocation.longitude;
         
         if (trackMarker) trackMap.removeLayer(trackMarker);
         trackMarker = L.marker([custLat, custLng]).addTo(trackMap)
-          .bindPopup(`<b>${order.customerName}</b><br>Delivery location`).openPopup();
+          .bindPopup(`<b>${order.customerName}</b><br>${order.address}`).openPopup();
         trackMap.setView([custLat, custLng], 14);
+      } else {
+        toast("📍 No location available for this order (Pickup)");
       }
       
       // Listen for rider location updates
@@ -1317,19 +1210,18 @@
   };
 
   // Navigation
-  window.goTo = (page) => {
+  window.goTo = (page, event) => {
     document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
     document.getElementById(page + 'Page').classList.add('active');
     document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
     if (event && event.target) {
-      event.target.closest('.nav-item').classList.add('active');
+      const btn = event.target.closest('.nav-item');
+      if (btn) btn.classList.add('active');
     }
-    
     if (page === 'cart') renderCart();
     if (page === 'track' && trackMap) trackMap.invalidateSize();
   };
 
-  // Close onboarding
   window.closeOnboarding = () => {
     document.getElementById("onboarding").style.display = "none";
   };
@@ -1420,11 +1312,6 @@
     renderCart();
     selOT("Delivery");
     if (Notification.permission === "default") Notification.requestPermission();
-    
-    // Auto-refresh debug orders every 10 seconds
-    setInterval(() => {
-      updateOrderCountDebug();
-    }, 10000);
   })();
 </script>
 </body>
