@@ -101,7 +101,7 @@
       max-width:900px; margin:0 auto; padding:8px 16px;
       display:flex; align-items:center; justify-content:space-between; gap:12px;
     }
-    .brand { display:flex; align-items:center; gap:10px; cursor:default; }
+    .brand { display:flex; align-items:center; gap:10px; cursor:pointer; }
     .brand-logo { width:46px; height:46px; border-radius:13px; object-fit:cover; flex-shrink:0; }
     .brand-logo-fb { width:46px; height:46px; border-radius:13px; background:linear-gradient(135deg,var(--fire),var(--fire-light)); display:none; align-items:center; justify-content:center; font-size:1.5rem; flex-shrink:0; }
     .brand-text { line-height:1; }
@@ -146,53 +146,8 @@
     .menu-desc { font-size:.7rem; color:var(--text-muted); line-height:1.35; flex:1; margin-bottom:10px; }
     .menu-bottom { display:flex; align-items:center; justify-content:space-between; gap:8px; flex-wrap:wrap; }
     .menu-price { font-family:var(--BF); font-size:1rem; letter-spacing:.5px; color:var(--fire); }
-    
-    /* ORDER BUTTON - Normal state */
-    .order-btn {
-      background: var(--fire);
-      color: white;
-      border: none;
-      border-radius: 40px;
-      padding: 6px 16px;
-      font-family: var(--BF);
-      font-size: 0.85rem;
-      letter-spacing: 1px;
-      cursor: pointer;
-      transition: all 0.15s ease;
-      display: inline-flex;
-      align-items: center;
-      gap: 4px;
-      font-weight: 600;
-    }
-    .order-btn i { font-size: 0.8rem; }
-    .order-btn:hover:not(:disabled) { background: var(--fire-deep); transform: scale(0.96); }
-    .order-btn:active:not(:disabled) { transform: scale(0.94); }
-    
-    /* ORDER BUTTON - Disabled (Out of Stock) */
-    .order-btn:disabled {
-      background: #9ca3af;
-      cursor: not-allowed;
-      opacity: 0.6;
-      transform: none;
-    }
-    
-    .out-of-stock-badge {
-      display: inline-block;
-      background: #ef4444;
-      color: white;
-      font-size: 0.65rem;
-      padding: 2px 8px;
-      border-radius: 20px;
-      margin-left: 8px;
-      font-weight: 600;
-    }
-    
-    .stock-low {
-      color: #f59e0b;
-      font-size: 0.65rem;
-      margin-top: 4px;
-    }
-    
+    .order-btn { background:var(--fire); color:white; border:none; border-radius:40px; padding:6px 16px; font-family:var(--BF); font-size:0.85rem; letter-spacing:1px; cursor:pointer; transition:all .15s ease; display:inline-flex; align-items:center; gap:4px; }
+    .order-btn:active { transform:scale(0.94); }
     /* Order ID Banner */
     .order-id-banner {
       background: var(--charcoal);
@@ -223,7 +178,7 @@
       align-items: center;
       gap: 6px;
     }
-    /* Reviews, Cart, Form */
+    /* Reviews, Map Card, Cart, Form */
     .g-review-wrap { background:white; border-radius:28px; margin:32px 0 24px; padding:22px 20px; box-shadow:0 12px 28px -8px rgba(0,0,0,0.08); border:1px solid var(--border); }
     .g-review-header { display:flex; align-items:center; gap:10px; font-family:var(--BF); font-size:1.35rem; letter-spacing:1px; color:var(--black); margin-bottom:8px; }
     .g-review-header i { color:var(--fire); font-size:1.4rem; }
@@ -239,6 +194,15 @@
     .rating-detail { font-size:0.7rem; color:var(--text-muted); border-top:1px solid #f0e0d6; padding-top:6px; margin-top:6px; }
     .g-review-btn { display:flex; align-items:center; justify-content:center; gap:10px; background:#1a73e8; color:white; text-decoration:none; padding:12px 17px; border-radius:60px; font-weight:700; font-size:.9rem; margin-top:16px; transition:background 0.2s; border:none; width:100%; }
     .g-review-btn:hover { background:#0d5bbb; }
+    .map-card { background:white; border-radius:28px; margin:20px 0 24px; padding:22px 20px; box-shadow:0 12px 28px -8px rgba(0,0,0,0.08); border:1px solid var(--border); }
+    .map-container { border-radius:24px; overflow:hidden; box-shadow:0 6px 14px rgba(0,0,0,0.1); margin-bottom:20px; }
+    .map-container iframe { width:100%; height:240px; border:0; display:block; }
+    .directions-buttons { display:flex; gap:12px; flex-wrap:wrap; justify-content:center; margin-top:8px; }
+    .dir-btn { flex:1; min-width:160px; background:var(--fire); border-radius:60px; padding:12px 18px; font-weight:700; font-size:0.9rem; display:inline-flex; align-items:center; justify-content:center; gap:8px; transition:all 0.2s ease; text-decoration:none; color:white; }
+    .dir-btn.google-orange { background:#ea4335; }
+    .dir-btn.google-blue { background:#1a73e8; }
+    .dir-btn:hover { transform:translateY(-2px); filter:brightness(1.05); }
+    .store-address { text-align:center; font-size:0.8rem; margin-top:16px; color:var(--text-muted); display:flex; align-items:center; justify-content:center; gap:6px; flex-wrap:wrap; }
     .cart-empty { text-align:center; padding:60px 20px; color:var(--text-muted); }
     .cart-empty i { font-size:3rem; color:#f5cfc0; margin-bottom:12px; display:block; }
     .cart-list { display:flex; flex-direction:column; gap:10px; }
@@ -376,6 +340,56 @@
     .navigate-btn { background:#1a73e8; color:white; border:none; border-radius:8px; padding:8px 16px; cursor:pointer; margin-right:8px; }
     .action-buttons-group { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 12px; }
     #liveTrackingMap { height: 280px; border-radius: 20px; margin-top: 12px; background: #e9e5e0; width: 100%; }
+    
+    /* PWA Install Banner */
+    #installBanner {
+      position: fixed;
+      bottom: 80px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 1001;
+      width: 90%;
+      max-width: 350px;
+      display: none;
+    }
+    .install-banner-content {
+      background: linear-gradient(135deg, #f2622e, #ff9142);
+      border-radius: 20px;
+      padding: 15px 20px;
+      color: white;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+      animation: slideUp 0.5s ease;
+      display: flex;
+      align-items: center;
+      gap: 15px;
+    }
+    .install-banner-content i:first-child { font-size: 2rem; }
+    .install-text { flex: 1; }
+    .install-text strong { font-size: 1rem; }
+    .install-text p { font-size: 0.75rem; margin-top: 3px; opacity: 0.9; }
+    .install-btn {
+      background: white;
+      color: #f2622e;
+      border: none;
+      padding: 8px 16px;
+      border-radius: 40px;
+      font-weight: bold;
+      cursor: pointer;
+    }
+    .close-install {
+      background: rgba(255,255,255,0.2);
+      color: white;
+      border: none;
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      cursor: pointer;
+      font-size: 1rem;
+    }
+    @keyframes slideUp {
+      from { transform: translateY(100px); opacity: 0; }
+      to { transform: translateY(0); opacity: 1; }
+    }
   </style>
 </head>
 <body>
@@ -395,7 +409,7 @@
 <!-- TOP BAR -->
 <header class="top-bar">
   <div class="top-bar-inner">
-    <div class="brand">
+    <div class="brand" id="adminAccessBtn">
       <img class="brand-logo" src="logo.png" alt="Patogrills Logo" onerror="this.style.display='none';document.getElementById('lf').style.display='flex';">
       <div class="brand-logo-fb" id="lf">🔥</div>
       <div class="brand-text"><span class="brand-name">Patogrills</span><span class="brand-sub">Thrills Of The Grills</span></div>
@@ -410,6 +424,19 @@
     <h1>FIRE &amp;<br><span>FLAVOR</span></h1>
     <p>FLAME-GRILLED · FRESH · BOLD</p>
     <div class="hero-tag"><i class="fas fa-crown"></i> GOOD FOOD NO DEY RUSH</div>
+  </div>
+</div>
+
+<!-- PWA INSTALL BANNER -->
+<div id="installBanner">
+  <div class="install-banner-content">
+    <i class="fas fa-download"></i>
+    <div class="install-text">
+      <strong>Install Patogrills App</strong>
+      <p>Add to home screen for easy access</p>
+    </div>
+    <button class="install-btn" id="installAppBtn">INSTALL</button>
+    <button class="close-install" id="closeInstallBtn">&times;</button>
   </div>
 </div>
 
@@ -434,12 +461,25 @@
     <p style="font-size: .7rem; color: var(--text-muted); text-align: center; margin-top: 14px;">⭐ Your feedback fuels our fire — share your experience!</p>
   </div>
 
+  <!-- MAP CARD -->
+  <div class="map-card">
+    <div class="g-review-header"><i class="fas fa-map-marked-alt"></i> Find Our Spot</div>
+    <div class="map-container">
+      <iframe src="https://maps.google.com/?q=Patogrills+Abraka+Delta+State+Nigeria&output=embed" title="Patogrills location map" loading="lazy"></iframe>
+    </div>
+    <div class="directions-buttons">
+      <a href="https://www.google.com/maps/dir/?api=1&destination=Patogrills+Abraka+Delta+State+Nigeria" target="_blank" class="dir-btn google-blue"><i class="fas fa-directions"></i> GET DIRECTIONS</a>
+      <a href="https://maps.app.goo.gl/5srZKvJwr1EW7bxs9" target="_blank" class="dir-btn google-orange"><i class="fas fa-external-link-alt"></i> OPEN IN MAPS</a>
+    </div>
+    <div class="store-address"><i class="fas fa-location-dot" style="color: var(--fire);"></i> Campus 4 Road, Opposite Oma's Hostel, Abraka — Delta State</div>
+  </div>
+
   <!-- SOCIAL MEDIA LINKS -->
   <div class="social-sec">
-    <a href="https://www.tiktok.com/@patogrills1" target="_blank" rel="noopener noreferrer" class="soc-btn"><i class="fab fa-tiktok"></i> TikTok</a>
-    <a href="https://www.instagram.com/patogrills/" target="_blank" rel="noopener noreferrer" class="soc-btn"><i class="fab fa-instagram"></i> Instagram</a>
-    <a href="https://wa.me/2348029811578" target="_blank" rel="noopener noreferrer" class="soc-btn"><i class="fab fa-whatsapp"></i> WhatsApp</a>
-    <a href="https://web.facebook.com/people/Pato-grills/pfbid02bPQ8jUKLsqjxE1pcmozbQpz6QsU7twv53B8dyS5BQ8wChywpbE9czb8FEDG3MMLUl/" target="_blank" rel="noopener noreferrer" class="soc-btn"><i class="fab fa-facebook"></i> Facebook</a>
+    <a href="https://www.tiktok.com/@patogrills1" target="_blank" class="soc-btn"><i class="fab fa-tiktok"></i> TikTok</a>
+    <a href="https://www.instagram.com/patogrills/" target="_blank" class="soc-btn"><i class="fab fa-instagram"></i> Instagram</a>
+    <a href="https://wa.me/2348029811578" target="_blank" class="soc-btn"><i class="fab fa-whatsapp"></i> WhatsApp</a>
+    <a href="https://web.facebook.com/people/Pato-grills/pfbid02bPQ8jUKLsqjxE1pcmozbQpz6QsU7twv53B8dyS5BQ8wChywpbE9czb8FEDG3MMLUl/" target="_blank" class="soc-btn"><i class="fab fa-facebook"></i> Facebook</a>
   </div>
   
   <div class="foot-txt">🔥 Best Grill spot in Abraka since 2023 · Enjoy the Thrills Of The Grills <div class="rider-trigger" onclick="openRiderModal()">@patogrills2021</div></div>
@@ -475,14 +515,12 @@
   <div class="track-toggle-bar"><button class="track-toggle-btn active-toggle" id="togglePickupBtn">📍 Pickup Spot</button><button class="track-toggle-btn" id="toggleDeliveryTrackBtn">🚚 Delivery Tracking</button></div>
   <div id="pickupPanel" class="track-panel">
     <div><i class="fas fa-store" style="color:var(--fire);"></i> <strong>Find Our Spot</strong></div>
-    <div class="map-container" style="border-radius:24px; overflow:hidden; margin-bottom:20px;">
-      <iframe src="https://maps.google.com/?q=Patogrills+Abraka+Delta+State+Nigeria&output=embed" style="width:100%; height:240px; border:0;"></iframe>
+    <div class="map-container"><iframe src="https://maps.google.com/?q=Patogrills+Abraka+Delta+State+Nigeria&output=embed" style="width:100%; height:240px; border:0;"></iframe></div>
+    <div class="directions-buttons">
+      <a href="https://www.google.com/maps/dir/?api=1&destination=Patogrills+Abraka+Delta+State+Nigeria" target="_blank" class="dir-btn" style="background:#1a73e8;"><i class="fas fa-directions"></i> Get Directions</a>
+      <a href="https://maps.app.goo.gl/5srZKvJwr1EW7bxs9" target="_blank" class="dir-btn" style="background:#ea4335;"><i class="fas fa-external-link-alt"></i> Open in Maps</a>
     </div>
-    <div class="directions-buttons" style="display:flex; gap:12px; flex-wrap:wrap;">
-      <a href="https://www.google.com/maps/dir/?api=1&destination=Patogrills+Abraka+Delta+State+Nigeria" target="_blank" class="dir-btn" style="background:#1a73e8; padding:12px 18px; border-radius:60px; color:white; text-decoration:none; flex:1; text-align:center;"><i class="fas fa-directions"></i> Get Directions</a>
-      <a href="https://maps.app.goo.gl/5srZKvJwr1EW7bxs9" target="_blank" class="dir-btn" style="background:#ea4335; padding:12px 18px; border-radius:60px; color:white; text-decoration:none; flex:1; text-align:center;"><i class="fas fa-external-link-alt"></i> Open in Maps</a>
-    </div>
-    <div class="store-address" style="text-align:center; margin-top:16px; font-size:0.8rem;"><i class="fas fa-location-dot"></i> Campus 4 Road, Opposite Oma's Hostel, Abraka — Delta State</div>
+    <div class="store-address"><i class="fas fa-location-dot"></i> Campus 4 Road, Opposite Oma's Hostel, Abraka — Delta State</div>
   </div>
   <div id="deliveryPanel" class="track-panel hidden-panel">
     <div><i class="fas fa-search-location"></i> <strong>Track Delivery</strong></div>
@@ -562,11 +600,10 @@
       h += `<div class="sec-title">${CL[c]}</div><div class="menu-grid">`;
       items.forEach(i => { 
         const isOutOfStock = i.stock <= 0;
-        const stockText = i.stock <= 0 ? '<span class="out-of-stock-badge">OUT OF STOCK</span>' : (i.stock < 10 ? `<div class="stock-low">⚠️ Only ${i.stock} left!</div>` : '');
         h += `<div class="menu-card">
           <img class="menu-img" src="${i.img}" onerror="this.src='https://placehold.co/400x250/fef0e6/f2622e?text=🔥'">
           <div class="menu-info">
-            <div class="menu-name">${i.name} ${isOutOfStock ? '<span class="out-of-stock-badge">SOLD OUT</span>' : ''}</div>
+            <div class="menu-name">${i.name} ${isOutOfStock ? '<span style="background:#ef4444; color:white; font-size:0.65rem; padding:2px 8px; border-radius:20px; margin-left:8px;">SOLD OUT</span>' : ''}</div>
             <div class="menu-desc">${i.desc}</div>
             <div class="menu-bottom">
               <div class="menu-price">${fmt(i.price)}</div>
@@ -574,7 +611,6 @@
                 <i class="fas fa-shopping-cart"></i> ${isOutOfStock ? 'UNAVAILABLE' : 'ORDER'}
               </button>
             </div>
-            ${stockText}
             <small style="font-size:0.65rem; color:${i.stock <= 0 ? '#ef4444' : '#666'};">stock: ${i.stock}</small>
           </div>
         </div>`; 
@@ -586,37 +622,21 @@
 
   window.addItem = (id) => { 
     const it = menuItems.find(i=>i.id===id); 
-    if(it.stock <= 0) { 
-      toast("❌ Sorry, " + it.name + " is out of stock!"); 
-      return; 
-    } 
+    if(it.stock <= 0) { toast("❌ Sorry, " + it.name + " is out of stock!"); return; } 
     const ex = cart.find(i=>i.id===id); 
     if(ex) {
-      if(ex.qty >= it.stock) {
-        toast(`❌ Only ${it.stock} ${it.name}(s) available in stock!`);
-        return;
-      }
+      if(ex.qty >= it.stock) { toast(`❌ Only ${it.stock} ${it.name}(s) available!`); return; }
       ex.qty++; 
-    }
-    else cart.push({...it, qty:1}); 
-    updBadge(); 
-    toast("✅ " + it.name + " added to cart!"); 
+    } else cart.push({...it, qty:1}); 
+    updBadge(); toast("✅ " + it.name + " added to cart!"); 
   };
   
   window.updateQty = (id,d) => { 
-    const idx=cart.findIndex(i=>i.id===id); 
-    if(idx===-1) return; 
+    const idx=cart.findIndex(i=>i.id===id); if(idx===-1) return; 
     const item = menuItems.find(i=>i.id===id);
     const newQty = cart[idx].qty + d;
-    if(newQty > item.stock) {
-      toast(`❌ Only ${item.stock} ${item.name}(s) available in stock!`);
-      return;
-    }
-    cart[idx].qty+=d; 
-    if(cart[idx].qty<=0) cart.splice(idx,1); 
-    updBadge(); 
-    renderCart(); 
-    updPreview(); 
+    if(newQty > item.stock) { toast(`❌ Only ${item.stock} ${item.name}(s) available!`); return; }
+    cart[idx].qty+=d; if(cart[idx].qty<=0) cart.splice(idx,1); updBadge(); renderCart(); updPreview(); 
   };
   
   function renderCart() { 
@@ -668,34 +688,80 @@
   async function deleteOldOrders() { const cutoff=Date.now()-86400000; const snap=await rtdb.ref('orders').once('value'); const orders=snap.val(); if(!orders){ toast("No orders to clean"); return; } let deleted=0; for(let [key,ord] of Object.entries(orders)) if(ord.timestamp && ord.timestamp<cutoff){ await rtdb.ref('orders/'+key).remove(); deleted++; } toast(`🧹 Deleted ${deleted} old orders (>24h)`); }
   window.deleteOldOrders = deleteOldOrders;
 
-  // ==================== PWA SERVICE WORKER REGISTRATION ====================
-  if ('serviceWorker' in navigator) {
-    window.addEventListener('load', () => {
-      navigator.serviceWorker.register('/sw.js')
-        .then(registration => {
-          console.log('✅ Service Worker registered successfully:', registration.scope);
-        })
-        .catch(error => {
-          console.log('❌ Service Worker registration failed:', error);
-        });
-    });
+  // ==================== PWA INSTALL PROMPT ====================
+  let deferredPrompt;
+  const installBanner = document.getElementById('installBanner');
+  const installBtn = document.getElementById('installAppBtn');
+  const closeInstallBtn = document.getElementById('closeInstallBtn');
+  
+  function isAppInstalled() {
+    return window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
   }
   
-  let deferredPrompt;
+  if (isAppInstalled()) {
+    installBanner.style.display = 'none';
+  }
+  
   window.addEventListener('beforeinstallprompt', (e) => {
     e.preventDefault();
     deferredPrompt = e;
-    console.log('📱 PWA install prompt available - user can install app');
+    if (!isAppInstalled()) {
+      installBanner.style.display = 'block';
+    }
+  });
+  
+  installBtn?.addEventListener('click', async () => {
+    if (!deferredPrompt) {
+      const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+      if (isIOS) {
+        alert('To install Patogrills on iPhone:\n\n1. Tap the Share button (📤)\n2. Scroll down and tap "Add to Home Screen"\n3. Tap "Add"');
+      } else {
+        alert('To install Patogrills:\n\n1. Tap the three dots menu (⋮)\n2. Tap "Install App" or "Add to Home Screen"');
+      }
+      return;
+    }
+    deferredPrompt.prompt();
+    const { outcome } = await deferredPrompt.userChoice;
+    installBanner.style.display = 'none';
+    deferredPrompt = null;
+    if (outcome === 'accepted') {
+      toast('🎉 Thanks for installing Patogrills!');
+    }
+  });
+  
+  closeInstallBtn?.addEventListener('click', () => {
+    installBanner.style.display = 'none';
+    localStorage.setItem('installBannerClosed', Date.now());
+  });
+  
+  const closedTime = localStorage.getItem('installBannerClosed');
+  if (closedTime && (Date.now() - parseInt(closedTime)) < 7 * 24 * 60 * 60 * 1000) {
+    installBanner.style.display = 'none';
+  }
+
+  // ==================== ADMIN ACCESS (Triple Click Brand) ====================
+  let brandClickCount = 0;
+  document.getElementById("adminAccessBtn").addEventListener("click", () => { 
+    brandClickCount++; 
+    if(brandClickCount === 3){ 
+      brandClickCount = 0; 
+      const adminPassword = prompt("🔐 Admin PIN:"); 
+      if(adminPassword === "PatogrillsAdmin2024"){ 
+        window.location.href = 'admin.html';
+      } else if(adminPassword !== null) toast("❌ Wrong PIN"); 
+    } 
+    setTimeout(()=>{ brandClickCount = 0; }, 1000); 
   });
 
   // ==================== INIT ====================
   window.goTo = (p) => { document.querySelectorAll('.page').forEach(x=>x.classList.remove('active')); document.querySelectorAll('.ni').forEach(x=>x.classList.remove('active')); document.getElementById('page-'+p).classList.add('active'); document.getElementById('nav-'+p).classList.add('active'); if(p==='order') updPreview(); if(p==='cart') renderCart(); if(p==='track') { document.getElementById("togglePickupBtn").click(); } window.scrollTo({top:0}); };
   document.querySelectorAll('.cat-pill').forEach(p=>p.addEventListener('click',()=>{ document.querySelectorAll('.cat-pill').forEach(x=>x.classList.remove('active')); p.classList.add('active'); actCat=p.dataset.cat; buildMenu(); }));
   const togglePickup=document.getElementById("togglePickupBtn"), toggleDelivery=document.getElementById("toggleDeliveryTrackBtn"), pickupPanel=document.getElementById("pickupPanel"), deliveryPanel=document.getElementById("deliveryPanel");
-  togglePickup.onclick=()=>{ pickupPanel.classList.remove("hidden-panel"); deliveryPanel.classList.add("hidden-panel"); togglePickup.classList.add("active-toggle"); toggleDelivery.classList.remove("active-toggle"); };
-  toggleDelivery.onclick=()=>{ pickupPanel.classList.add("hidden-panel"); deliveryPanel.classList.remove("hidden-panel"); toggleDelivery.classList.add("active-toggle"); togglePickup.classList.remove("active-toggle"); };
+  if(togglePickup) togglePickup.onclick=()=>{ pickupPanel.classList.remove("hidden-panel"); deliveryPanel.classList.add("hidden-panel"); togglePickup.classList.add("active-toggle"); toggleDelivery.classList.remove("active-toggle"); };
+  if(toggleDelivery) toggleDelivery.onclick=()=>{ pickupPanel.classList.add("hidden-panel"); deliveryPanel.classList.remove("hidden-panel"); toggleDelivery.classList.add("active-toggle"); togglePickup.classList.remove("active-toggle"); };
   if(localStorage.getItem("pg_ob2")) document.getElementById("onboarding").classList.add("gone"); else { let obI=0; function showOBStep(i){ for(let j=0;j<4;j++){ document.getElementById("os"+j).classList.toggle("on",j===i); document.getElementById("d"+j).classList.toggle("on",j===i); } document.getElementById("obNext").innerText=i===3?"LET'S EAT! 🔥":"NEXT →"; } document.getElementById("obNext").onclick=()=>{ if(obI<3){ obI++; showOBStep(obI); } else { localStorage.setItem("pg_ob2","1"); document.getElementById("onboarding").classList.add("fade-out"); setTimeout(()=>document.getElementById("onboarding").classList.add("gone"),380); } }; document.getElementById("obSkip").onclick=()=>{ localStorage.setItem("pg_ob2","1"); document.getElementById("onboarding").classList.add("fade-out"); setTimeout(()=>document.getElementById("onboarding").classList.add("gone"),380); }; showOBStep(0); }
   loadMenuFromFirebase(); renderCart(); selOT("Delivery");
+  if(Notification.permission === "default") Notification.requestPermission();
 </script>
 </body>
 </html>
