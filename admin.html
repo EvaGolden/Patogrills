@@ -167,15 +167,13 @@
             padding: 20px;
             text-align: center;
             border-left: 4px solid #f2622e;
-            transition: transform 0.2s, box-shadow 0.2s;
         }
-        .stat-card:hover { transform: translateY(-3px); box-shadow: 0 8px 20px rgba(0,0,0,0.1); }
         .stat-number {
             font-family: 'Bebas Neue', cursive;
             font-size: 2.5rem;
             color: #f2622e;
         }
-        .stat-label { font-size: 0.8rem; color: #666; margin-top: 5px; text-transform: uppercase; letter-spacing: 0.5px; }
+        .stat-label { font-size: 0.8rem; color: #666; margin-top: 5px; text-transform: uppercase; }
 
         /* Menu Editor */
         .menu-editor-list { display: flex; flex-direction: column; gap: 15px; }
@@ -188,15 +186,14 @@
             gap: 15px;
             align-items: center;
         }
-        .menu-item-edit img { width: 60px; height: 60px; border-radius: 10px; object-fit: cover; background: #fef0e6; }
+        .menu-item-edit img { width: 60px; height: 60px; border-radius: 10px; object-fit: cover; }
         .edit-fields { flex: 1; display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
         .edit-fields input, .edit-fields textarea {
             padding: 8px 12px;
             border: 1px solid #ddd;
             border-radius: 8px;
-            font-family: 'DM Sans', sans-serif;
         }
-        .edit-fields textarea { width: 200px; resize: vertical; }
+        .edit-fields textarea { width: 200px; }
         .edit-fields input { width: 100px; }
         .save-btn {
             background: #f2622e;
@@ -205,9 +202,7 @@
             padding: 8px 20px;
             border-radius: 8px;
             cursor: pointer;
-            transition: background 0.2s;
         }
-        .save-btn:hover { background: #c84318; }
 
         /* Orders */
         .orders-list { display: flex; flex-direction: column; gap: 15px; }
@@ -220,7 +215,6 @@
             justify-content: space-between;
             align-items: center;
             gap: 15px;
-            transition: all 0.2s;
         }
         .order-card.ready { background: #f0fdf4; border-left: 4px solid #22c55e; }
         .order-info { flex: 1; }
@@ -229,10 +223,9 @@
             font-size: 1.2rem;
             color: #f2622e;
         }
-        .order-details { font-size: 0.85rem; color: #555; margin: 5px 0; }
         .order-status {
             display: inline-block;
-            padding: 3px 12px;
+            padding: 3px 10px;
             border-radius: 20px;
             font-size: 0.7rem;
             font-weight: 600;
@@ -247,13 +240,10 @@
             padding: 8px 20px;
             border-radius: 8px;
             cursor: pointer;
-            font-weight: 600;
-            transition: background 0.2s;
         }
-        .ready-btn:hover { background: #16a34a; }
         .ready-btn:disabled { background: #9ca3af; cursor: not-allowed; }
 
-        /* Popular Items */
+        /* Popular */
         .popular-items { display: flex; flex-wrap: wrap; gap: 10px; }
         .popular-badge {
             background: white;
@@ -261,7 +251,6 @@
             padding: 10px 20px;
             color: #f2622e;
             font-weight: 600;
-            box-shadow: 0 2px 6px rgba(0,0,0,0.05);
         }
         .clean-btn {
             background: #ef4444;
@@ -270,10 +259,7 @@
             padding: 12px 30px;
             border-radius: 10px;
             cursor: pointer;
-            font-weight: 600;
-            transition: background 0.2s;
         }
-        .clean-btn:hover { background: #dc2626; }
         .overlay {
             display: none;
             position: fixed;
@@ -295,7 +281,6 @@
             border-radius: 10px;
             z-index: 2000;
             display: none;
-            font-size: 0.9rem;
         }
         .toast.show { display: block; }
         @media (max-width: 768px) {
@@ -317,7 +302,7 @@
         <div id="loginError" class="error-msg"></div>
         <button id="loginBtn"><i class="fas fa-sign-in-alt"></i> LOGIN</button>
         <p style="margin-top: 20px; font-size: 0.7rem; color: #999;">
-            🔐 Default password: <strong>admin123</strong> (change after login)
+            First time? Run admin-login.html locally to setup
         </p>
     </div>
 </div>
@@ -354,7 +339,7 @@
                     <div class="stat-card"><div class="stat-number">-</div><div class="stat-label">This Week</div></div>
                     <div class="stat-card"><div class="stat-number">-</div><div class="stat-label">This Month</div></div>
                     <div class="stat-card"><div class="stat-number">-</div><div class="stat-label">Total Deliveries</div></div>
-                    <div class="stat-card"><div class="stat-number">-</div><div class="stat-label">Total Visitors</div></div>
+                    <div class="stat-card"><div class="stat-number">-</div><div class="stat-label">Visitors</div></div>
                     <div class="stat-card"><div class="stat-number">-</div><div class="stat-label">All Orders</div></div>
                     <div class="stat-card"><div class="stat-number">-</div><div class="stat-label">Total Revenue</div></div>
                 </div>
@@ -363,9 +348,8 @@
             <div class="panel" id="ordersPanel"><div id="ordersList" class="orders-list">Loading orders...</div></div>
             <div class="panel" id="popularPanel"><div id="popularList" class="popular-items">Calculating...</div></div>
             <div class="panel" id="housekeepingPanel">
-                <button class="clean-btn" id="cleanOrdersBtn"><i class="fas fa-trash-alt"></i> Clean Old Orders (&gt;24 hours)</button>
-                <button class="clean-btn" id="resetVisitorsBtn" style="background:#3b82f6; margin-top:15px;"><i class="fas fa-chart-simple"></i> Reset Visitor Counter</button>
-                <p style="margin-top: 20px; color: #666; font-size: 0.85rem;">⚠️ Cleaning old orders will permanently delete all orders older than 24 hours. Resetting visitor counter will set it back to 0.</p>
+                <button class="clean-btn" id="cleanOrdersBtn"><i class="fas fa-trash-alt"></i> Clean Old Orders (>24 hours)</button>
+                <p style="margin-top: 20px; color: #666; font-size: 0.85rem;">This will permanently delete all orders older than 24 hours.</p>
             </div>
         </div>
     </div>
@@ -389,8 +373,8 @@
     const rtdb = firebase.database();
 
     // ==================== AUTHENTICATION ====================
-    // Default password: admin123 (stored as base64)
-    const DEFAULT_AUTH = btoa('admin123');
+    // NO PASSWORD STORED HERE - only checks against localStorage
+    // The actual password is only set by admin-login.html locally
     
     function isAuthenticated() {
         return localStorage.getItem('adminAuth') !== null;
@@ -407,8 +391,9 @@
             return;
         }
         
+        // Check against stored auth (set by admin-login.html)
+        const storedAuth = localStorage.getItem('adminAuth');
         const enteredAuth = btoa(password);
-        const storedAuth = localStorage.getItem('adminAuth') || DEFAULT_AUTH;
         
         if (storedAuth === enteredAuth) {
             sessionStorage.setItem('adminLoggedIn', 'true');
@@ -499,9 +484,9 @@
                 <img src="${item.img}" onerror="this.src='https://placehold.co/100/fef0e6/f2622e?text=🔥'">
                 <div class="edit-fields">
                     <strong>${item.name}</strong>
-                    <textarea id="desc_${item.id}" rows="2" placeholder="Description">${item.desc || ''}</textarea>
-                    <input type="number" id="price_${item.id}" value="${item.price}" step="100" placeholder="Price">
-                    <input type="number" id="stock_${item.id}" value="${item.stock || 99}" placeholder="Stock">
+                    <textarea id="desc_${item.id}" rows="2">${item.desc}</textarea>
+                    <input type="number" id="price_${item.id}" value="${item.price}" step="100">
+                    <input type="number" id="stock_${item.id}" value="${item.stock}">
                     <button class="save-btn" onclick="saveMenuItem(${item.id})">SAVE</button>
                 </div>
             </div>
@@ -521,92 +506,55 @@
         await loadMenu();
     };
     
-    // ==================== DASHBOARD WITH VISITOR COUNT ====================
+    // ==================== DASHBOARD ====================
     async function updateDashboard() {
         const snapshot = await rtdb.ref('orders').once('value');
         const orders = snapshot.val() || {};
         const now = Date.now();
         const ordersArray = Object.values(orders);
-        
-        // Calculate time-based stats
-        const last24h = ordersArray.filter(o => o.timestamp && o.timestamp > now - 86400000).length;
-        
-        const startOfWeek = new Date();
-        startOfWeek.setDate(startOfWeek.getDate() - startOfWeek.getDay());
-        startOfWeek.setHours(0, 0, 0, 0);
-        const thisWeek = ordersArray.filter(o => o.timestamp && o.timestamp > startOfWeek.getTime()).length;
-        
-        const startOfMonth = new Date();
-        startOfMonth.setDate(1);
-        startOfMonth.setHours(0, 0, 0, 0);
-        const thisMonth = ordersArray.filter(o => o.timestamp && o.timestamp > startOfMonth.getTime()).length;
-        
+        const last24h = ordersArray.filter(o => o.timestamp > now - 86400000).length;
+        const startWeek = new Date();
+        startWeek.setDate(startWeek.getDate() - startWeek.getDay());
+        const thisWeek = ordersArray.filter(o => o.timestamp > startWeek.getTime()).length;
+        const startMonth = new Date();
+        startMonth.setDate(1);
+        const thisMonth = ordersArray.filter(o => o.timestamp > startMonth.getTime()).length;
         const totalDeliveries = ordersArray.filter(o => o.orderType === 'Delivery').length;
         const totalOrders = ordersArray.length;
         const totalRevenue = ordersArray.reduce((sum, o) => sum + (o.total || 0), 0);
-        
-        // Get visitor count from Firebase (tracked by the main site)
-        let visitorCount = 0;
-        try {
-            const visitorSnap = await rtdb.ref('visitors/count').once('value');
-            visitorCount = visitorSnap.val() || 0;
-        } catch(e) { console.warn("Visitor count read error:", e); }
-        
-        // Also check for 'pageVisits' as fallback
-        if (visitorCount === 0) {
-            try {
-                const visitSnap = await rtdb.ref('pageVisits').once('value');
-                visitorCount = visitSnap.val() || 0;
-            } catch(e) {}
-        }
+        let visitorCount = (await rtdb.ref('visitors/count').once('value')).val() || 0;
         
         document.getElementById('statsContainer').innerHTML = `
-            <div class="stat-card"><div class="stat-number">${last24h}</div><div class="stat-label">LAST 24 HOURS</div></div>
+            <div class="stat-card"><div class="stat-number">${last24h}</div><div class="stat-label">LAST 24h</div></div>
             <div class="stat-card"><div class="stat-number">${thisWeek}</div><div class="stat-label">THIS WEEK</div></div>
             <div class="stat-card"><div class="stat-number">${thisMonth}</div><div class="stat-label">THIS MONTH</div></div>
-            <div class="stat-card"><div class="stat-number">${totalDeliveries}</div><div class="stat-label">TOTAL DELIVERIES</div></div>
-            <div class="stat-card"><div class="stat-number">${visitorCount}</div><div class="stat-label">👥 TOTAL VISITORS</div></div>
+            <div class="stat-card"><div class="stat-number">${totalDeliveries}</div><div class="stat-label">DELIVERIES</div></div>
+            <div class="stat-card"><div class="stat-number">${visitorCount}</div><div class="stat-label">VISITORS</div></div>
             <div class="stat-card"><div class="stat-number">${totalOrders}</div><div class="stat-label">ALL ORDERS</div></div>
-            <div class="stat-card"><div class="stat-number">${formatMoney(totalRevenue)}</div><div class="stat-label">TOTAL REVENUE</div></div>
+            <div class="stat-card"><div class="stat-number">${formatMoney(totalRevenue)}</div><div class="stat-label">REVENUE</div></div>
         `;
-    }
-    
-    // Reset visitor counter
-    async function resetVisitorCounter() {
-        if (!confirm('⚠️ Reset visitor counter to 0? This action cannot be undone.')) return;
-        try {
-            await rtdb.ref('visitors/count').set(0);
-            await rtdb.ref('pageVisits').set(0);
-            toast('✅ Visitor counter reset to 0');
-            await updateDashboard();
-        } catch(e) {
-            toast('❌ Failed to reset counter');
-            console.error(e);
-        }
     }
     
     // ==================== ORDERS ====================
     async function renderOrders() {
-        const snapshot = await rtdb.ref('orders').orderByKey().limitToLast(30).once('value');
+        const snapshot = await rtdb.ref('orders').orderByKey().limitToLast(20).once('value');
         const orders = snapshot.val();
-        if (!orders || Object.keys(orders).length === 0) {
-            document.getElementById('ordersList').innerHTML = '<div style="text-align:center; padding:40px; background:white; border-radius:15px;">📭 No orders yet. Customers will appear here.</div>';
+        if (!orders) {
+            document.getElementById('ordersList').innerHTML = '<div style="text-align:center; padding:40px;">No orders yet.</div>';
             return;
         }
         let html = '';
-        const orderKeys = Object.keys(orders).reverse();
-        for (let key of orderKeys) {
-            const order = orders[key];
-            const isReady = order.readyForPickup === true || order.status === 'meal_ready';
+        for (let [key, order] of Object.entries(orders).reverse()) {
+            const isReady = order.readyForPickup === true;
             html += `
                 <div class="order-card ${isReady ? 'ready' : ''}">
                     <div class="order-info">
-                        <div class="order-id">${order.orderId || key}</div>
-                        <div class="order-details">👤 ${order.customerName || '—'} | ${order.orderType || 'Pickup'} | ${formatMoney(order.total || 0)}<br>📞 ${order.phone || '—'} ${order.address ? `| 📍 ${order.address.substring(0, 40)}` : ''}</div>
-                        <span class="order-status ${isReady ? 'status-ready' : 'status-pending'}">${isReady ? '✅ MEAL READY' : '⏳ PENDING'}</span>
+                        <div class="order-id">${order.orderId}</div>
+                        <div class="order-details">👤 ${order.customerName} | ${order.orderType} | ${formatMoney(order.total)}<br>📞 ${order.phone}</div>
+                        <span class="order-status ${isReady ? 'status-ready' : 'status-pending'}">${isReady ? '✅ Meal Ready' : 'Pending'}</span>
                     </div>
                     <button class="ready-btn" onclick="markAsReady('${key}')" ${isReady ? 'disabled' : ''}>
-                        <i class="fas fa-check-circle"></i> ${isReady ? 'READY' : 'MARK READY'}
+                        <i class="fas fa-check-circle"></i> ${isReady ? 'MEAL READY ✓' : 'MARK AS READY'}
                     </button>
                 </div>
             `;
@@ -622,9 +570,9 @@
             return;
         }
         await rtdb.ref('orders/' + orderKey).update({ readyForPickup: true, status: 'meal_ready', mealReadyTimestamp: Date.now() });
-        toast(`✅ Order ${order.orderId || orderKey} marked as MEAL READY!`);
+        toast(`✅ Order ${order.orderId} marked as MEAL READY!`);
         if (Notification.permission === 'granted') {
-            new Notification('🍽️ Meal Ready - ' + (order.orderId || orderKey), { body: `${order.customerName || 'Customer'}, your order is ready for pickup!`, icon: 'logo.png' });
+            new Notification('🍽️ Meal Ready - ' + order.orderId, { body: `${order.customerName}, your order is ready!`, icon: 'logo.png' });
         }
         await renderOrders();
         await updateDashboard();
@@ -636,25 +584,23 @@
         const orders = snapshot.val() || {};
         const itemCount = {};
         for (let order of Object.values(orders)) {
-            if (order.items && Array.isArray(order.items)) {
+            if (order.items) {
                 for (let item of order.items) {
-                    if (item.name) {
-                        itemCount[item.name] = (itemCount[item.name] || 0) + (item.qty || 1);
-                    }
+                    itemCount[item.name] = (itemCount[item.name] || 0) + item.qty;
                 }
             }
         }
         const sorted = Object.entries(itemCount).sort((a, b) => b[1] - a[1]).slice(0, 10);
         if (sorted.length === 0) {
-            document.getElementById('popularList').innerHTML = '<div style="padding:40px; text-align:center; background:white; border-radius:15px;">📊 No items ordered yet. Start selling!</div>';
+            document.getElementById('popularList').innerHTML = '<div style="padding:40px; text-align:center;">No orders yet.</div>';
             return;
         }
-        document.getElementById('popularList').innerHTML = sorted.map(([name, qty]) => `<div class="popular-badge">🔥 ${name} — ordered ${qty} time${qty !== 1 ? 's' : ''}</div>`).join('');
+        document.getElementById('popularList').innerHTML = sorted.map(([name, qty]) => `<div class="popular-badge">🔥 ${name} — ordered ${qty} times</div>`).join('');
     }
     
     // ==================== CLEAN OLD ORDERS ====================
     async function cleanOldOrders() {
-        if (!confirm('⚠️ Delete all orders older than 24 hours? This action is permanent.')) return;
+        if (!confirm('⚠️ Delete all orders older than 24 hours?')) return;
         const cutoff = Date.now() - 86400000;
         const snapshot = await rtdb.ref('orders').once('value');
         const orders = snapshot.val();
@@ -669,7 +615,6 @@
         toast(`🧹 Deleted ${deleted} old order(s)`);
         await updateDashboard();
         await renderOrders();
-        await renderPopularItems();
     }
     
     // ==================== PANEL SWITCHING ====================
@@ -720,24 +665,9 @@
     });
     
     document.getElementById('cleanOrdersBtn').addEventListener('click', cleanOldOrders);
-    const resetBtn = document.getElementById('resetVisitorsBtn');
-    if (resetBtn) resetBtn.addEventListener('click', resetVisitorCounter);
     
     // Request notification permission
     if (Notification.permission === 'default') Notification.requestPermission();
-    
-    // Auto-refresh dashboard every 15 seconds when visible
-    let refreshInterval = null;
-    function startAutoRefresh() {
-        if (refreshInterval) clearInterval(refreshInterval);
-        refreshInterval = setInterval(() => {
-            const activePanel = document.querySelector('.panel.active');
-            if (activePanel && activePanel.id === 'dashboardPanel') {
-                updateDashboard();
-            }
-        }, 15000);
-    }
-    startAutoRefresh();
 </script>
 </body>
 </html>
