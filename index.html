@@ -126,6 +126,14 @@
       font-size: 0.7rem;
       cursor: pointer;
     }
+    .admin-badge {
+      background: var(--fire);
+      color: white;
+      padding: 6px 12px;
+      border-radius: 40px;
+      font-size: 0.7rem;
+      cursor: pointer;
+    }
 
     /* Hero Section */
     .hero {
@@ -408,6 +416,52 @@
       font-weight: 600;
     }
 
+    /* Admin & Rider Styles */
+    .order-card {
+      background: white;
+      border-radius: 20px;
+      padding: 16px;
+      margin-bottom: 16px;
+      border-left: 4px solid var(--fire);
+    }
+    .order-header {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 12px;
+      font-weight: bold;
+    }
+    .order-items {
+      font-size: 0.9rem;
+      color: var(--text-muted);
+      margin: 12px 0;
+    }
+    .status-select {
+      padding: 8px;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      margin-top: 8px;
+      width: 100%;
+    }
+    .accept-btn, .update-btn {
+      background: var(--fire);
+      color: white;
+      border: none;
+      padding: 8px 16px;
+      border-radius: 40px;
+      cursor: pointer;
+      margin-top: 8px;
+      width: 100%;
+    }
+    .share-location {
+      background: #4CAF50;
+      color: white;
+      border: none;
+      padding: 10px;
+      border-radius: 40px;
+      cursor: pointer;
+      margin-top: 8px;
+    }
+
     /* Toast */
     #toast {
       position: fixed;
@@ -459,6 +513,34 @@
       margin-top: 12px;
       cursor: pointer;
     }
+
+    /* Modal for Rider/Admin Access */
+    .modal {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0,0,0,0.9);
+      z-index: 20000;
+      align-items: center;
+      justify-content: center;
+    }
+    .modal-content {
+      background: white;
+      padding: 32px;
+      border-radius: 32px;
+      max-width: 300px;
+      text-align: center;
+    }
+    .modal-content input {
+      width: 100%;
+      padding: 12px;
+      margin: 16px 0;
+      border: 1px solid var(--border);
+      border-radius: 16px;
+    }
   </style>
 </head>
 <body>
@@ -473,11 +555,27 @@
   </div>
 </div>
 
+<!-- Access Modal for Admin/Rider -->
+<div id="accessModal" class="modal">
+  <div class="modal-content">
+    <i class="fas fa-lock" style="font-size: 3rem; color: var(--fire);"></i>
+    <h3>Admin / Rider Access</h3>
+    <input type="password" id="accessCode" placeholder="Enter access code">
+    <button onclick="verifyAccess()" style="background: var(--fire); color: white; border: none; padding: 12px 24px; border-radius: 40px; cursor: pointer;">Access Panel</button>
+    <p style="margin-top: 12px; font-size: 0.8rem;">Admin: <strong>admin123</strong> | Rider: <strong>rider123</strong></p>
+  </div>
+</div>
+
 <!-- Top Bar -->
 <header class="top-bar">
   <div class="logo">PATOGRILLS</div>
-  <div class="order-id-badge" onclick="copyOrderId()">
-    <i class="fas fa-receipt"></i> <span id="orderIdDisplay">PAT-XXXX</span>
+  <div style="display: flex; gap: 8px;">
+    <div class="admin-badge" onclick="showAccessModal()">
+      <i class="fas fa-user-shield"></i> Admin/Rider
+    </div>
+    <div class="order-id-badge" onclick="copyOrderId()">
+      <i class="fas fa-receipt"></i> <span id="orderIdDisplay">PAT-XXXX</span>
+    </div>
   </div>
 </header>
 
@@ -547,6 +645,27 @@
   </div>
 </div>
 
+<!-- ADMIN PANEL -->
+<div id="adminPage" class="page">
+  <h2 style="margin-bottom: 20px;">🔧 ADMIN DASHBOARD</h2>
+  <div style="display: flex; gap: 12px; margin-bottom: 20px; flex-wrap: wrap;">
+    <button onclick="loadAdminOrders()" class="order-btn">📦 Refresh Orders</button>
+    <button onclick="exportOrders()" class="order-btn">📊 Export Data</button>
+    <button onclick="debugShowAllOrders()" class="order-btn" style="background: #4CAF50;">🔍 Show All Orders</button>
+  </div>
+  <div id="adminOrdersList"></div>
+</div>
+
+<!-- RIDER PANEL -->
+<div id="riderPage" class="page">
+  <h2 style="margin-bottom: 20px;">🛵 RIDER DASHBOARD</h2>
+  <div style="display: flex; gap: 12px; margin-bottom: 20px;">
+    <button onclick="loadRiderOrders()" class="order-btn">🔄 Refresh</button>
+    <button id="shareRiderLocation" class="share-location" onclick="startSharingLocation()">📍 Share Live Location</button>
+  </div>
+  <div id="riderOrdersList"></div>
+</div>
+
 <!-- Bottom Navigation -->
 <div class="bottom-nav">
   <button class="nav-item active" onclick="goTo('menu')"><i class="fas fa-utensils"></i><span>Menu</span></button>
@@ -578,8 +697,11 @@
 
   // Global Variables
   let cart = [], OT = "Delivery", actCat = "ALL", menuItems = [];
+  let userRole = null;
+  let riderWatchId = null;
+  let currentRiderOrderId = null;
   const FEE = 1000, PH = "2348029811578";
-  let trackMap = null, trackMarker = null, trackRouting = null;
+  let trackMap = null, trackMarker = null;
 
   function toast(msg) {
     const t = document.getElementById("toast");
@@ -610,7 +732,6 @@
 
   function updBadge() {
     const n = cart.reduce((s, i) => s + i.qty, 0);
-    document.getElementById("cartCount").textContent = n;
     const b = document.getElementById("navBadge");
     if (b) {
       b.style.display = n > 0 ? "flex" : "none";
@@ -635,7 +756,7 @@
     try {
       const snap = await rtdb.ref('menu').once('value');
       const fbMenu = snap.val();
-      if (fbMenu) {
+      if (fbMenu && Object.keys(fbMenu).length > 0) {
         menuItems = Object.values(fbMenu);
       } else {
         menuItems = DEFAULT_MENU;
@@ -759,11 +880,13 @@
     });
   }
 
+  // IMPROVED: Save order to Firebase with verification
   async function saveOrderToRTDB(customerCoords) {
     if (!cart.length) {
       toast("❌ Cart empty");
       return false;
     }
+    
     const name = document.getElementById("name").value.trim();
     const phone = document.getElementById("phone").value.trim();
     const address = OT === "Delivery" ? document.getElementById("address").value.trim() : "";
@@ -785,22 +908,64 @@
       orderType: OT,
       address: address,
       notes: notes,
-      items: cart.map(i => ({ name: i.name, price: i.price, qty: i.qty, total: i.price * i.qty })),
+      items: cart.map(i => ({ 
+        id: i.id,
+        name: i.name, 
+        price: i.price, 
+        qty: i.qty, 
+        total: i.price * i.qty 
+      })),
+      subTotal: sub(),
+      deliveryFee: OT === "Delivery" ? FEE : 0,
       total: tot(),
       status: "pending",
       timestamp: Date.now(),
+      timestampReadable: new Date().toLocaleString(),
       assigned: false,
+      riderId: null,
       riderLocation: null,
-      customerLocation: customerCoords ? { latitude: customerCoords.lat, longitude: customerCoords.lng, timestamp: Date.now() } : null
+      customerLocation: customerCoords ? { 
+        latitude: customerCoords.lat, 
+        longitude: customerCoords.lng, 
+        timestamp: Date.now() 
+      } : null
     };
 
     try {
+      // Save to main orders path
       await rtdb.ref('orders/' + ORDER_ID).set(orderData);
-      toast("✅ Order saved to Firebase! Track your order in Track tab.");
-      return true;
+      
+      // Update stats counter
+      const currentCount = await rtdb.ref('stats/ordersCount').once('value');
+      let count = currentCount.val() || 0;
+      await rtdb.ref('stats/ordersCount').set(count + 1);
+      
+      // Also save to customersLocations for backward compatibility
+      if (customerCoords) {
+        await rtdb.ref('customersLocations/' + ORDER_ID).set({
+          latitude: customerCoords.lat,
+          longitude: customerCoords.lng,
+          timestamp: Date.now()
+        });
+      }
+      
+      console.log("✅ Order saved successfully:", ORDER_ID);
+      console.log("Order data:", orderData);
+      
+      // VERIFY the save worked
+      const verify = await rtdb.ref('orders/' + ORDER_ID).once('value');
+      if (verify.exists()) {
+        toast("✅ Order #" + ORDER_ID + " saved to database!");
+        return true;
+      } else {
+        console.error("❌ Verification failed");
+        toast("⚠️ Order saved but verification failed");
+        return false;
+      }
+      
     } catch (err) {
       console.error("Firebase save error:", err);
-      toast("❌ Failed to save order: " + (err.message || "Check network or Firebase rules"));
+      toast("❌ Failed to save order: " + (err.message || "Check network"));
       return false;
     }
   }
@@ -840,7 +1005,8 @@
     renderCart();
   };
 
-  // WhatsApp handler with save-first logic  document.getElementById("sendLink")?.addEventListener("click", async (e) => {
+  // WhatsApp handler
+  document.getElementById("sendLink")?.addEventListener("click", async (e) => {
     e.preventDefault();
     if (!cart.length) {
       toast("🍽️ Add items first!");
@@ -863,15 +1029,203 @@
 
     const saved = await saveOrderToRTDB(coords);
     if (!saved) {
-      return; // Don't open WhatsApp if save failed
+      return;
     }
 
     const waLink = `https://wa.me/${PH}?text=${encodeURIComponent(genMsg())}`;
     window.open(waLink, '_blank');
     toast("📱 Redirecting to WhatsApp...");
+    
+    // Clear cart after order
+    cart = [];
+    updBadge();
+    renderCart();
   });
 
-  // Tracking function
+  // ============ ADMIN FUNCTIONS ============
+  async function loadAdminOrders() {
+    try {
+      const snap = await rtdb.ref('orders').once('value');
+      const orders = snap.val();
+      if (!orders || Object.keys(orders).length === 0) {
+        document.getElementById("adminOrdersList").innerHTML = "<p>📭 No orders in database yet</p>";
+        return;
+      }
+      
+      let html = "";
+      const ordersArray = Object.values(orders).reverse(); // Show newest first
+      ordersArray.forEach(order => {
+        html += `
+          <div class="order-card">
+            <div class="order-header">
+              <span><strong>${order.orderId}</strong></span>
+              <span>${order.timestampReadable || new Date(order.timestamp).toLocaleString()}</span>
+            </div>
+            <div><strong>${order.customerName}</strong> - ${order.phone}</div>
+            <div>Type: ${order.orderType} | Total: ${fmt(order.total)}</div>
+            <div class="order-items">${order.items.map(i => `${i.name} x${i.qty}`).join(', ')}</div>
+            <div>Status: 
+              <select class="status-select" id="status-${order.orderId}" onchange="updateOrderStatus('${order.orderId}', this.value)">
+                <option value="pending" ${order.status === 'pending' ? 'selected' : ''}>⏳ Pending</option>
+                <option value="confirmed" ${order.status === 'confirmed' ? 'selected' : ''}>✅ Confirmed</option>
+                <option value="preparing" ${order.status === 'preparing' ? 'selected' : ''}>🍳 Preparing</option>
+                <option value="delivering" ${order.status === 'delivering' ? 'selected' : ''}>🛵 Delivering</option>
+                <option value="delivered" ${order.status === 'delivered' ? 'selected' : ''}>🎉 Delivered</option>
+              </select>
+            </div>
+            <button class="update-btn" onclick="updateOrderStatus('${order.orderId}', document.getElementById('status-${order.orderId}').value)">
+              Update Status
+            </button>
+          </div>
+        `;
+      });
+      document.getElementById("adminOrdersList").innerHTML = html;
+      toast(`📦 Loaded ${ordersArray.length} orders`);
+    } catch (err) {
+      console.error(err);
+      toast("❌ Error loading orders");
+    }
+  }
+
+  window.updateOrderStatus = async (orderId, status) => {
+    try {
+      await rtdb.ref('orders/' + orderId).update({ status: status });
+      toast(`✅ Order ${orderId} status updated to ${status}`);
+      loadAdminOrders();
+    } catch (err) {
+      toast("❌ Failed to update status");
+    }
+  };
+
+  function exportOrders() {
+    rtdb.ref('orders').once('value').then(snap => {
+      const orders = snap.val();
+      console.log("All Orders:", orders);
+      const dataStr = JSON.stringify(orders, null, 2);
+      const dataUri = 'data:application/json;charset=utf-8,'+ encodeURIComponent(dataStr);
+      const exportFileDefaultName = `patogrills-orders-${new Date().toISOString()}.json`;
+      const linkElement = document.createElement('a');
+      linkElement.setAttribute('href', dataUri);
+      linkElement.setAttribute('download', exportFileDefaultName);
+      linkElement.click();
+      toast("📊 Orders exported to JSON");
+    });
+  }
+
+  // Debug function to show all orders
+  window.debugShowAllOrders = async () => {
+    console.log("=== FETCHING ALL ORDERS FROM FIREBASE ===");
+    try {
+      const snap = await rtdb.ref('orders').once('value');
+      const orders = snap.val();
+      
+      if (!orders) {
+        console.log("No orders found in database");
+        toast("📭 No orders in database");
+        return;
+      }
+      
+      const orderCount = Object.keys(orders).length;
+      console.log(`📦 Total orders found: ${orderCount}`);
+      console.log("Order IDs:", Object.keys(orders));
+      
+      Object.entries(orders).forEach(([id, order]) => {
+        console.log(`\nOrder: ${id}`);
+        console.log(`  Customer: ${order.customerName}`);
+        console.log(`  Phone: ${order.phone}`);
+        console.log(`  Total: ₦${order.total}`);
+        console.log(`  Status: ${order.status}`);
+        console.log(`  Time: ${new Date(order.timestamp).toLocaleString()}`);
+      });
+      
+      toast(`📊 Found ${orderCount} orders in database`);
+      document.getElementById('orderCountDebug').innerText = orderCount;
+      
+    } catch (err) {
+      console.error("Error fetching orders:", err);
+      toast("❌ Failed to fetch orders");
+    }
+  };
+
+  // ============ RIDER FUNCTIONS ============
+  async function loadRiderOrders() {
+    try {
+      const snap = await rtdb.ref('orders').once('value');
+      const orders = snap.val();
+      if (!orders) {
+        document.getElementById("riderOrdersList").innerHTML = "<p>No orders available</p>";
+        return;
+      }
+      
+      let html = "";
+      Object.values(orders).forEach(order => {
+        if (order.status === 'pending' || order.status === 'confirmed' || order.status === 'preparing' || order.status === 'delivering') {
+          html += `
+            <div class="order-card">
+              <div class="order-header">
+                <span><strong>${order.orderId}</strong></span>
+                <span>${fmt(order.total)}</span>
+              </div>
+              <div><strong>${order.customerName}</strong> - ${order.phone}</div>
+              <div>Type: ${order.orderType}</div>
+              ${order.orderType === 'Delivery' ? `<div>📍 Address: ${order.address}</div>` : ''}
+              <div>Status: <strong>${order.status.toUpperCase()}</strong></div>
+              <button class="accept-btn" onclick="acceptOrder('${order.orderId}')">
+                ${order.status === 'pending' ? '✅ Accept Order' : '📋 View Order'}
+              </button>
+            </div>
+          `;
+        }
+      });
+      document.getElementById("riderOrdersList").innerHTML = html || "<p>No active orders</p>";
+    } catch (err) {
+      console.error(err);
+    }
+  }
+
+  window.acceptOrder = (orderId) => {
+    currentRiderOrderId = orderId;
+    rtdb.ref('orders/' + orderId).update({ 
+      assigned: true, 
+      riderId: "rider_" + Date.now(),
+      status: "confirmed"
+    }).then(() => {
+      toast(`✅ Order ${orderId} accepted! Start sharing location.`);
+      loadRiderOrders();
+      startSharingLocation();
+    });
+  };
+
+  function startSharingLocation() {
+    if (!currentRiderOrderId) {
+      toast("❌ Please accept an order first");
+      return;
+    }
+    
+    if (riderWatchId) {
+      navigator.geolocation.clearWatch(riderWatchId);
+    }
+    
+    riderWatchId = navigator.geolocation.watchPosition(
+      (pos) => {
+        const riderLoc = {
+          latitude: pos.coords.latitude,
+          longitude: pos.coords.longitude,
+          timestamp: Date.now()
+        };
+        rtdb.ref('orders/' + currentRiderOrderId).update({ riderLocation: riderLoc });
+        document.getElementById("shareRiderLocation").style.background = "#45a049";
+        toast("📍 Sharing live location", 1000);
+      },
+      (err) => {
+        console.error(err);
+        toast("❌ Failed to get location");
+      },
+      { enableHighAccuracy: true, maximumAge: 5000, timeout: 10000 }
+    );
+  }
+
+  // ============ TRACKING ============
   window.trackOrder = async () => {
     const orderId = document.getElementById("trackOrderId").value.trim();
     if (!orderId) {
@@ -890,9 +1244,8 @@
       }
       
       document.getElementById("trackStatus").textContent = `📦 Status: ${order.status.toUpperCase()}`;
-      document.getElementById("trackDetails").innerHTML = `Order total: ${fmt(order.total)}<br>Placed: ${new Date(order.timestamp).toLocaleString()}`;
+      document.getElementById("trackDetails").innerHTML = `Total: ${fmt(order.total)}<br>Placed: ${new Date(order.timestamp).toLocaleString()}`;
       
-      // Initialize map if not already
       if (!trackMap) {
         trackMap = L.map('trackMap').setView([6.5244, 3.3792], 13);
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
@@ -900,7 +1253,6 @@
         }).addTo(trackMap);
       }
       
-      // Show customer location if available
       if (order.customerLocation) {
         const custLat = order.customerLocation.latitude;
         const custLng = order.customerLocation.longitude;
@@ -911,29 +1263,56 @@
         trackMap.setView([custLat, custLng], 14);
       }
       
-      // Listen for real-time updates
-      if (trackOrderRef) trackOrderRef.off();
-      trackOrderRef = rtdb.ref('orders/' + orderId);
-      trackOrderRef.on('value', (snap) => {
+      // Listen for rider location updates
+      const orderRef = rtdb.ref('orders/' + orderId);
+      orderRef.on('value', (snap) => {
         const updatedOrder = snap.val();
+        if (updatedOrder && updatedOrder.riderLocation && trackMap) {
+          const riderLat = updatedOrder.riderLocation.latitude;
+          const riderLng = updatedOrder.riderLocation.longitude;
+          
+          if (window.riderMarker) trackMap.removeLayer(window.riderMarker);
+          window.riderMarker = L.marker([riderLat, riderLng], {
+            icon: L.divIcon({ className: 'rider-marker', html: '🏍️', iconSize: [30, 30] })
+          }).addTo(trackMap).bindPopup('Rider is here!');
+          trackMap.setView([riderLat, riderLng], 14);
+        }
         if (updatedOrder) {
           document.getElementById("trackStatus").textContent = `📦 Status: ${updatedOrder.status.toUpperCase()}`;
-          if (updatedOrder.riderLocation && trackMap) {
-            const riderLat = updatedOrder.riderLocation.latitude;
-            const riderLng = updatedOrder.riderLocation.longitude;
-            
-            // Add or update rider marker
-            if (window.riderMarker) trackMap.removeLayer(window.riderMarker);
-            window.riderMarker = L.marker([riderLat, riderLng], {
-              icon: L.divIcon({ className: 'rider-marker', html: '🏍️', iconSize: [30, 30] })
-            }).addTo(trackMap).bindPopup('Rider is here!');
-          }
         }
       });
+      
+      toast(`📍 Tracking order ${orderId}`);
       
     } catch (err) {
       console.error(err);
       toast("❌ Error tracking order");
+    }
+  };
+
+  // ============ ACCESS CONTROL ============
+  function showAccessModal() {
+    document.getElementById("accessModal").style.display = "flex";
+  }
+
+  window.verifyAccess = () => {
+    const code = document.getElementById("accessCode").value;
+    if (code === "admin123") {
+      userRole = "admin";
+      document.getElementById("accessModal").style.display = "none";
+      toast("🔐 Admin access granted");
+      document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+      document.getElementById('adminPage').classList.add('active');
+      loadAdminOrders();
+    } else if (code === "rider123") {
+      userRole = "rider";
+      document.getElementById("accessModal").style.display = "none";
+      toast("🛵 Rider access granted");
+      document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+      document.getElementById('riderPage').classList.add('active');
+      loadRiderOrders();
+    } else {
+      toast("❌ Invalid access code");
     }
   };
 
@@ -942,7 +1321,9 @@
     document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
     document.getElementById(page + 'Page').classList.add('active');
     document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
-    event.target.closest('.nav-item').classList.add('active');
+    if (event && event.target) {
+      event.target.closest('.nav-item').classList.add('active');
+    }
     
     if (page === 'cart') renderCart();
     if (page === 'track' && trackMap) trackMap.invalidateSize();
@@ -969,8 +1350,10 @@
     try {
       await rtdb.ref('test_connection').set({ timestamp: Date.now(), status: 'connected' });
       statusSpan.innerHTML = '✅ Connected';
+      console.log("Firebase connected successfully");
     } catch (error) {
       statusSpan.innerHTML = '❌ Error';
+      console.error("Firebase connection error:", error);
       toast('⚠️ Firebase connection failed');
     }
   }
@@ -1023,6 +1406,11 @@
     }
   });
 
+  // Real-time order count update
+  rtdb.ref('orders').on('value', () => {
+    updateOrderCountDebug();
+  });
+
   // Initialize
   (async () => {
     await testFirebaseConnection();
@@ -1032,6 +1420,11 @@
     renderCart();
     selOT("Delivery");
     if (Notification.permission === "default") Notification.requestPermission();
+    
+    // Auto-refresh debug orders every 10 seconds
+    setInterval(() => {
+      updateOrderCountDebug();
+    }, 10000);
   })();
 </script>
 </body>
