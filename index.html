@@ -17,7 +17,7 @@
   <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
   <style>
-    /* ===== YOUR EXACT STYLES (unchanged) ===== */
+    /* ===== BASE STYLES ===== */
     :root {
       --fire: #f2622e;
       --fire-deep: #c84318;
@@ -178,7 +178,7 @@
     .oid-copy-btn:hover { background: rgba(242,98,46,0.25); }
     .oid-tip { font-size: 0.7rem; color: rgba(255,255,255,0.35); margin-top: 2px; width: 100%; }
 
-    /* Form Styles - ENHANCED VISIBILITY */
+    /* Form Styles - FULLY VISIBLE */
     .form-sec { background:white; border-radius:20px; padding:18px; margin-bottom:14px; border:2px solid var(--border); }
     .form-sec h3 { font-family:var(--BF); font-size:1.2rem; letter-spacing:1px; margin-bottom:14px; display:flex; align-items:center; gap:8px; }
     .form-sec h3 i { color:var(--fire); }
@@ -222,7 +222,11 @@
     .foot-txt { text-align:center; font-size:.75rem; color:var(--text-muted); padding:10px 0 4px; }
     .toast { position:fixed; top:72px; left:50%; transform:translateX(-50%) translateY(-10px); background:var(--charcoal); color:white; padding:9px 18px; border-radius:40px; font-size:.82rem; z-index:9000; opacity:0; pointer-events:none; transition:all .3s; white-space:nowrap; }
     .toast.show { opacity:1; transform:translateX(-50%) translateY(0); }
-    .hf { display:none; }
+    
+    /* Address wrap is always visible */
+    #addrWrap {
+      display: block !important;
+    }
 
     /* Track page dropdown styles */
     .track-toggle-bar { display: flex; gap: 12px; margin-bottom: 24px; background: #f3efea; padding: 6px; border-radius: 60px; }
@@ -235,6 +239,8 @@
     .track-btn { background: var(--fire); border: none; padding: 0 20px; border-radius: 60px; color: white; font-weight: bold; cursor: pointer; font-family: var(--DF); }
     .status-box { background: #fef3ed; border-radius: 20px; padding: 14px; margin-top: 16px; border-left: 5px solid var(--fire); font-size: 0.85rem; }
     #liveTrackingMap { height: 280px; border-radius: 20px; margin-top: 12px; background: #e9e5e0; z-index: 1; width: 100%; }
+    .map-container iframe { width:100%; height:280px; border-radius: 16px; border: none; margin: 12px 0; }
+    .dir-btn { display: inline-block; background: var(--fire); color: white; padding: 10px 20px; border-radius: 40px; text-decoration: none; font-weight: 600; margin: 8px 0; }
     
     /* Rider modal styles */
     .rider-modal { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.9); z-index: 10000; backdrop-filter: blur(12px); align-items: center; justify-content: center; padding: 20px; }
@@ -260,7 +266,13 @@
     .action-buttons-group { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 12px; }
     .rider-trigger { display: inline-block; font-size: 0.7rem; color: #aaa; opacity: 0.45; cursor: pointer; transition: opacity 0.2s; font-family: var(--DF); letter-spacing: 0.5px; margin-top: 6px; }
     .rider-trigger:hover { opacity: 0.8; }
-    @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.3} }
+    .cart-empty { text-align: center; padding: 40px; color: var(--text-muted); }
+    .cart-item { display: flex; justify-content: space-between; align-items: center; padding: 12px; border-bottom: 1px solid var(--border); }
+    .qty-row { display: flex; align-items: center; gap: 8px; margin-top: 6px; }
+    .qty-btn { background: var(--fire); color: white; border: none; width: 28px; height: 28px; border-radius: 50%; cursor: pointer; font-size: 1.1rem; }
+    .order-summary { background: white; border-radius: 20px; padding: 16px; margin-top: 16px; border: 2px solid var(--border); }
+    .sum-row { display: flex; justify-content: space-between; padding: 8px 0; }
+    .sum-row.tot { font-weight: bold; font-size: 1.1rem; border-top: 2px solid var(--border); margin-top: 8px; padding-top: 12px; }
   </style>
 </head>
 <body>
@@ -307,8 +319,8 @@
     <div class="cat-pill" data-cat="EXTRAS">🥗 EXTRAS</div>
   </div>
   <div id="menuContent"></div>
-  <div class="g-review-wrap">⭐ 4.8 ★ (245+ reviews) — "Best grilled chicken in Abraka!"</div>
-  <div class="map-card">📍 Campus 4 Road, Opposite Oma's Hostel</div>
+  <div class="g-review-wrap" style="text-align:center; margin:20px 0 10px;">⭐ 4.8 ★ (245+ reviews) — "Best grilled chicken in Abraka!"</div>
+  <div class="map-card" style="text-align:center; margin-bottom:10px;">📍 Campus 4 Road, Opposite Oma's Hostel</div>
   <div class="social-sec">📱 @patogrills on Instagram & Facebook</div>
 </div>
 
@@ -324,7 +336,7 @@
   <div style="margin-top:14px;" id="chkWrap"></div>
 </div>
 
-<!-- PAGE: ORDER - FIXED FORM VISIBILITY -->
+<!-- PAGE: ORDER - ALWAYS VISIBLE FORM -->
 <div id="page-order" class="page">
   <div class="sec-title"><i class="fas fa-receipt"></i> Your Details</div>
   <div id="orderIdBanner" class="order-id-banner">
@@ -332,7 +344,7 @@
     <button class="oid-copy-btn" onclick="copyOrderId()"><i class="fas fa-copy"></i> COPY</button>
   </div>
   
-  <!-- PERSONAL INFO SECTION - FULLY VISIBLE -->
+  <!-- PERSONAL INFO SECTION -->
   <div class="form-sec">
     <h3><i class="fas fa-user-circle"></i> Personal Info</h3>
     <div class="iw"><label>Full Name <span style="color:var(--fire);">*</span></label><input type="text" id="name" placeholder="Your name" value=""></div>
@@ -346,7 +358,11 @@
       <div class="ot-opt sel" id="od" onclick="selOT('Delivery')"><i class="fas fa-truck"></i><span>Delivery</span><small>+₦1,000 fee</small></div>
       <div class="ot-opt" id="op" onclick="selOT('Pickup')"><i class="fas fa-store"></i><span>Pickup</span><small>No fee</small></div>
     </div>
-    <div id="addrWrap" class="iw"><label>Delivery Address</label><textarea id="address" rows="2" placeholder="Street, landmark, building name..."></textarea></div>
+    <!-- Address field - ALWAYS VISIBLE -->
+    <div id="addrWrap" class="iw">
+      <label id="addressLabel">Delivery Address <span style="color:var(--fire);">*</span></label>
+      <textarea id="address" rows="2" placeholder="Street, landmark, building name..."></textarea>
+    </div>
     <div class="iw"><label>Special Notes (optional)</label><textarea id="notes" rows="2" placeholder="Extra spice, no onion, extra sauce..."></textarea></div>
     <div id="locationStatus" style="font-size:0.75rem; margin-top:6px; text-align:center; color:var(--text-muted);"></div>
   </div>
@@ -399,7 +415,7 @@
 <div id="riderModal" class="rider-modal"></div>
 
 <script>
-  // Firebase Config
+  // ===== FIREBASE CONFIGURATION =====
   const firebaseConfig = {
     apiKey: "AIzaSyDNZUtiUoEuV6cqF90144wqwsGAFERnsuw",
     authDomain: "tracking-61ea4.firebaseapp.com",
@@ -411,22 +427,38 @@
   firebase.initializeApp(firebaseConfig);
   const rtdb = firebase.database();
 
-  // Menu Data
+  // ===== MENU DATA =====
   const ITEMS = [
-    {id:1,name:"Spaghetti", price:1500,desc:"Classic pasta", cat:"MAINS", img:"Spaghetti.jpg"},
-    {id:2,name:"Chips (Fries)", price:1500,desc:"Crispy fries", cat:"MAINS", img:"chip.jpg"},
-    {id:3,name:"Sharp Wrap", price:3500,desc:"Shawarma wrap", cat:"MAINS", img:"shawarma.jpg"},
-    {id:4,name:"Sabi Talk Turkey", price:6000,desc:"Jumbo turkey", cat:"PROTEINS", img:"turk.jpg"},
-    {id:5,name:"Talkless Turkey", price:4000,desc:"Small turkey", cat:"PROTEINS", img:"trk.jpg"},
-    {id:6,name:"Big Chicken", price:5000,desc:"Full chicken", cat:"PROTEINS", img:"chick.jpg"},
-    {id:7,name:"Small Chicken", price:3500,desc:"Half chicken", cat:"PROTEINS", img:"chken.jpg"},
-    {id:8,name:"Sausage", price:500, desc:"Grilled sausage", cat:"EXTRAS", img:"suss.png"},
-    {id:9,name:"Fresh Salad", price:700, desc:"Veggie mix", cat:"EXTRAS", img:"salad.jpg"}
+    {id:1, name:"Spaghetti", price:1500, desc:"Classic pasta", cat:"MAINS", img:"Spaghetti.jpg"},
+    {id:2, name:"Chips (Fries)", price:1500, desc:"Crispy fries", cat:"MAINS", img:"chip.jpg"},
+    {id:3, name:"Sharp Wrap", price:3500, desc:"Shawarma wrap", cat:"MAINS", img:"shawarma.jpg"},
+    {id:4, name:"Sabi Talk Turkey", price:6000, desc:"Jumbo turkey", cat:"PROTEINS", img:"turk.jpg"},
+    {id:5, name:"Talkless Turkey", price:4000, desc:"Small turkey", cat:"PROTEINS", img:"trk.jpg"},
+    {id:6, name:"Big Chicken", price:5000, desc:"Full chicken", cat:"PROTEINS", img:"chick.jpg"},
+    {id:7, name:"Small Chicken", price:3500, desc:"Half chicken", cat:"PROTEINS", img:"chken.jpg"},
+    {id:8, name:"Sausage", price:500, desc:"Grilled sausage", cat:"EXTRAS", img:"suss.png"},
+    {id:9, name:"Fresh Salad", price:700, desc:"Veggie mix", cat:"EXTRAS", img:"salad.jpg"}
   ];
-  const FEE = 1000, PH = "2348029811578";
-  let cart = [], OT = "Delivery", actCat = "ALL";
-  let trackMap = null, routingControl = null, trackOrderRef = null;
+  
+  const FEE = 1000;
+  const PH = "2348029811578";
+  let cart = [];
+  let OT = "Delivery";
+  let actCat = "ALL";
+  let trackMap = null;
+  let routingControl = null;
+  let trackOrderRef = null;
 
+  // ===== HELPER FUNCTIONS =====
+  const fmt = n => "₦" + n.toLocaleString();
+  const toast = (m) => { 
+    const t = document.getElementById("toast"); 
+    t.textContent = m; 
+    t.classList.add("show"); 
+    setTimeout(() => t.classList.remove("show"), 1900); 
+  };
+
+  // ===== ORDER ID GENERATION =====
   function generateOrderId() {
     const now = new Date();
     const dateStr = now.getFullYear() + String(now.getMonth()+1).padStart(2,'0') + String(now.getDate()).padStart(2,'0');
@@ -434,134 +466,557 @@
   }
   const ORDER_ID = generateOrderId();
   document.getElementById('orderIdDisplay').textContent = ORDER_ID;
-  window.copyOrderId = () => { navigator.clipboard.writeText(ORDER_ID); toast("✅ Order ID copied!"); };
-  function toast(m) { const t=document.getElementById("toast"); t.textContent=m; t.classList.add("show"); setTimeout(()=>t.classList.remove("show"),1900); }
-  const fmt = n => "₦" + n.toLocaleString();
+  
+  window.copyOrderId = () => { 
+    navigator.clipboard.writeText(ORDER_ID); 
+    toast("✅ Order ID copied!"); 
+  };
+
+  // ===== CART FUNCTIONS =====
   const sub = () => cart.reduce((s,i) => s + i.price * i.qty, 0);
   const tot = () => sub() + (OT === "Delivery" && cart.length ? FEE : 0);
-  function updateOrderBannerVisibility() { document.getElementById('orderIdBanner').style.display = OT === 'Delivery' ? 'flex' : 'none'; }
 
-  // Capture customer location
+  // ===== UPDATED WHATSAPP MESSAGE - ALWAYS INCLUDES ALL FIELDS =====
+  function genMsg() {
+    if (!cart.length) return "Cart empty";
+    
+    const lines = cart.map(i => `• ${i.qty} x ${i.name} — ${fmt(i.qty * i.price)}`).join("\n");
+    const nm = document.getElementById("name").value.trim() || "—";
+    const ph = document.getElementById("phone").value.trim() || "—";
+    const ad = document.getElementById("address").value.trim() || (OT === "Delivery" ? "—" : "Pickup order");
+    const nt = document.getElementById("notes").value.trim() || "—";
+    
+    let message = `🍢 *PATO GRILLS ORDER* 🍢\n\n`;
+    message += `🔖 Order ID: ${ORDER_ID}\n`;
+    message += `${lines}\n`;
+    message += `${OT === "Delivery" ? `🚚 Delivery: +₦1,000\n` : `📦 Pickup Order\n`}`;
+    message += `Total: ${fmt(tot())}\n\n`;
+    message += `👤 ${nm}\n`;
+    message += `📞 ${ph}\n`;
+    message += `📍 ${ad}\n`;
+    message += `📝 ${nt}`;
+    
+    return message;
+  }
+
+  // ===== UPDATE PREVIEW FUNCTION =====
+  function updPreview() { 
+    document.getElementById("preview").textContent = genMsg(); 
+    const lk = document.getElementById("sendLink"); 
+    if(cart.length) {
+      lk.href = `https://wa.me/${PH}?text=${encodeURIComponent(genMsg())}`;
+    } else { 
+      lk.href = "#"; 
+    }
+  }
+
+  // ===== CAPTURE CUSTOMER LOCATION =====
   function captureCustomerLocation() {
     return new Promise((resolve, reject) => {
-      if (!navigator.geolocation) { reject(new Error("Geolocation not supported")); return; }
-      document.getElementById("locationStatus").innerHTML = `<i class="fas fa-spinner fa-spin"></i> Getting your location...`;
+      if (!navigator.geolocation) { 
+        reject(new Error("Geolocation not supported")); 
+        return; 
+      }
+      const statusDiv = document.getElementById("locationStatus");
+      if(statusDiv) statusDiv.innerHTML = `<i class="fas fa-spinner fa-spin"></i> Getting your location...`;
+      
       navigator.geolocation.getCurrentPosition(
-        (pos) => { document.getElementById("locationStatus").innerHTML = `✅ Location captured!`; resolve({ lat: pos.coords.latitude, lng: pos.coords.longitude }); },
-        (err) => { document.getElementById("locationStatus").innerHTML = `⚠️ Location permission denied`; reject(new Error("Location required")); },
+        (pos) => { 
+          if(statusDiv) statusDiv.innerHTML = `✅ Location captured!`; 
+          resolve({ lat: pos.coords.latitude, lng: pos.coords.longitude }); 
+        },
+        (err) => { 
+          if(statusDiv) statusDiv.innerHTML = `⚠️ Location permission denied`; 
+          reject(new Error("Location required for delivery")); 
+        },
         { enableHighAccuracy: true, timeout: 10000 }
       );
     });
   }
 
-  // Save order to Firebase
+  // ===== SAVE ORDER TO FIREBASE =====
   async function saveOrderToRTDB(customerCoords) {
-    if (!cart.length) { toast("❌ Cart empty"); return false; }
+    if (!cart.length) { 
+      toast("❌ Cart empty"); 
+      return false; 
+    }
+    
     const name = document.getElementById("name").value.trim();
     const phone = document.getElementById("phone").value.trim();
-    const address = OT === "Delivery" ? document.getElementById("address").value.trim() : "";
+    const address = document.getElementById("address").value.trim();
     const notes = document.getElementById("notes").value.trim();
-    if (!name || !phone) { toast("❌ Please fill name and phone"); return false; }
-    if (OT === "Delivery" && !address) { toast("📍 Enter delivery address"); return false; }
+    
+    if (!name || !phone) { 
+      toast("❌ Please fill name and phone"); 
+      return false; 
+    }
+    
+    if (OT === "Delivery" && !address) { 
+      toast("📍 Enter delivery address"); 
+      return false; 
+    }
+    
     const orderData = {
-      orderId: ORDER_ID, customerName: name, phone, orderType: OT, address, notes,
+      orderId: ORDER_ID, 
+      customerName: name, 
+      phone, 
+      orderType: OT, 
+      address: address || (OT === "Pickup" ? "Pickup order" : ""),
+      notes: notes || "",
       items: cart.map(i => ({ name: i.name, price: i.price, qty: i.qty, total: i.price * i.qty })),
-      total: tot(), status: "pending", timestamp: Date.now(), assigned: false,
-      customerLocation: customerCoords ? { latitude: customerCoords.lat, longitude: customerCoords.lng, timestamp: Date.now() } : null
+      total: tot(), 
+      status: "pending", 
+      timestamp: Date.now(), 
+      assigned: false,
+      customerLocation: customerCoords ? { 
+        latitude: customerCoords.lat, 
+        longitude: customerCoords.lng, 
+        timestamp: Date.now() 
+      } : null
     };
-    try { await rtdb.ref('orders/' + ORDER_ID).set(orderData); toast("✅ Order saved!"); return true; } 
-    catch(e) { console.error(e); toast("⚠️ Save failed"); return false; }
+    
+    try { 
+      await rtdb.ref('orders/' + ORDER_ID).set(orderData); 
+      toast("✅ Order saved! We'll contact you shortly."); 
+      return true; 
+    } catch(e) { 
+      console.error(e); 
+      toast("⚠️ Failed to save order"); 
+      return false; 
+    }
   }
 
-  function genMsg() {
-    if (!cart.length) return "Cart empty";
-    const lines = cart.map(i => `• ${i.qty} x ${i.name} — ${fmt(i.qty * i.price)}`).join("\n");
-    const nm = document.getElementById("name").value.trim() || "—";
-    const ph = document.getElementById("phone").value.trim() || "—";
-    const ad = OT === "Delivery" ? (document.getElementById("address").value.trim() || "—") : null;
-    const nt = document.getElementById("notes").value.trim() || "—";
-    return `🍢 *PATO GRILLS ORDER* 🍢\n\n🔖 Order ID: ${ORDER_ID}\n${lines}\n${OT === "Delivery" ? `🚚 Delivery: +₦1,000\n` : ""}Total: ${fmt(tot())}\n\n👤 ${nm}\n📞 ${ph}${ad ? `\n📍 ${ad}` : ""}\n📝 ${nt}`;
-  }
-
-  function updPreview() { document.getElementById("preview").textContent = genMsg(); const lk = document.getElementById("sendLink"); if(cart.length) lk.href = `https://wa.me/${PH}?text=${encodeURIComponent(genMsg())}`; else lk.href = "#"; }
-
-  document.getElementById("sendLink").addEventListener("click", async (e) => {
-    if (!cart.length) { e.preventDefault(); toast("Add items first!"); return; }
-    if (OT === "Delivery" && !document.getElementById("address").value.trim()) { e.preventDefault(); toast("Enter address"); return; }
+  // ===== SEND ORDER HANDLER =====
+  async function handleSendOrder(e) {
+    if (!cart.length) { 
+      e.preventDefault(); 
+      toast("Add items to cart first!"); 
+      return; 
+    }
+    
+    const name = document.getElementById("name").value.trim();
+    const phone = document.getElementById("phone").value.trim();
+    
+    if (!name || !phone) { 
+      e.preventDefault(); 
+      toast("❌ Please fill name and phone"); 
+      return; 
+    }
+    
     if (OT === "Delivery") {
-      try { const coords = await captureCustomerLocation(); if (!await saveOrderToRTDB(coords)) e.preventDefault(); } 
-      catch(err) { e.preventDefault(); toast(err.message); }
-    } else { if (!await saveOrderToRTDB(null)) e.preventDefault(); }
-  });
+      const address = document.getElementById("address").value.trim();
+      if (!address) { 
+        e.preventDefault(); 
+        toast("📍 Enter delivery address"); 
+        return; 
+      }
+      
+      try { 
+        const coords = await captureCustomerLocation(); 
+        if (!await saveOrderToRTDB(coords)) {
+          e.preventDefault();
+        }
+      } catch(err) { 
+        e.preventDefault(); 
+        toast(err.message); 
+      }
+    } else {
+      if (!await saveOrderToRTDB(null)) {
+        e.preventDefault();
+      }
+    }
+  }
 
-  ["name","phone","address","notes"].forEach(id => { const el = document.getElementById(id); if(el) el.addEventListener("input", updPreview); });
-
+  // ===== ORDER TYPE SELECTION =====
   window.selOT = type => {
     OT = type;
     document.getElementById("od").classList.toggle("sel", type === "Delivery");
     document.getElementById("op").classList.toggle("sel", type === "Pickup");
-    document.getElementById("addrWrap").classList.toggle("hf", type !== "Delivery");
-    renderCart(); updPreview(); updateOrderBannerVisibility();
+    
+    // Update the address field label
+    const addressLabel = document.getElementById("addressLabel");
+    if (type === "Delivery") {
+      addressLabel.innerHTML = 'Delivery Address <span style="color:var(--fire);">*</span>';
+    } else {
+      addressLabel.innerHTML = 'Pickup Location (optional)';
+    }
+    
+    // Address field is always visible
+    renderCart(); 
+    updPreview(); 
+    updateOrderBannerVisibility();
   };
 
-  // Menu & Cart functions
-  function goTo(p) {
-    document.querySelectorAll('.page').forEach(x => x.classList.remove('active'));
-    document.querySelectorAll('.ni').forEach(x => x.classList.remove('active'));
-    document.getElementById('page-' + p).classList.add('active');
-    document.getElementById('nav-' + p).classList.add('active');
-    if (p === 'order') updPreview();
-    if (p === 'cart') renderCart();
-    window.scrollTo({top:0});
+  // ===== UPDATE ORDER BANNER VISIBILITY =====
+  function updateOrderBannerVisibility() { 
+    const banner = document.getElementById('orderIdBanner');
+    if(banner) banner.style.display = 'flex';
   }
 
+  // ===== ADD ITEM TO CART =====
+  function addItem(id) { 
+    const it = ITEMS.find(i => i.id === id); 
+    const ex = cart.find(i => i.id === id); 
+    if(ex) { 
+      ex.qty++; 
+    } else { 
+      cart.push({...it, qty: 1}); 
+    }
+    updBadge(); 
+    toast("✅ " + it.name + " added!"); 
+    updPreview(); 
+  }
+  window.addItem = addItem;
+
+  // ===== UPDATE QUANTITY =====
+  window.updateQty = (id, d) => { 
+    const idx = cart.findIndex(i => i.id === id); 
+    if(idx === -1) return; 
+    cart[idx].qty += d; 
+    if(cart[idx].qty <= 0) cart.splice(idx, 1); 
+    updBadge(); 
+    renderCart(); 
+    updPreview(); 
+  };
+
+  // ===== UPDATE BADGE =====
+  function updBadge() { 
+    const n = cart.reduce((s,i) => s + i.qty, 0); 
+    const cartCount = document.getElementById("cartCount");
+    const navBadge = document.getElementById("navBadge");
+    if(cartCount) cartCount.textContent = n;
+    if(navBadge) {
+      navBadge.style.display = n > 0 ? "flex" : "none"; 
+      navBadge.textContent = n;
+    }
+  }
+
+  // ===== RENDER CART =====
+  function renderCart() {
+    const el = document.getElementById("cartContent");
+    const sm = document.getElementById("cartSummary");
+    const cw = document.getElementById("chkWrap");
+    
+    if (!cart.length) { 
+      if(el) el.innerHTML = `<div class="cart-empty"><i class="fas fa-bag-shopping"></i><h3>CART EMPTY</h3><p>Add delicious items from the menu!</p></div>`; 
+      if(sm) sm.style.display = "none"; 
+      if(cw) cw.innerHTML = ""; 
+      return; 
+    }
+    
+    if(el) {
+      el.innerHTML = `<div class="cart-list">${cart.map(it => `
+        <div class="cart-item">
+          <div class="ci-info">
+            <div class="ci-name"><strong>${it.name}</strong></div>
+            <div class="qty-row">
+              <button class="qty-btn" onclick="updateQty(${it.id},-1)">−</button>
+              <span class="qty-num">${it.qty}</span>
+              <button class="qty-btn" onclick="updateQty(${it.id},1)">+</button>
+            </div>
+          </div>
+          <div class="ci-price">${fmt(it.price * it.qty)}</div>
+        </div>`).join("")}</div>`;
+    }
+    
+    const sSub = document.getElementById("sSub");
+    const dRow = document.getElementById("dRow");
+    const sTotal = document.getElementById("sTotal");
+    
+    if(sSub) sSub.textContent = fmt(sub());
+    if(dRow) dRow.style.display = OT === "Delivery" && cart.length ? "flex" : "none";
+    if(sTotal) sTotal.textContent = fmt(tot());
+    if(sm) sm.style.display = "block";
+    if(cw) cw.innerHTML = `<button class="wa-btn" onclick="goTo('order')">PROCEED TO ORDER →</button>`;
+  }
+
+  // ===== BUILD MENU =====
   function buildMenu() {
-    const cats = actCat === "ALL" ? ["MAINS","PROTEINS","EXTRAS"] : [actCat];
+    const cats = actCat === "ALL" ? ["MAINS", "PROTEINS", "EXTRAS"] : [actCat];
     let h = "";
     for (const c of cats) {
       const items = ITEMS.filter(i => i.cat === c);
       if (!items.length) continue;
       h += `<div class="sec-title">${c}</div><div class="menu-grid">`;
-      items.forEach(i => { h += `<div class="menu-card"><img class="menu-img" src="${i.img}" onerror="this.src='https://placehold.co/400x250/fef0e6/f2622e?text=🔥'"><div class="menu-info"><div class="menu-name">${i.name}</div><div class="menu-desc">${i.desc}</div><div class="menu-bottom"><div class="menu-price">${fmt(i.price)}</div><button class="order-btn" onclick="addItem(${i.id})">ORDER</button></div></div></div>`; });
+      items.forEach(i => { 
+        h += `<div class="menu-card">
+          <img class="menu-img" src="${i.img}" onerror="this.src='https://placehold.co/400x250/fef0e6/f2622e?text=🔥'">
+          <div class="menu-info">
+            <div class="menu-name">${i.name}</div>
+            <div class="menu-desc">${i.desc}</div>
+            <div class="menu-bottom">
+              <div class="menu-price">${fmt(i.price)}</div>
+              <button class="order-btn" onclick="addItem(${i.id})">ORDER</button>
+            </div>
+          </div>
+        </div>`; 
+      });
       h += "</div>";
     }
-    document.getElementById("menuContent").innerHTML = h;
-  }
-  document.querySelectorAll('.cat-pill').forEach(p => p.addEventListener('click', () => {
-    document.querySelectorAll('.cat-pill').forEach(x => x.classList.remove('active'));
-    p.classList.add('active'); actCat = p.dataset.cat; buildMenu();
-  }));
-  function addItem(id) { const it=ITEMS.find(i=>i.id===id); const ex=cart.find(i=>i.id===id); if(ex) ex.qty++; else cart.push({...it,qty:1}); updBadge(); toast("✅ "+it.name+" added!"); updPreview(); }
-  window.updateQty = (id,d) => { const idx=cart.findIndex(i=>i.id===id); if(idx===-1) return; cart[idx].qty+=d; if(cart[idx].qty<=0) cart.splice(idx,1); updBadge(); renderCart(); updPreview(); };
-  function updBadge() { const n=cart.reduce((s,i)=>s+i.qty,0); document.getElementById("cartCount").textContent=n; const b=document.getElementById("navBadge"); b.style.display=n>0?"flex":"none"; b.textContent=n; }
-  function renderCart() {
-    const el=document.getElementById("cartContent"), sm=document.getElementById("cartSummary"), cw=document.getElementById("chkWrap");
-    if (!cart.length) { el.innerHTML=`<div class="cart-empty"><i class="fas fa-bag-shopping"></i><h3>CART EMPTY</h3></div>`; sm.style.display="none"; cw.innerHTML=""; return; }
-    el.innerHTML=`<div class="cart-list">${cart.map(it=>`<div class="cart-item"><div class="ci-info"><div class="ci-name">${it.name}</div><div class="qty-row"><button class="qty-btn" onclick="updateQty(${it.id},-1)">−</button><span class="qty-num">${it.qty}</span><button class="qty-btn" onclick="updateQty(${it.id},1)">+</button></div></div><div class="ci-price">${fmt(it.price*it.qty)}</div></div>`).join("")}</div>`;
-    document.getElementById("sSub").textContent = fmt(sub()); document.getElementById("dRow").style.display = OT === "Delivery" ? "flex" : "none"; document.getElementById("sTotal").textContent = fmt(tot()); sm.style.display = "block"; cw.innerHTML = `<button class="wa-btn" onclick="goTo('order')">FILL DETAILS</button>`;
+    const menuContent = document.getElementById("menuContent");
+    if(menuContent) menuContent.innerHTML = h;
   }
 
-  // Tracking functions
-  function initTrackMap(lat,lng) { const container = document.getElementById("liveTrackingMap"); container.style.display = "block"; if(trackMap) trackMap.remove(); trackMap = L.map(container).setView([lat,lng],14); L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png').addTo(trackMap); L.marker([lat,lng], { icon: L.divIcon({ html: '📍', iconSize:[30,30] }) }).addTo(trackMap).bindPopup('Your location'); }
-  function updateTracking(riderLat,riderLng,custLat,custLng,ts) { if(!trackMap) initTrackMap(custLat,custLng); if(routingControl) trackMap.removeControl(routingControl); routingControl = L.Routing.control({ waypoints:[L.latLng(riderLat,riderLng),L.latLng(custLat,custLng)], router:L.Routing.osrmv1({ serviceUrl:'https://router.project-osrm.org/route/v1' }), show:false, lineOptions:{ styles:[{ color:'#f2622e', weight:4 }] } }).addTo(trackMap); document.getElementById("trackStatusResult").innerHTML = `<i class="fas fa-truck"></i> Rider en route · ETA ~${Math.round(Math.random()*20+5)} min`; }
-  document.getElementById("trackOrderBtn").addEventListener("click", () => { const id = document.getElementById("trackingIdInput").value.trim(); if(!id) { toast("Enter Order ID"); return; } const orderRef = rtdb.ref('orders/'+id); orderRef.on('value', (snap) => { const order = snap.val(); if(!order) { document.getElementById("trackStatusResult").innerHTML = "❌ Order not found"; document.getElementById("trackStatusResult").style.display = "block"; return; } if(order.orderType !== 'Delivery') { document.getElementById("trackStatusResult").innerHTML = "⚠️ Pickup order - no tracking"; return; } const cust = order.customerLocation; if(!cust) { document.getElementById("trackStatusResult").innerHTML = "📍 Customer location missing"; return; } const rider = order.riderLocation; if(rider && rider.latitude) { updateTracking(rider.latitude, rider.longitude, cust.latitude, cust.longitude, rider.timestamp); document.getElementById("trackStatusResult").style.display = "block"; } else { document.getElementById("trackStatusResult").innerHTML = "⏳ Waiting for rider to start..."; document.getElementById("trackStatusResult").style.display = "block"; } }); });
-  document.getElementById("togglePickupBtn").addEventListener("click", () => { document.getElementById("pickupPanel").classList.remove("hidden-panel"); document.getElementById("deliveryPanel").classList.add("hidden-panel"); document.getElementById("togglePickupBtn").classList.add("active-toggle"); document.getElementById("toggleDeliveryTrackBtn").classList.remove("active-toggle"); });
-  document.getElementById("toggleDeliveryTrackBtn").addEventListener("click", () => { document.getElementById("deliveryPanel").classList.remove("hidden-panel"); document.getElementById("pickupPanel").classList.add("hidden-panel"); document.getElementById("toggleDeliveryTrackBtn").classList.add("active-toggle"); document.getElementById("togglePickupBtn").classList.remove("active-toggle"); });
+  // ===== NAVIGATION =====
+  function goTo(p) {
+    document.querySelectorAll('.page').forEach(x => x.classList.remove('active'));
+    document.querySelectorAll('.ni').forEach(x => x.classList.remove('active'));
+    
+    const targetPage = document.getElementById('page-' + p);
+    const targetNav = document.getElementById('nav-' + p);
+    
+    if(targetPage) targetPage.classList.add('active');
+    if(targetNav) targetNav.classList.add('active');
+    
+    if (p === 'order') {
+      updPreview();
+      // Ensure address field is visible
+      const addrWrap = document.getElementById('addrWrap');
+      if(addrWrap) addrWrap.style.display = 'block';
+    }
+    if (p === 'cart') renderCart();
+    
+    window.scrollTo({top: 0});
+  }
+  window.goTo = goTo;
 
-  // Rider modal stub - simplified version for core functionality
-  window.openRiderModal = () => { const modal = document.getElementById("riderModal"); modal.innerHTML = `<div class="rider-modal-content"><div class="rider-close" onclick="closeRiderModal()">&times;</div><div class="rider-inner"><div class="rider-logo">RIDER PORTAL</div><div class="rider-field-label">PIN</div><input type="password" id="riderPinInput" class="rider-input"><button class="rider-btn" onclick="riderAuth()">Login</button><div id="riderMsg" style="color:#ef4444; margin-top:10px;"></div></div></div>`; modal.classList.add("active"); };
-  window.closeRiderModal = () => { document.getElementById("riderModal").classList.remove("active"); };
-  window.riderAuth = () => { const pin = document.getElementById("riderPinInput").value; if(pin === "pato2026") { alert("Rider access granted. Check console for order management."); closeRiderModal(); } else { document.getElementById("riderMsg").innerText = "Invalid PIN"; } };
+  // ===== TRACKING FUNCTIONS =====
+  function initTrackMap(lat, lng) { 
+    const container = document.getElementById("liveTrackingMap"); 
+    if(!container) return;
+    container.style.display = "block"; 
+    if(trackMap) trackMap.remove(); 
+    trackMap = L.map(container).setView([lat, lng], 14); 
+    L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png').addTo(trackMap); 
+    L.marker([lat, lng], { icon: L.divIcon({ html: '📍', iconSize: [30,30] }) }).addTo(trackMap).bindPopup('Your location'); 
+  }
 
-  // Onboarding & init
-  (function init() {
-    let step = 0; const steps = ['os0','os1','os2','os3']; const dots = ['d0','d1','d2','d3'];
-    const nextBtn = document.getElementById('obNext'), skipBtn = document.getElementById('obSkip');
-    function updateStep() { steps.forEach((s,i)=>{ document.getElementById(s).classList.toggle('on', i===step); document.getElementById(dots[i]).classList.toggle('on', i===step); }); }
-    function nextStep() { if(step<3) { step++; updateStep(); } else { document.getElementById('onboarding').classList.add('fade-out'); setTimeout(()=>document.getElementById('onboarding').classList.add('gone'), 300); } }
-    if(localStorage.getItem("pg_ob2")) { document.getElementById('onboarding').classList.add('gone'); } else { nextBtn.onclick = nextStep; skipBtn.onclick = () => { localStorage.setItem("pg_ob2","1"); document.getElementById('onboarding').classList.add('fade-out'); setTimeout(()=>document.getElementById('onboarding').classList.add('gone'), 300); }; updateStep(); }
-    buildMenu(); renderCart(); updPreview(); selOT("Delivery"); updateOrderBannerVisibility();
-  })();
+  function updateTracking(riderLat, riderLng, custLat, custLng, ts) { 
+    if(!trackMap) initTrackMap(custLat, custLng); 
+    if(routingControl && trackMap) trackMap.removeControl(routingControl); 
+    routingControl = L.Routing.control({ 
+      waypoints: [L.latLng(riderLat, riderLng), L.latLng(custLat, custLng)], 
+      router: L.Routing.osrmv1({ serviceUrl: 'https://router.project-osrm.org/route/v1' }), 
+      show: false, 
+      lineOptions: { styles: [{ color: '#f2622e', weight: 4 }] } 
+    }).addTo(trackMap); 
+    
+    const statusDiv = document.getElementById("trackStatusResult");
+    if(statusDiv) {
+      statusDiv.innerHTML = `<i class="fas fa-truck"></i> Rider en route · ETA ~${Math.floor(Math.random() * 20 + 5)} min`;
+    }
+  }
+
+  // ===== TRACK ORDER BUTTON =====
+  const trackBtn = document.getElementById("trackOrderBtn");
+  if(trackBtn) {
+    trackBtn.addEventListener("click", () => { 
+      const id = document.getElementById("trackingIdInput").value.trim(); 
+      if(!id) { 
+        toast("Enter Order ID"); 
+        return; 
+      } 
+      
+      const orderRef = rtdb.ref('orders/' + id);
+      if(trackOrderRef) trackOrderRef.off();
+      trackOrderRef = orderRef;
+      
+      orderRef.on('value', (snap) => { 
+        const order = snap.val(); 
+        const statusDiv = document.getElementById("trackStatusResult");
+        
+        if(!order) { 
+          if(statusDiv) {
+            statusDiv.innerHTML = "❌ Order not found"; 
+            statusDiv.style.display = "block";
+          }
+          return; 
+        } 
+        
+        if(order.orderType !== 'Delivery') { 
+          if(statusDiv) {
+            statusDiv.innerHTML = "⚠️ Pickup order - no live tracking available"; 
+            statusDiv.style.display = "block";
+          }
+          return; 
+        } 
+        
+        const cust = order.customerLocation; 
+        if(!cust) { 
+          if(statusDiv) {
+            statusDiv.innerHTML = "📍 Customer location missing - please ensure location was shared when ordering"; 
+            statusDiv.style.display = "block";
+          }
+          return; 
+        } 
+        
+        const rider = order.riderLocation; 
+        if(rider && rider.latitude) { 
+          updateTracking(rider.latitude, rider.longitude, cust.latitude, cust.longitude, rider.timestamp); 
+          if(statusDiv) statusDiv.style.display = "block";
+        } else { 
+          if(statusDiv) {
+            statusDiv.innerHTML = "⏳ Waiting for rider to accept and start delivery..."; 
+            statusDiv.style.display = "block";
+          }
+        } 
+      }); 
+    });
+  }
+
+  // ===== TRACKING TOGGLE BUTTONS =====
+  const togglePickup = document.getElementById("togglePickupBtn");
+  const toggleDelivery = document.getElementById("toggleDeliveryTrackBtn");
+  const pickupPanel = document.getElementById("pickupPanel");
+  const deliveryPanel = document.getElementById("deliveryPanel");
+  
+  if(togglePickup && toggleDelivery && pickupPanel && deliveryPanel) {
+    togglePickup.addEventListener("click", () => { 
+      pickupPanel.classList.remove("hidden-panel"); 
+      deliveryPanel.classList.add("hidden-panel"); 
+      togglePickup.classList.add("active-toggle"); 
+      toggleDelivery.classList.remove("active-toggle"); 
+    });
+    
+    toggleDelivery.addEventListener("click", () => { 
+      deliveryPanel.classList.remove("hidden-panel"); 
+      pickupPanel.classList.add("hidden-panel"); 
+      toggleDelivery.classList.add("active-toggle"); 
+      togglePickup.classList.remove("active-toggle"); 
+    });
+  }
+
+  // ===== RIDER MODAL =====
+  window.openRiderModal = () => { 
+    const modal = document.getElementById("riderModal"); 
+    if(modal) {
+      modal.innerHTML = `
+        <div class="rider-modal-content">
+          <div class="rider-close" onclick="closeRiderModal()">&times;</div>
+          <div class="rider-inner">
+            <div class="rider-logo">RIDER PORTAL</div>
+            <div class="rider-field-label">PIN</div>
+            <input type="password" id="riderPinInput" class="rider-input" placeholder="Enter PIN">
+            <button class="rider-btn" onclick="riderAuth()">Login</button>
+            <div id="riderMsg" style="color:#ef4444; margin-top:10px;"></div>
+          </div>
+        </div>`; 
+      modal.classList.add("active"); 
+    }
+  };
+  
+  window.closeRiderModal = () => { 
+    const modal = document.getElementById("riderModal"); 
+    if(modal) modal.classList.remove("active"); 
+  };
+  
+  window.riderAuth = () => { 
+    const pinInput = document.getElementById("riderPinInput");
+    if(!pinInput) return;
+    const pin = pinInput.value; 
+    if(pin === "pato2026") { 
+      alert("Rider access granted. Check console for order management."); 
+      closeRiderModal(); 
+    } else { 
+      const msgDiv = document.getElementById("riderMsg");
+      if(msgDiv) msgDiv.innerText = "Invalid PIN - Access Denied"; 
+    } 
+  };
+
+  // ===== SETUP EVENT LISTENERS =====
+  function setupEventListeners() {
+    // Form input listeners for real-time preview
+    const nameField = document.getElementById("name");
+    const phoneField = document.getElementById("phone");
+    const addressField = document.getElementById("address");
+    const notesField = document.getElementById("notes");
+    
+    if(nameField) nameField.addEventListener("input", updPreview);
+    if(phoneField) phoneField.addEventListener("input", updPreview);
+    if(addressField) addressField.addEventListener("input", updPreview);
+    if(notesField) notesField.addEventListener("input", updPreview);
+    
+    // Send link handler
+    const sendLink = document.getElementById("sendLink");
+    if(sendLink) sendLink.addEventListener("click", handleSendOrder);
+    
+    // Category pills
+    document.querySelectorAll('.cat-pill').forEach(p => p.addEventListener('click', () => {
+      document.querySelectorAll('.cat-pill').forEach(x => x.classList.remove('active'));
+      p.classList.add('active'); 
+      actCat = p.dataset.cat; 
+      buildMenu();
+    }));
+  }
+
+  // ===== INITIALIZE ONBOARDING =====
+  function initOnboarding() {
+    let step = 0; 
+    const steps = ['os0','os1','os2','os3']; 
+    const dots = ['d0','d1','d2','d3'];
+    const nextBtn = document.getElementById('obNext');
+    const skipBtn = document.getElementById('obSkip');
+    
+    function updateStep() { 
+      steps.forEach((s,i) => { 
+        const stepEl = document.getElementById(s);
+        const dotEl = document.getElementById(dots[i]);
+        if(stepEl) stepEl.classList.toggle('on', i === step);
+        if(dotEl) dotEl.classList.toggle('on', i === step);
+      }); 
+    }
+    
+    function nextStep() { 
+      if(step < 3) { 
+        step++; 
+        updateStep(); 
+      } else { 
+        const onboarding = document.getElementById('onboarding');
+        if(onboarding) {
+          onboarding.classList.add('fade-out'); 
+          setTimeout(() => onboarding.classList.add('gone'), 300);
+        }
+      } 
+    }
+    
+    if(localStorage.getItem("pg_ob2")) { 
+      const onboarding = document.getElementById('onboarding');
+      if(onboarding) onboarding.classList.add('gone'); 
+    } else { 
+      if(nextBtn) nextBtn.onclick = nextStep; 
+      if(skipBtn) {
+        skipBtn.onclick = () => { 
+          localStorage.setItem("pg_ob2","1"); 
+          const onboarding = document.getElementById('onboarding');
+          if(onboarding) {
+            onboarding.classList.add('fade-out'); 
+            setTimeout(() => onboarding.classList.add('gone'), 300);
+          }
+        };
+      }
+      updateStep(); 
+    }
+  }
+
+  // ===== MAIN INITIALIZATION =====
+  function init() {
+    initOnboarding();
+    buildMenu();
+    renderCart();
+    updPreview();
+    selOT("Delivery");
+    setupEventListeners();
+    
+    // Force address field to be visible on load
+    const addrWrap = document.getElementById('addrWrap');
+    if(addrWrap) addrWrap.style.display = 'block';
+    
+    // Initial preview update to ensure form fields appear in WhatsApp message
+    setTimeout(updPreview, 100);
+  }
+  
+  // Start the app
+  init();
 </script>
 </body>
 </html>
