@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -627,6 +628,7 @@
   firebase.initializeApp(firebaseConfig);
   const rtdb = firebase.database();
 
+  // ==================== CONNECTION TEST ====================
   rtdb.ref('test/connection').set({ timestamp: Date.now(), status: 'Patogrills connected' })
     .then(() => console.log('✅ Firebase write successful! Database is writable.'))
     .catch(err => console.error('❌ Firebase write FAILED:', err));
@@ -643,10 +645,14 @@
     {id:8,name:"Sausage", price:500, desc:"Smoky grilled sausage", cat:"EXTRAS", img:"suss.png"},
     {id:9,name:"Fresh Salad", price:700, desc:"Crunchy veggie mix, house dressing", cat:"EXTRAS", img:"salad.jpg"}
   ];
-  const FEE = 1000, PH = "2348029811578";
+  const FEE = 1000, PH = "2348029811578";  // ✅ UPDATED PHONE NUMBER
   let cart = [], OT = "Delivery", actCat = "ALL";
+  let riderSharing = false, riderWatchId = null, riderCurrentOrderId = null;
+  let pendingOrdersListener = null, activeOrderListener = null;
   let trackMap = null, riderMarker = null, customerMarker = null, routingControl = null, trackOrderRef = null;
-  
+  let mapCentered = false;
+  const OFFLINE_TIMEOUT = 60000;
+
   function generateOrderId() {
     const now = new Date();
     const dateStr = now.getFullYear() + String(now.getMonth()+1).padStart(2,'0') + String(now.getDate()).padStart(2,'0');
@@ -662,39 +668,83 @@
   const tot = () => sub() + (OT === "Delivery" && cart.length ? FEE : 0);
   function updateOrderBannerVisibility() { document.getElementById('orderIdBanner').style.display = OT === 'Delivery' ? 'flex' : 'none'; }
 
+  // ==================== CAPTURE CUSTOMER LOCATION ====================
   function captureCustomerLocation() {
     return new Promise((resolve, reject) => {
-      if (!navigator.geolocation) reject(new Error("Geolocation not supported"));
-      document.getElementById("locationStatus").innerHTML = `<i class="fas fa-spinner fa-spin"></i> Getting your exact location...`;
+      if (!navigator.geolocation) {
+        reject(new Error("Geolocation not supported by your browser."));
+        return;
+      }
+      document.getElementById("locationStatus").innerHTML = `<i class="fas fa-spinner fa-spin"></i> Getting your exact location... Please allow GPS.`;
       navigator.geolocation.getCurrentPosition(
-        (pos) => { document.getElementById("locationStatus").innerHTML = `✅ Location captured!`; resolve({ lat: pos.coords.latitude, lng: pos.coords.longitude }); },
-        (err) => { let msg = "Location permission denied. Please enable GPS."; document.getElementById("locationStatus").innerHTML = `⚠️ ${msg}`; reject(new Error(msg)); },
+        (pos) => {
+          document.getElementById("locationStatus").innerHTML = `✅ Location captured! Rider will navigate to you.`;
+          resolve({ lat: pos.coords.latitude, lng: pos.coords.longitude });
+        },
+        (err) => {
+          let msg = "";
+          if (err.code === err.PERMISSION_DENIED) msg = "Location permission denied. Please enable GPS in your browser to place a delivery order.";
+          else if (err.code === err.POSITION_UNAVAILABLE) msg = "Location unavailable. Check GPS signal.";
+          else msg = "Could not get location. Please check your settings.";
+          document.getElementById("locationStatus").innerHTML = `⚠️ ${msg}`;
+          reject(new Error(msg));
+        },
         { enableHighAccuracy: true, timeout: 10000 }
       );
     });
   }
 
+  // ==================== SAVE ORDER TO REALTIME DB ====================
   async function saveOrderToRTDB(customerCoords) {
-    if (!cart.length) { toast("❌ Your cart is empty."); return false; }
+    console.log("🔵 saveOrderToRTDB called with coords:", customerCoords);
+    if (!cart.length) {
+      console.log("❌ Cart empty, aborting save");
+      toast("❌ Your cart is empty. Add items first.");
+      return false;
+    }
     const name = document.getElementById("name").value.trim();
     const phone = document.getElementById("phone").value.trim();
     const address = OT === "Delivery" ? document.getElementById("address").value.trim() : "";
     const notes = document.getElementById("notes").value.trim();
-    if (!name || !phone) { toast("❌ Please fill in your name and phone number"); return false; }
-    if (OT === "Delivery" && !address) { toast("📍 Please enter your delivery address"); return false; }
+    if (!name || !phone) {
+      toast("❌ Please fill in your name and phone number");
+      return false;
+    }
+    if (OT === "Delivery" && !address) {
+      toast("📍 Please enter your delivery address");
+      return false;
+    }
+
     const orderData = {
-      orderId: ORDER_ID, customerName: name, phone, orderType: OT, address, notes,
+      orderId: ORDER_ID,
+      customerName: name,
+      phone: phone,
+      orderType: OT,
+      address: address,
+      notes: notes,
       items: cart.map(i => ({ name: i.name, price: i.price, qty: i.qty, total: i.price * i.qty })),
-      total: tot(), status: "pending", timestamp: Date.now(), assigned: false, riderLocation: null,
+      total: tot(),
+      status: "pending",
+      timestamp: Date.now(),
+      assigned: false,
+      riderLocation: null,
       customerLocation: customerCoords ? { latitude: customerCoords.lat, longitude: customerCoords.lng, timestamp: Date.now() } : null
     };
+
+    console.log("📦 Attempting to save order:", orderData);
     try {
       await rtdb.ref('orders/' + ORDER_ID).set(orderData);
+      console.log("✅ Order saved successfully in Firebase at orders/" + ORDER_ID);
       toast("✅ Order saved! Track via the Track tab.");
       return true;
-    } catch (err) { console.error(err); toast("⚠️ Could not save order."); return false; }
+    } catch (err) {
+      console.error("❌ Firebase save error:", err);
+      toast("⚠️ Could not save order. Check console for details.");
+      return false;
+    }
   }
 
+  // ==================== GENERATE WHATSAPP MESSAGE ====================
   function genMsg() {
     if (!cart.length) return "🔥 Patogrills: Cart is empty.";
     const lines = cart.map(i => `• ${i.qty} x ${i.name} — ${fmt(i.qty * i.price)}`).join("\n");
@@ -706,20 +756,47 @@
     return `🍢 *PATO GRILLS ORDER* 🍢\n\n🔖 *Order ID:* ${ORDER_ID}\n\n${lines}${dl}\n\n────────────────\n📦 *Total:* ${fmt(tot())}\n\n📌 *Order type:* ${OT}\n👤 *Name:* ${nm}\n📞 *Phone:* ${ph}${ad !== null ? `\n📍 *Address:* ${ad}` : ""}\n📝 *Notes:* ${nt}\n\n🔥 *Enjoy the Thrills Of The Grills — Good Food No Dey Rush*`;
   }
 
-  function updPreview() { document.getElementById("preview").textContent = genMsg(); const lk = document.getElementById("sendLink"); if (!cart.length) lk.href = "#"; else lk.href = `https://wa.me/${PH}?text=${encodeURIComponent(genMsg())}`; }
-  window.selOT = type => { OT = type; document.getElementById("od").classList.toggle("sel", type === "Delivery"); document.getElementById("op").classList.toggle("sel", type === "Pickup"); document.getElementById("addrWrap").classList.toggle("hf", type !== "Delivery"); renderCart(); updPreview(); updateOrderBannerVisibility(); document.getElementById("locationStatus").innerHTML = ""; };
-  
+  function updPreview() {
+    document.getElementById("preview").textContent = genMsg();
+    const lk = document.getElementById("sendLink");
+    if (!cart.length) { lk.href = "#"; return; }
+    lk.href = `https://wa.me/${PH}?text=${encodeURIComponent(genMsg())}`;
+  }
+
+  // ==================== ORDER TYPE SELECT ====================
+  window.selOT = type => {
+    OT = type;
+    document.getElementById("od").classList.toggle("sel", type === "Delivery");
+    document.getElementById("op").classList.toggle("sel", type === "Pickup");
+    document.getElementById("addrWrap").classList.toggle("hf", type !== "Delivery");
+    renderCart(); updPreview(); updateOrderBannerVisibility();
+    document.getElementById("locationStatus").innerHTML = "";
+  };
+
+  // ==================== WHATSAPP HANDLER ====================
   document.getElementById("sendLink").addEventListener("click", async (e) => {
+    console.log("Send button clicked");
     if (!cart.length) { e.preventDefault(); toast("🍽️ Add items first!"); return; }
     if (OT === "Delivery" && !document.getElementById("address").value.trim()) { e.preventDefault(); toast("📍 Please enter your delivery address first"); return; }
     if (OT === "Delivery") {
-      try { const coords = await captureCustomerLocation(); const saved = await saveOrderToRTDB(coords); if (!saved) e.preventDefault(); } 
-      catch (err) { e.preventDefault(); toast(err.message || "Location required."); return; }
-    } else { const saved = await saveOrderToRTDB(null); if (!saved) e.preventDefault(); }
+      try {
+        const coords = await captureCustomerLocation();
+        const saved = await saveOrderToRTDB(coords);
+        if (!saved) { e.preventDefault(); return; }
+      } catch (err) {
+        e.preventDefault();
+        toast(err.message || "Location permission required. Please enable GPS to place delivery order.");
+        return;
+      }
+    } else {
+      const saved = await saveOrderToRTDB(null);
+      if (!saved) e.preventDefault();
+    }
   });
 
   ["name","phone","address","notes"].forEach(id => { const el = document.getElementById(id); if (el) el.addEventListener("input", updPreview); });
 
+  // ==================== UI MENU, CART FUNCTIONS ====================
   function goTo(p) {
     document.querySelectorAll('.page').forEach(x => x.classList.remove('active'));
     document.querySelectorAll('.ni').forEach(x => x.classList.remove('active'));
@@ -740,7 +817,17 @@
       if (!items.length) continue;
       h += `<div class="sec-title">${CL[c]}</div><div class="menu-grid">`;
       items.forEach(i => {
-        h += `<div class="menu-card"><img class="menu-img" src="${i.img}" alt="${i.name}" onerror="this.src='https://placehold.co/400x250/fef0e6/f2622e?text=🔥'"><div class="menu-info"><div class="menu-name">${i.name}</div><div class="menu-desc">${i.desc}</div><div class="menu-bottom"><div class="menu-price">${fmt(i.price)}</div><button class="order-btn" onclick="addItem(${i.id})"><i class="fas fa-shopping-cart"></i> ORDER</button></div></div></div>`;
+        h += `<div class="menu-card">
+          <img class="menu-img" src="${i.img}" alt="${i.name}" loading="lazy" onerror="this.src='https://placehold.co/400x250/fef0e6/f2622e?text=🔥'">
+          <div class="menu-info">
+            <div class="menu-name">${i.name}</div>
+            <div class="menu-desc">${i.desc}</div>
+            <div class="menu-bottom">
+              <div class="menu-price">${fmt(i.price)}</div>
+              <button class="order-btn" onclick="addItem(${i.id})"><i class="fas fa-shopping-cart"></i> ORDER</button>
+            </div>
+          </div>
+        </div>`;
       });
       h += "</div>";
     }
@@ -768,167 +855,67 @@
   }
 
   // ==================== TRACKING FUNCTIONS ====================
-  function setTrackMode(mode) {
-    const pickupPanel = document.getElementById('pickupPanel');
-    const deliveryPanel = document.getElementById('deliveryPanel');
-    const pickupBtn = document.getElementById('togglePickupBtn');
-    const deliveryBtn = document.getElementById('toggleDeliveryTrackBtn');
-    if (mode === 'pickup') {
-      pickupPanel.classList.remove('hidden-panel');
-      deliveryPanel.classList.add('hidden-panel');
-      pickupBtn.classList.add('active-toggle');
-      deliveryBtn.classList.remove('active-toggle');
-      if (trackMap) { trackMap.remove(); trackMap = null; riderMarker = null; customerMarker = null; routingControl = null; }
-      document.getElementById('liveTrackingMap').style.display = 'none';
-    } else {
-      pickupPanel.classList.add('hidden-panel');
-      deliveryPanel.classList.remove('hidden-panel');
-      pickupBtn.classList.remove('active-toggle');
-      deliveryBtn.classList.add('active-toggle');
-    }
-  }
-
   function initTrackMap(custLat, custLng) {
     const container = document.getElementById("liveTrackingMap");
     container.style.display = "block";
     if (trackMap) trackMap.remove();
     trackMap = L.map(container).setView([custLat, custLng], 14);
     L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', { attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OSM</a>' }).addTo(trackMap);
-    customerMarker = L.marker([custLat, custLng], { icon: L.divIcon({ html: '📍', iconSize: [30,30], className: 'cust-icon' }) }).addTo(trackMap).bindPopup('Your delivery location');
+    customerMarker = L.marker([custLat, custLng], { 
+      icon: L.divIcon({ html: '📍', iconSize: [30,30], className: 'cust-icon' }) 
+    }).addTo(trackMap).bindPopup('Your delivery location');
+    mapCentered = true;
   }
 
   function updateTrackingUI(riderLat, riderLng, custLat, custLng, lastUpdateTimestamp) {
     if (!trackMap) initTrackMap(custLat, custLng);
     if (riderMarker) riderMarker.setLatLng([riderLat, riderLng]);
-    else { riderMarker = L.marker([riderLat, riderLng], { icon: L.divIcon({ html: '🏍️', iconSize: [30,30] }) }).addTo(trackMap).bindPopup('Rider'); }
+    else {
+      riderMarker = L.marker([riderLat, riderLng], { 
+        icon: L.divIcon({ html: '🏍️', iconSize: [30,30] }) 
+      }).addTo(trackMap).bindPopup('Rider');
+    }
+    
     if (routingControl) trackMap.removeControl(routingControl);
     routingControl = L.Routing.control({
       waypoints: [L.latLng(riderLat, riderLng), L.latLng(custLat, custLng)],
       router: L.Routing.osrmv1({ serviceUrl: 'https://router.project-osrm.org/route/v1' }),
-      routeWhileDragging: false, show: false, addWaypoints: false, fitSelectedRoutes: false,
+      routeWhileDragging: false,
+      show: false,
+      addWaypoints: false,
+      fitSelectedRoutes: false,
       lineOptions: { styles: [{ color: '#f2622e', weight: 4 }] }
     }).addTo(trackMap);
+    
     routingControl.on('routesfound', (e) => {
       const route = e.routes[0];
       const distKm = (route.summary.totalDistance / 1000).toFixed(1);
       const etaMin = Math.round(route.summary.totalTime / 60);
       const timeAgo = Math.floor((Date.now() - lastUpdateTimestamp) / 1000);
-      const isOnline = timeAgo < 60000;
+      const isOnline = timeAgo < OFFLINE_TIMEOUT;
       const statusDiv = document.getElementById("trackStatusResult");
       statusDiv.style.display = "block";
-      statusDiv.innerHTML = `<i class="fas fa-truck-fast"></i> <strong>Status:</strong> ${isOnline ? '🟢 Rider online' : '🔴 Rider offline'}<br><i class="fas fa-route"></i> <strong>Distance:</strong> ${distKm} km<br><i class="fas fa-clock"></i> <strong>ETA:</strong> ~${etaMin} min<br><i class="fas fa-sync-alt"></i> <strong>Last update:</strong> ${timeAgo} sec ago`;
+      statusDiv.innerHTML = `
+        <i class="fas fa-truck-fast"></i> <strong>Status:</strong> ${isOnline ? '🟢 Rider online' : '🔴 Rider offline (no signal)'}<br>
+        <i class="fas fa-route"></i> <strong>Distance:</strong> ${distKm} km<br>
+        <i class="fas fa-clock"></i> <strong>ETA:</strong> ~${etaMin} min<br>
+        <i class="fas fa-sync-alt"></i> <strong>Last update:</strong> ${timeAgo} sec ago
+      `;
+      if (!isOnline) statusDiv.innerHTML += `<br><span style="color:red;">⚠️ Rider connection lost. Please refresh.</span>`;
     });
-  }
-
-  function startTracking(orderId) {
-    if (trackOrderRef) trackOrderRef.off();
-    const orderRef = rtdb.ref('orders/' + orderId);
-    trackOrderRef = orderRef;
-    orderRef.on('value', (snap) => {
-      const order = snap.val();
-      if (!order) { document.getElementById("trackStatusResult").innerHTML = `<div class="error-msg">❌ Order not found. Check Order ID.</div>`; document.getElementById("trackStatusResult").style.display = "block"; return; }
-      if (order.orderType !== 'Delivery') { document.getElementById("trackStatusResult").innerHTML = `<div class="error-msg">⚠️ This order is for pickup. No live tracking available.</div>`; document.getElementById("trackStatusResult").style.display = "block"; return; }
-      const custLoc = order.customerLocation;
-      const riderLoc = order.riderLocation;
-      if (!custLoc || !custLoc.latitude) { document.getElementById("trackStatusResult").innerHTML = `<div class="error-msg">📍 Customer location not captured.</div>`; return; }
-      if (!riderLoc || !riderLoc.latitude) { document.getElementById("trackStatusResult").innerHTML = `<div class="status-box"><i class="fas fa-spinner fa-spin"></i> Waiting for rider to share location...</div>`; document.getElementById("trackStatusResult").style.display = "block"; return; }
-      updateTrackingUI(riderLoc.latitude, riderLoc.longitude, custLoc.latitude, custLoc.longitude, riderLoc.timestamp || Date.now());
-      document.getElementById("trackStatusResult").style.display = "block";
-    });
-  }
-
-  document.getElementById('trackOrderBtn').addEventListener('click', () => {
-    const inputId = document.getElementById('trackingIdInput').value.trim();
-    if (!inputId) { toast("Please enter an Order ID"); return; }
-    document.getElementById("trackStatusResult").innerHTML = `<div class="status-box"><i class="fas fa-spinner fa-spin"></i> Fetching order...</div>`;
-    document.getElementById("trackStatusResult").style.display = "block";
-    startTracking(inputId);
-  });
-
-  document.getElementById('togglePickupBtn').addEventListener('click', () => setTrackMode('pickup'));
-  document.getElementById('toggleDeliveryTrackBtn').addEventListener('click', () => setTrackMode('delivery'));
-
-  // Rider Modal (admin/delivery personnel interface)
-  window.openRiderModal = () => {
-    const modal = document.getElementById('riderModal');
-    modal.innerHTML = `
-      <div class="rider-modal-content">
-        <div class="rider-close" onclick="closeRiderModal()">&times;</div>
-        <div class="rider-inner">
-          <div class="rider-logo">PATO<span>GRILLS</span> · RIDER</div>
-          <div class="rider-field-label">RIDER ID / SECRET</div>
-          <input type="password" id="riderAuthKey" class="rider-input" placeholder="Enter rider secret key" value="PatogrillsRider2024">
-          <button class="rider-btn" id="riderAuthBtn">🔐 ACCESS DASHBOARD</button>
-          <div id="riderDashboard"></div>
-        </div>
-      </div>`;
-    modal.classList.add('active');
-    document.getElementById('riderAuthBtn').addEventListener('click', async () => {
-      const key = document.getElementById('riderAuthKey').value;
-      if (key !== 'PatogrillsRider2024') { document.getElementById('riderDashboard').innerHTML = '<div class="rider-error" style="display:block;">❌ Invalid rider key.</div>'; return; }
-      loadRiderDashboard();
-    });
-  };
-  window.closeRiderModal = () => { document.getElementById('riderModal').classList.remove('active'); if (riderWatchId) navigator.geolocation.clearWatch(riderWatchId); riderWatchId = null; };
-
-  async function loadRiderDashboard() {
-    const dashDiv = document.getElementById('riderDashboard');
-    dashDiv.innerHTML = '<div>Loading pending orders...</div>';
-    const ordersSnap = await rtdb.ref('orders').orderByChild('status').equalTo('pending').once('value');
-    const pendingOrders = [];
-    ordersSnap.forEach(child => { pendingOrders.push({ id: child.key, ...child.val() }); });
-    if (pendingOrders.length === 0) dashDiv.innerHTML = '<div class="rider-status-block">✅ No pending orders.</div>';
-    else {
-      let html = `<div class="rider-status-block"><strong>📋 PENDING ORDERS (${pendingOrders.length})</strong></div>`;
-      pendingOrders.forEach(order => {
-        html += `<div class="rider-order-item"><div><div class="rider-order-id">${order.orderId}</div><div>${order.customerName} · ${order.orderType}</div><div>${fmt(order.total)}</div></div><button class="rider-accept-btn" onclick="acceptOrder('${order.id}')">ACCEPT & START</button></div>`;
-      });
-      dashDiv.innerHTML = html;
-    }
-    const activeSnap = await rtdb.ref('orders').orderByChild('assigned').equalTo(true).once('value');
-    const activeOrders = [];
-    activeSnap.forEach(child => { if (child.val().assigned === true && child.val().status !== 'delivered') activeOrders.push({ id: child.key, ...child.val() }); });
-    if (activeOrders.length > 0) {
-      let activeHtml = `<div class="rider-status-block"><strong>🚀 ACTIVE DELIVERY</strong></div>`;
-      activeOrders.forEach(order => {
-        activeHtml += `<div class="active-delivery-card"><div><strong>${order.orderId}</strong> → ${order.customerName}<br>📍 ${order.address || 'Pickup'}</div><div class="action-buttons-group"><button class="navigate-btn" onclick="window.open('https://www.google.com/maps/dir/?api=1&destination=${order.customerLocation?.latitude},${order.customerLocation?.longitude}')">🗺️ Navigate</button><button class="rider-btn-delivered" style="padding:8px 16px; margin:0;" onclick="markDelivered('${order.id}')">✅ Mark Delivered</button><button class="rider-terminate-btn" onclick="cancelDelivery('${order.id}')">❌ Cancel</button></div></div>`;
-      });
-      dashDiv.innerHTML += activeHtml;
-    }
-    if (activeOrders.length === 0 && pendingOrders.length === 0) dashDiv.innerHTML = '<div>🎉 No active deliveries</div>';
-  }
-
-  window.acceptOrder = async (orderId) => {
-    await rtdb.ref('orders/' + orderId).update({ assigned: true, status: 'assigned', riderId: 'rider_' + Date.now() });
-    if (navigator.geolocation && !riderWatchId) {
-      riderWatchId = navigator.geolocation.watchPosition((pos) => {
-        rtdb.ref('orders/' + orderId + '/riderLocation').set({ latitude: pos.coords.latitude, longitude: pos.coords.longitude, timestamp: Date.now() });
-        toast("📍 Location sent to customer");
-      }, (err) => console.error("Geolocation error", err), { enableHighAccuracy: true, maximumAge: 5000 });
-    }
-    loadRiderDashboard();
-    toast("Order accepted! Share location enabled.");
-  };
-  window.markDelivered = async (orderId) => {
-    if (riderWatchId) navigator.geolocation.clearWatch(riderWatchId);
-    await rtdb.ref('orders/' + orderId).update({ status: 'delivered', deliveredAt: Date.now() });
-    loadRiderDashboard();
-    toast("🎉 Order marked delivered!");
-  };
-  window.cancelDelivery = async (orderId) => {
-    if (confirm("Cancel this delivery?")) { await rtdb.ref('orders/' + orderId).update({ assigned: false, status: 'pending', riderLocation: null }); loadRiderDashboard(); toast("Delivery cancelled."); }
-  };
-
-  // Onboarding + initial load
-  (function init() {
-    let step = 0; const steps = ['os0','os1','os2','os3']; const dots = ['d0','d1','d2','d3'];
-    const nextBtn = document.getElementById('obNext'), skipBtn = document.getElementById('obSkip');
-    function updateStep() { steps.forEach((s,i)=>{ document.getElementById(s).classList.toggle('on', i===step); document.getElementById(dots[i]).classList.toggle('on', i===step); }); }
-    function nextStep() { if(step<3) { step++; updateStep(); } else { document.getElementById('onboarding').classList.add('fade-out'); setTimeout(()=>document.getElementById('onboarding').classList.add('gone'), 300); } }
-    nextBtn.onclick = nextStep; skipBtn.onclick = () => { document.getElementById('onboarding').classList.add('fade-out'); setTimeout(()=>document.getElementById('onboarding').classList.add('gone'), 300); };
-    updateStep(); buildMenu(); renderCart(); updPreview(); selOT('Delivery');
-    setTrackMode('pickup');
-  })();
-</script>
-</body>
-</html>
+    setTimeout(() => {
+      if (!routingControl || !routingControl._routes || routingControl._routes.length === 0) {
+        const R = 6371;
+        const dLat = (custLat - riderLat) * Math.PI / 180;
+        const dLon = (custLng - riderLng) * Math.PI / 180;
+        const a = Math.sin(dLat/2)**2 + Math.cos(riderLat * Math.PI/180) * Math.cos(custLat * Math.PI/180) * Math.sin(dLon/2)**2;
+        const distKm = R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+        const etaMin = Math.round(distKm / 0.03 * 60);
+        const timeAgo = Math.floor((Date.now() - lastUpdateTimestamp) / 1000);
+        const isOnline = timeAgo < OFFLINE_TIMEOUT;
+        const statusDiv = document.getElementById("trackStatusResult");
+        statusDiv.style.display = "block";
+        statusDiv.innerHTML = `
+          <i class="fas fa-truck-fast"></i> <strong>Status:</strong> ${isOnline ? '🟢 Rider online' : '🔴 Rider offline (no signal)'}<br>
+          <i class="fas fa-route"></i> <strong>Distance (approx):</strong> ${distKm.toFixed(1)} km<br>
+          <i class="fas fa-clock"></i> <strong>
