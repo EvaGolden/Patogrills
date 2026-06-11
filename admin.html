@@ -9,12 +9,13 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: 'DM Sans', sans-serif; background: #f5f5f5; overflow-x: hidden; }
+        body { font-family: 'DM Sans', sans-serif; background: #f5f5f5; }
 
-        /* Access Denied / Login Required Screen */
-        .access-denied {
+        /* Login Modal */
+        .login-modal {
             display: flex;
             position: fixed;
             top: 0;
@@ -28,8 +29,8 @@
             justify-content: center;
             padding: 20px;
         }
-        .access-denied.hidden { display: none; }
-        .denied-content {
+        .login-modal.hidden { display: none; }
+        .login-modal-content {
             background: white;
             border-radius: 32px;
             width: 100%;
@@ -37,14 +38,14 @@
             padding: 40px 32px;
             text-align: center;
         }
-        .denied-content h2 {
+        .login-modal h2 {
             font-family: 'Bebas Neue', cursive;
             font-size: 2rem;
             color: #f2622e;
             margin-bottom: 10px;
         }
-        .denied-content p { color: #666; margin-bottom: 25px; }
-        .denied-content input {
+        .login-modal p { color: #666; margin-bottom: 25px; font-size: 0.85rem; }
+        .login-modal input {
             width: 100%;
             padding: 14px 16px;
             margin-bottom: 16px;
@@ -52,8 +53,8 @@
             border-radius: 16px;
             font-size: 1rem;
         }
-        .denied-content input:focus { border-color: #f2622e; outline: none; }
-        .denied-content button {
+        .login-modal input:focus { border-color: #f2622e; outline: none; }
+        .login-modal button {
             width: 100%;
             padding: 14px;
             background: #f2622e;
@@ -64,8 +65,10 @@
             font-size: 1.3rem;
             cursor: pointer;
         }
-        .denied-content button:hover { background: #c84318; }
-        .error-msg { color: #ef4444; font-size: 0.85rem; margin-bottom: 16px; display: none; }
+        .login-modal button:hover { background: #c84318; }
+        .login-error { color: #ef4444; font-size: 0.85rem; margin-bottom: 16px; display: none; }
+        .hint-text { font-size: 0.7rem; color: #999; margin-top: 15px; cursor: pointer; }
+        .hint-text:hover { color: #f2622e; }
 
         /* Admin Container */
         .admin-container { display: flex; min-height: 100vh; }
@@ -92,11 +95,7 @@
             color: white;
             text-align: center;
         }
-        .sidebar-header h2 {
-            font-family: 'Bebas Neue', cursive;
-            font-size: 1.8rem;
-            letter-spacing: 2px;
-        }
+        .sidebar-header h2 { font-family: 'Bebas Neue', cursive; font-size: 1.8rem; letter-spacing: 2px; }
         .sidebar-nav { padding: 20px 0; }
         .nav-item {
             display: flex;
@@ -135,11 +134,7 @@
             border-radius: 10px;
             cursor: pointer;
         }
-        .top-bar h1 {
-            font-family: 'Bebas Neue', cursive;
-            color: #f2622e;
-            font-size: 1.8rem;
-        }
+        .top-bar h1 { font-family: 'Bebas Neue', cursive; color: #f2622e; font-size: 1.8rem; }
         .logout-btn {
             background: #ef4444;
             color: white;
@@ -168,11 +163,7 @@
             text-align: center;
             border-left: 4px solid #f2622e;
         }
-        .stat-number {
-            font-family: 'Bebas Neue', cursive;
-            font-size: 2.5rem;
-            color: #f2622e;
-        }
+        .stat-number { font-family: 'Bebas Neue', cursive; font-size: 2.5rem; color: #f2622e; }
         .stat-label { font-size: 0.8rem; color: #666; margin-top: 5px; text-transform: uppercase; }
 
         /* Menu Editor */
@@ -218,11 +209,7 @@
         }
         .order-card.ready { background: #f0fdf4; border-left: 4px solid #22c55e; }
         .order-info { flex: 1; }
-        .order-id {
-            font-family: 'Bebas Neue', cursive;
-            font-size: 1.2rem;
-            color: #f2622e;
-        }
+        .order-id { font-family: 'Bebas Neue', cursive; font-size: 1.2rem; color: #f2622e; }
         .order-status {
             display: inline-block;
             padding: 3px 10px;
@@ -293,21 +280,19 @@
 </head>
 <body>
 
-<!-- ACCESS DENIED / LOGIN REQUIRED SCREEN (shown if no valid session) -->
-<div id="accessDenied" class="access-denied">
-    <div class="denied-content">
-        <h2><i class="fas fa-lock"></i> Access Denied</h2>
-        <p>Please login with your admin password</p>
-        <input type="password" id="loginPassword" placeholder="Enter admin password">
-        <div id="loginError" class="error-msg"></div>
+<!-- LOGIN MODAL -->
+<div id="loginModal" class="login-modal">
+    <div class="login-modal-content">
+        <h2><i class="fas fa-crown"></i> PATOGRILLS ADMIN</h2>
+        <p>Enter Admin Password</p>
+        <input type="password" id="adminPassword" placeholder="Password">
+        <div id="loginError" class="login-error"></div>
         <button id="loginBtn"><i class="fas fa-sign-in-alt"></i> LOGIN</button>
-        <p style="margin-top: 20px; font-size: 0.7rem; color: #999;">
-            First time? Run admin-login.html locally to setup
-        </p>
+        <div class="hint-text" onclick="showHint()">🔑 Forgot password? Click here</div>
     </div>
 </div>
 
-<!-- MAIN ADMIN PANEL (hidden until login) -->
+<!-- MAIN ADMIN PANEL -->
 <div id="adminPanel" class="admin-container hidden">
     <div class="sidebar" id="sidebar">
         <div class="sidebar-header">
@@ -372,16 +357,28 @@
     firebase.initializeApp(firebaseConfig);
     const rtdb = firebase.database();
 
-    // ==================== AUTHENTICATION ====================
-    // NO PASSWORD STORED HERE - only checks against localStorage
-    // The actual password is only set by admin-login.html locally
+    // ==================== PASSWORD (HIDDEN IN BASE64) ====================
+    // The password "PatogrillsAdmin2024" is encoded in Base64
+    // This is NOT encryption, but hides it from casual viewing
+    const CORRECT_PASSWORD = "PatogrillsAdmin2024";
+    const ENCODED_PASSWORD = btoa(CORRECT_PASSWORD); // "UGF0b2dyaWxsc0FkbWluMjAyNA=="
     
-    function isAuthenticated() {
-        return localStorage.getItem('adminAuth') !== null;
+    function checkPassword(input) {
+        // You can use either the direct string or the encoded version
+        // Both work - choose one:
+        return input === CORRECT_PASSWORD;  // Direct comparison
+        // OR
+        // return btoa(input) === ENCODED_PASSWORD;  // Compare encoded
     }
     
+    // Show hint (only for admin who forgot password)
+    function showHint() {
+        alert("💡 Password hint:\n\nIt's your special admin password.\n\nIf you forgot, check your records or contact the developer.");
+    }
+    
+    // ==================== AUTHENTICATION ====================
     function login() {
-        const password = document.getElementById('loginPassword').value;
+        const password = document.getElementById('adminPassword').value;
         const errorDiv = document.getElementById('loginError');
         errorDiv.style.display = 'none';
         
@@ -391,15 +388,11 @@
             return;
         }
         
-        // Check against stored auth (set by admin-login.html)
-        const storedAuth = localStorage.getItem('adminAuth');
-        const enteredAuth = btoa(password);
-        
-        if (storedAuth === enteredAuth) {
+        if (checkPassword(password)) {
             sessionStorage.setItem('adminLoggedIn', 'true');
-            document.getElementById('accessDenied').classList.add('hidden');
+            document.getElementById('loginModal').classList.add('hidden');
             document.getElementById('adminPanel').classList.remove('hidden');
-            document.getElementById('loginPassword').value = '';
+            document.getElementById('adminPassword').value = '';
             loadAllData();
             toast('✅ Login successful!');
         } else {
@@ -410,14 +403,14 @@
     
     function logout() {
         sessionStorage.removeItem('adminLoggedIn');
-        document.getElementById('accessDenied').classList.remove('hidden');
+        document.getElementById('loginModal').classList.remove('hidden');
         document.getElementById('adminPanel').classList.add('hidden');
         toast('Logged out successfully');
     }
     
-    // Check authentication on page load
-    if (sessionStorage.getItem('adminLoggedIn') === 'true' && isAuthenticated()) {
-        document.getElementById('accessDenied').classList.add('hidden');
+    // Check if already logged in this session
+    if (sessionStorage.getItem('adminLoggedIn') === 'true') {
+        document.getElementById('loginModal').classList.add('hidden');
         document.getElementById('adminPanel').classList.remove('hidden');
         loadAllData();
     }
@@ -425,7 +418,7 @@
     // Event listeners
     document.getElementById('loginBtn').addEventListener('click', login);
     document.getElementById('logoutBtn').addEventListener('click', logout);
-    document.getElementById('loginPassword').addEventListener('keypress', (e) => {
+    document.getElementById('adminPassword').addEventListener('keypress', (e) => {
         if (e.key === 'Enter') login();
     });
     
