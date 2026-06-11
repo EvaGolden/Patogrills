@@ -9,7 +9,6 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { font-family: 'DM Sans', sans-serif; background: #f5f5f5; }
@@ -67,8 +66,6 @@
         }
         .login-modal button:hover { background: #c84318; }
         .login-error { color: #ef4444; font-size: 0.85rem; margin-bottom: 16px; display: none; }
-        .hint-text { font-size: 0.7rem; color: #999; margin-top: 15px; cursor: pointer; }
-        .hint-text:hover { color: #f2622e; }
 
         /* Admin Container */
         .admin-container { display: flex; min-height: 100vh; }
@@ -195,7 +192,7 @@
             cursor: pointer;
         }
 
-        /* Orders */
+        /* Orders List - Enhanced Visual Feedback */
         .orders-list { display: flex; flex-direction: column; gap: 15px; }
         .order-card {
             background: white;
@@ -206,31 +203,124 @@
             justify-content: space-between;
             align-items: center;
             gap: 15px;
+            transition: all 0.3s ease;
+            border-left: 4px solid #f2622e;
         }
-        .order-card.ready { background: #f0fdf4; border-left: 4px solid #22c55e; }
+        
+        /* Pending order style */
+        .order-card.pending {
+            background: white;
+            border-left: 4px solid #f2622e;
+        }
+        
+        /* Ready order style - Green theme */
+        .order-card.ready {
+            background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%);
+            border-left: 4px solid #22c55e;
+            animation: pulseGreen 0.5s ease;
+        }
+        
+        @keyframes pulseGreen {
+            0% { transform: scale(1); background: #f0fdf4; }
+            50% { transform: scale(1.01); background: #bbf7d0; }
+            100% { transform: scale(1); background: #f0fdf4; }
+        }
+        
+        /* Just marked (temporary animation) */
+        .order-card.just-marked {
+            animation: highlightFlash 0.6s ease;
+        }
+        
+        @keyframes highlightFlash {
+            0% { background: #fef3c7; transform: scale(1); }
+            50% { background: #fde68a; transform: scale(1.02); }
+            100% { background: #f0fdf4; transform: scale(1); }
+        }
+        
         .order-info { flex: 1; }
-        .order-id { font-family: 'Bebas Neue', cursive; font-size: 1.2rem; color: #f2622e; }
+        .order-id {
+            font-family: 'Bebas Neue', cursive;
+            font-size: 1.2rem;
+            color: #f2622e;
+            margin-bottom: 5px;
+        }
+        
+        /* Ready order ID color */
+        .order-card.ready .order-id {
+            color: #059669;
+        }
+        
+        .order-details {
+            font-size: 0.85rem;
+            color: #666;
+            line-height: 1.5;
+        }
+        
         .order-status {
-            display: inline-block;
-            padding: 3px 10px;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            padding: 4px 12px;
             border-radius: 20px;
             font-size: 0.7rem;
             font-weight: 600;
-            margin-top: 5px;
+            margin-top: 8px;
         }
-        .status-pending { background: #fef3c7; color: #d97706; }
-        .status-ready { background: #d1fae5; color: #059669; }
+        
+        /* Pending status badge */
+        .status-pending {
+            background: #fef3c7;
+            color: #d97706;
+        }
+        
+        /* Ready status badge */
+        .status-ready {
+            background: #22c55e;
+            color: white;
+        }
+        
         .ready-btn {
             background: #22c55e;
             color: white;
             border: none;
-            padding: 8px 20px;
-            border-radius: 8px;
+            padding: 10px 24px;
+            border-radius: 10px;
             cursor: pointer;
+            font-weight: 600;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.85rem;
         }
-        .ready-btn:disabled { background: #9ca3af; cursor: not-allowed; }
+        
+        .ready-btn:hover:not(:disabled) {
+            background: #16a34a;
+            transform: scale(1.02);
+        }
+        
+        .ready-btn:disabled {
+            background: #9ca3af;
+            cursor: not-allowed;
+            opacity: 0.7;
+        }
+        
+        /* Loading animation for button */
+        .ready-btn.loading {
+            background: #f59e0b;
+            pointer-events: none;
+        }
+        
+        .ready-btn.loading i {
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
 
-        /* Popular */
+        /* Popular Items */
         .popular-items { display: flex; flex-wrap: wrap; gap: 10px; }
         .popular-badge {
             background: white;
@@ -268,13 +358,32 @@
             border-radius: 10px;
             z-index: 2000;
             display: none;
+            animation: slideIn 0.3s ease;
         }
         .toast.show { display: block; }
+        @keyframes slideIn {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+        
+        /* Confetti effect container */
+        .confetti {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 9999;
+        }
+        
         @media (max-width: 768px) {
             .sidebar { width: 260px; }
             .edit-fields { flex-direction: column; align-items: stretch; }
             .edit-fields input, .edit-fields textarea { width: 100%; }
             .stats-grid { grid-template-columns: 1fr; }
+            .order-card { flex-direction: column; text-align: center; }
+            .ready-btn { width: 100%; justify-content: center; }
         }
     </style>
 </head>
@@ -288,7 +397,6 @@
         <input type="password" id="adminPassword" placeholder="Password">
         <div id="loginError" class="login-error"></div>
         <button id="loginBtn"><i class="fas fa-sign-in-alt"></i> LOGIN</button>
-        <div class="hint-text" onclick="showHint()">🔑 Forgot password? Click here</div>
     </div>
 </div>
 
@@ -357,23 +465,11 @@
     firebase.initializeApp(firebaseConfig);
     const rtdb = firebase.database();
 
-    // ==================== PASSWORD (HIDDEN IN BASE64) ====================
-    // The password "PatogrillsAdmin2024" is encoded in Base64
-    // This is NOT encryption, but hides it from casual viewing
+    // ==================== PASSWORD ====================
     const CORRECT_PASSWORD = "PatogrillsAdmin2024";
-    const ENCODED_PASSWORD = btoa(CORRECT_PASSWORD); // "UGF0b2dyaWxsc0FkbWluMjAyNA=="
     
     function checkPassword(input) {
-        // You can use either the direct string or the encoded version
-        // Both work - choose one:
-        return input === CORRECT_PASSWORD;  // Direct comparison
-        // OR
-        // return btoa(input) === ENCODED_PASSWORD;  // Compare encoded
-    }
-    
-    // Show hint (only for admin who forgot password)
-    function showHint() {
-        alert("💡 Password hint:\n\nIt's your special admin password.\n\nIf you forgot, check your records or contact the developer.");
+        return input === CORRECT_PASSWORD;
     }
     
     // ==================== AUTHENTICATION ====================
@@ -396,7 +492,7 @@
             loadAllData();
             toast('✅ Login successful!');
         } else {
-            errorDiv.textContent = '❌ Incorrect password. Please try again.';
+            errorDiv.textContent = '❌ Incorrect password';
             errorDiv.style.display = 'block';
         }
     }
@@ -408,21 +504,18 @@
         toast('Logged out successfully');
     }
     
-    // Check if already logged in this session
     if (sessionStorage.getItem('adminLoggedIn') === 'true') {
         document.getElementById('loginModal').classList.add('hidden');
         document.getElementById('adminPanel').classList.remove('hidden');
         loadAllData();
     }
     
-    // Event listeners
     document.getElementById('loginBtn').addEventListener('click', login);
     document.getElementById('logoutBtn').addEventListener('click', logout);
     document.getElementById('adminPassword').addEventListener('keypress', (e) => {
         if (e.key === 'Enter') login();
     });
     
-    // Helper functions
     function toast(message) {
         const toastEl = document.getElementById('toast');
         toastEl.textContent = message;
@@ -431,6 +524,37 @@
     }
     
     const formatMoney = (n) => '₦' + n.toLocaleString();
+    
+    // ==================== CONFETTI EFFECT ====================
+    function showConfetti() {
+        const colors = ['#22c55e', '#f2622e', '#ff9142', '#16a34a', '#fbbf24'];
+        for (let i = 0; i < 100; i++) {
+            const confetti = document.createElement('div');
+            confetti.style.position = 'fixed';
+            confetti.style.left = Math.random() * 100 + '%';
+            confetti.style.top = '-10px';
+            confetti.style.width = Math.random() * 8 + 4 + 'px';
+            confetti.style.height = Math.random() * 8 + 4 + 'px';
+            confetti.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+            confetti.style.borderRadius = '50%';
+            confetti.style.pointerEvents = 'none';
+            confetti.style.zIndex = '9999';
+            confetti.style.animation = `confettiFall ${Math.random() * 2 + 1}s linear forwards`;
+            document.body.appendChild(confetti);
+            
+            setTimeout(() => confetti.remove(), 3000);
+        }
+    }
+    
+    // Add confetti animation style
+    const style = document.createElement('style');
+    style.textContent = `
+        @keyframes confettiFall {
+            0% { transform: translateY(0) rotate(0deg); opacity: 1; }
+            100% { transform: translateY(100vh) rotate(720deg); opacity: 0; }
+        }
+    `;
+    document.head.appendChild(style);
     
     // ==================== LOAD ALL DATA ====================
     let menuItems = [];
@@ -528,7 +652,7 @@
         `;
     }
     
-    // ==================== ORDERS ====================
+    // ==================== ORDERS WITH ENHANCED VISUAL FEEDBACK ====================
     async function renderOrders() {
         const snapshot = await rtdb.ref('orders').orderByKey().limitToLast(20).once('value');
         const orders = snapshot.val();
@@ -539,15 +663,29 @@
         let html = '';
         for (let [key, order] of Object.entries(orders).reverse()) {
             const isReady = order.readyForPickup === true;
+            const cardClass = isReady ? 'ready' : 'pending';
+            const statusText = isReady ? '✅ MEAL READY' : '⏳ PENDING';
+            const statusClass = isReady ? 'status-ready' : 'status-pending';
+            const buttonText = isReady ? '✓ MEAL READY' : '🍽️ MARK AS READY';
+            const buttonIcon = isReady ? 'fa-check-circle' : 'fa-utensils';
+            
             html += `
-                <div class="order-card ${isReady ? 'ready' : ''}">
+                <div class="order-card ${cardClass}" data-order-id="${order.orderId}" data-order-key="${key}">
                     <div class="order-info">
-                        <div class="order-id">${order.orderId}</div>
-                        <div class="order-details">👤 ${order.customerName} | ${order.orderType} | ${formatMoney(order.total)}<br>📞 ${order.phone}</div>
-                        <span class="order-status ${isReady ? 'status-ready' : 'status-pending'}">${isReady ? '✅ Meal Ready' : 'Pending'}</span>
+                        <div class="order-id">📋 ${order.orderId}</div>
+                        <div class="order-details">
+                            👤 <strong>${order.customerName}</strong><br>
+                            📞 ${order.phone}<br>
+                            📦 ${order.orderType} | 💰 ${formatMoney(order.total)}<br>
+                            ${order.address ? `📍 ${order.address.substring(0, 60)}...<br>` : ''}
+                            📝 Notes: ${order.notes || 'None'}
+                        </div>
+                        <span class="order-status ${statusClass}">
+                            ${isReady ? '<i class="fas fa-check-circle"></i>' : '<i class="fas fa-clock"></i>'} ${statusText}
+                        </span>
                     </div>
                     <button class="ready-btn" onclick="markAsReady('${key}')" ${isReady ? 'disabled' : ''}>
-                        <i class="fas fa-check-circle"></i> ${isReady ? 'MEAL READY ✓' : 'MARK AS READY'}
+                        <i class="fas ${buttonIcon}"></i> ${buttonText}
                     </button>
                 </div>
             `;
@@ -556,19 +694,100 @@
     }
     
     window.markAsReady = async (orderKey) => {
+        const orderCard = document.querySelector(`.order-card[data-order-key="${orderKey}"]`);
+        const button = orderCard?.querySelector('.ready-btn');
+        
+        // Show loading state on button
+        if (button) {
+            button.classList.add('loading');
+            button.innerHTML = '<i class="fas fa-spinner"></i> PROCESSING...';
+        }
+        
         const orderSnap = await rtdb.ref('orders/' + orderKey).once('value');
         const order = orderSnap.val();
-        if (!order || order.readyForPickup) {
-            toast('⚠️ Order not found or already ready');
+        
+        if (!order) {
+            toast('❌ Order not found');
+            if (button) {
+                button.classList.remove('loading');
+                button.innerHTML = '<i class="fas fa-utensils"></i> MARK AS READY';
+            }
             return;
         }
-        await rtdb.ref('orders/' + orderKey).update({ readyForPickup: true, status: 'meal_ready', mealReadyTimestamp: Date.now() });
-        toast(`✅ Order ${order.orderId} marked as MEAL READY!`);
-        if (Notification.permission === 'granted') {
-            new Notification('🍽️ Meal Ready - ' + order.orderId, { body: `${order.customerName}, your order is ready!`, icon: 'logo.png' });
+        
+        if (order.readyForPickup) {
+            toast('⚠️ Order already marked as ready');
+            if (button) {
+                button.classList.remove('loading');
+                button.innerHTML = '<i class="fas fa-check-circle"></i> MEAL READY';
+                button.disabled = true;
+            }
+            return;
         }
-        await renderOrders();
-        await updateDashboard();
+        
+        try {
+            await rtdb.ref('orders/' + orderKey).update({ 
+                readyForPickup: true, 
+                status: 'meal_ready', 
+                mealReadyTimestamp: Date.now(),
+                markedBy: 'admin'
+            });
+            
+            // Show success feedback
+            toast(`✅ Order ${order.orderId} marked as MEAL READY!`);
+            
+            // Show confetti effect
+            showConfetti();
+            
+            // Update the card with animation
+            if (orderCard) {
+                // Add just-marked class for flash animation
+                orderCard.classList.add('just-marked');
+                orderCard.classList.remove('pending');
+                orderCard.classList.add('ready');
+                
+                // Update status badge
+                const statusSpan = orderCard.querySelector('.order-status');
+                if (statusSpan) {
+                    statusSpan.className = 'order-status status-ready';
+                    statusSpan.innerHTML = '<i class="fas fa-check-circle"></i> ✅ MEAL READY';
+                }
+                
+                // Update order ID color (already handled by CSS)
+                
+                // Update button
+                if (button) {
+                    button.classList.remove('loading');
+                    button.disabled = true;
+                    button.innerHTML = '<i class="fas fa-check-circle"></i> ✓ MEAL READY';
+                }
+                
+                // Remove animation class after animation ends
+                setTimeout(() => {
+                    orderCard.classList.remove('just-marked');
+                }, 600);
+            }
+            
+            // Send notification if granted
+            if (Notification.permission === 'granted') {
+                new Notification('🍽️ Meal Ready - ' + order.orderId, { 
+                    body: `${order.customerName}, your order is ready for ${order.orderType === 'Delivery' ? 'delivery' : 'pickup'}!`, 
+                    icon: 'logo.png',
+                    tag: order.orderId
+                });
+            }
+            
+            // Update dashboard stats
+            await updateDashboard();
+            
+        } catch (error) {
+            console.error('Error marking order as ready:', error);
+            toast('❌ Error marking order. Please try again.');
+            if (button) {
+                button.classList.remove('loading');
+                button.innerHTML = '<i class="fas fa-utensils"></i> MARK AS READY';
+            }
+        }
     };
     
     // ==================== POPULAR ITEMS ====================
@@ -659,7 +878,6 @@
     
     document.getElementById('cleanOrdersBtn').addEventListener('click', cleanOldOrders);
     
-    // Request notification permission
     if (Notification.permission === 'default') Notification.requestPermission();
 </script>
 </body>
