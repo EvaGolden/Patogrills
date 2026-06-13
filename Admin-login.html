@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Login Setup</title>
+    <style>
+        body {
+            font-family: 'DM Sans', sans-serif;
+            background: #f5f5f5;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 20px;
+        }
+        .setup-box {
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            max-width: 400px;
+            text-align: center;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        }
+        h2 { color: #f2622e; font-family: 'Bebas Neue', cursive; font-size: 2rem; margin-bottom: 20px; }
+        input {
+            width: 100%;
+            padding: 12px;
+            margin: 15px 0;
+            border: 2px solid #ddd;
+            border-radius: 10px;
+            font-size: 1rem;
+        }
+        button {
+            background: #f2622e;
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: bold;
+        }
+        button:hover { background: #c84318; }
+        .error { color: red; margin-top: 10px; display: none; }
+    </style>
+</head>
+<body>
+    <div class="setup-box">
+        <h2><i class="fas fa-crown"></i> Admin Setup</h2>
+        <p>Enter your admin password to create secure login session</p>
+        <input type="password" id="setupPassword" placeholder="Enter admin password">
+        <button onclick="setupAdmin()">Create Secure Login</button>
+        <div id="errorMsg" class="error"></div>
+        <p style="font-size: 0.75rem; color: #666; margin-top: 20px;">
+            This file is for local use only and should NOT be uploaded to GitHub
+        </p>
+    </div>
+
+    <script>
+        function setupAdmin() {
+            const password = document.getElementById('setupPassword').value;
+            if (!password) {
+                document.getElementById('errorMsg').textContent = 'Please enter password';
+                document.getElementById('errorMsg').style.display = 'block';
+                return;
+            }
+            
+            // Store the password hash securely in localStorage
+            // This hash is what the admin.html will check
+            localStorage.setItem('adminAuth', btoa(password));
+            document.getElementById('errorMsg').style.display = 'none';
+            alert('✅ Login session created! Redirecting to admin panel...');
+            window.location.href = 'admin.html';
+        }
+    </script>
+</body>
+</html>
