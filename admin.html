@@ -963,7 +963,7 @@
     
     document.getElementById('quickVerifyBtn').addEventListener('click', window.quickVerifyPayment);
     
-    // ========== A4 RECEIPT GENERATION (Keeping original fonts) ==========
+    // ========== THERMAL RECEIPT PRINTER FORMAT (80mm) ==========
     function generateReceiptHTML(order, trackingIdVal, verifiedBy, verifiedDate) {
         const safeTrackingId = trackingIdVal || order.trackingId || order.orderId || 'N/A';
         const customerName = order.customerName || 'N/A';
@@ -982,332 +982,265 @@
                 const qty = item.quantity || 1; 
                 const price = item.price || 0; 
                 const itemTotal = price * qty; 
-                itemsHtml += `
-                    <tr>
-                        <td style="padding: 10px 8px; border-bottom: 1px solid #e5e7eb;">${itemName}</td>
-                        <td style="text-align: center; padding: 10px 8px; border-bottom: 1px solid #e5e7eb;">${qty}</td>
-                        <td style="text-align: right; padding: 10px 8px; border-bottom: 1px solid #e5e7eb;">₦${price.toLocaleString()}</td>
-                        <td style="text-align: right; padding: 10px 8px; border-bottom: 1px solid #e5e7eb;">₦${itemTotal.toLocaleString()}</td>
-                    </tr>
-                `; 
+                // Format for thermal printer - each item on its own line
+                const shortName = itemName.length > 24 ? itemName.substring(0, 22) + '..' : itemName;
+                itemsHtml += `${shortName}\n  ${qty} x ₦${price.toLocaleString()} = ₦${itemTotal.toLocaleString()}\n`;
             });
         } else { 
-            itemsHtml = '<tr><td colspan="4" style="text-align:center; padding: 20px;">No items</td></tr>'; 
+            itemsHtml = 'No items'; 
         }
         
         return `<!DOCTYPE html>
 <html>
 <head>
     <meta charset="UTF-8">
-    <title>Patogrills Receipt - ${safeTrackingId}</title>
-    <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <title>Patogrills Receipt</title>
     <style>
-        @page {
-            size: A4;
-            margin: 15mm;
-        }
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
         }
+        
+        @page {
+            size: 80mm auto;
+            margin: 0mm;
+        }
+        
         body {
-            font-family: 'DM Sans', sans-serif;
-            background: #f5f5f5;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh;
-            padding: 20px;
-        }
-        .receipt {
-            max-width: 800px;
-            width: 100%;
-            margin: 0 auto;
+            font-family: 'Courier New', 'DM Sans', monospace;
             background: white;
-            border-radius: 16px;
-            box-shadow: 0 10px 40px rgba(0,0,0,0.1);
-            overflow: hidden;
+            font-size: 11px;
+            line-height: 1.25;
+            color: #000;
+            width: 80mm;
+            margin: 0 auto;
+            padding: 1mm;
         }
-        .receipt-content {
-            padding: 40px;
+        
+        .receipt {
+            width: 100%;
+            padding: 2mm 1mm;
         }
+        
         .header {
             text-align: center;
-            border-bottom: 2px solid #f2622e;
-            padding-bottom: 20px;
-            margin-bottom: 25px;
+            border-bottom: 1px dashed #000;
+            padding-bottom: 4px;
+            margin-bottom: 6px;
         }
+        
         .logo {
-            font-family: 'Bebas Neue', cursive;
-            font-size: 32px;
+            font-family: 'Bebas Neue', 'Courier New', monospace;
+            font-size: 16px;
             font-weight: bold;
-            color: #f2622e;
-            letter-spacing: 2px;
-            margin-bottom: 8px;
-        }
-        .store-details {
-            font-size: 12px;
-            color: #6b7280;
-            line-height: 1.5;
-        }
-        .receipt-title {
-            text-align: center;
-            font-family: 'Bebas Neue', cursive;
-            font-weight: 700;
-            font-size: 22px;
-            margin: 20px 0;
-            color: #f2622e;
-            text-transform: uppercase;
+            color: #000;
             letter-spacing: 1px;
         }
-        .info-grid {
-            background: #f9fafb;
-            padding: 20px;
-            border-radius: 12px;
-            margin-bottom: 25px;
+        
+        .store-details {
+            font-size: 8px;
+            color: #444;
+            margin-top: 2px;
         }
+        
+        .receipt-title {
+            text-align: center;
+            font-weight: bold;
+            font-size: 12px;
+            margin: 6px 0;
+            letter-spacing: 1px;
+        }
+        
+        .divider {
+            border-top: 1px dashed #000;
+            margin: 6px 0;
+        }
+        
         .info-row {
             display: flex;
             justify-content: space-between;
-            margin-bottom: 10px;
-            font-size: 14px;
+            margin-bottom: 3px;
+            font-size: 9px;
         }
+        
         .info-label {
             font-weight: 600;
-            color: #4b5563;
         }
-        .info-value {
-            color: #1f2937;
-            font-weight: 500;
+        
+        .items-header {
+            font-weight: bold;
+            margin: 6px 0 3px 0;
+            text-align: center;
+            border-bottom: 1px dotted #000;
+            padding-bottom: 2px;
+            font-size: 10px;
         }
-        .divider {
-            border-top: 1px dashed #e5e7eb;
-            margin: 20px 0;
+        
+        .item-line {
+            font-size: 9px;
+            margin-bottom: 2px;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            font-family: 'Courier New', monospace;
         }
-        .items-table {
-            width: 100%;
-            border-collapse: collapse;
-            margin: 20px 0;
-        }
-        .items-table th {
-            text-align: left;
-            background: #f9fafb;
-            padding: 12px 8px;
-            font-size: 13px;
-            font-weight: 600;
-            color: #4b5563;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            border-bottom: 2px solid #e5e7eb;
-        }
-        .items-table td {
-            padding: 10px 8px;
-            font-size: 14px;
-        }
+        
         .total-section {
+            margin-top: 8px;
+            padding-top: 6px;
+            border-top: 1px dashed #000;
             text-align: right;
-            margin-top: 20px;
-            padding-top: 20px;
-            border-top: 2px solid #e5e7eb;
         }
+        
         .total-line {
-            font-size: 16px;
-            margin-bottom: 8px;
-            color: #4b5563;
+            font-size: 10px;
+            margin-bottom: 3px;
         }
+        
         .grand-total {
-            font-size: 20px;
-            font-weight: 700;
-            margin-top: 10px;
-            padding-top: 10px;
-            border-top: 2px solid #f2622e;
-            color: #f2622e;
+            font-size: 12px;
+            font-weight: bold;
+            margin-top: 4px;
+            padding-top: 4px;
+            border-top: 1px solid #000;
         }
+        
         .footer {
             text-align: center;
-            margin-top: 30px;
-            padding-top: 20px;
-            border-top: 1px solid #e5e7eb;
-        }
-        .thankyou {
-            font-family: 'Bebas Neue', cursive;
-            font-weight: 700;
-            font-size: 18px;
-            color: #f2622e;
-            margin: 10px 0;
-        }
-        .social {
-            font-size: 12px;
-            color: #6b7280;
             margin-top: 10px;
+            padding-top: 6px;
+            border-top: 1px dashed #000;
+            font-size: 8px;
         }
+        
+        .thankyou {
+            font-weight: bold;
+            font-size: 10px;
+            margin: 4px 0;
+        }
+        
+        .qrcode {
+            text-align: center;
+            margin: 6px 0;
+            font-size: 8px;
+            letter-spacing: 1px;
+        }
+        
         .print-btn-container {
             text-align: center;
-            padding: 20px;
-            background: #f9fafb;
-            border-top: 1px solid #e5e7eb;
+            margin-top: 8px;
+            padding: 8px;
         }
+        
         .print-btn {
             background: #f2622e;
             color: white;
             border: none;
-            padding: 12px 30px;
-            border-radius: 8px;
-            font-size: 14px;
-            font-weight: 600;
+            padding: 6px 16px;
+            border-radius: 4px;
+            font-size: 11px;
             cursor: pointer;
-            margin: 0 8px;
-            transition: all 0.2s;
         }
-        .print-btn:hover {
-            background: #c84318;
-            transform: translateY(-1px);
-            box-shadow: 0 4px 12px rgba(242,98,46,0.3);
-        }
-        .print-btn.secondary {
-            background: #6b7280;
-        }
-        .print-btn.secondary:hover {
-            background: #4b5563;
-        }
+        
         @media print {
             body {
-                background: white;
                 padding: 0;
                 margin: 0;
-            }
-            .receipt {
-                box-shadow: none;
-                border-radius: 0;
             }
             .print-btn-container {
                 display: none;
             }
-            .receipt-content {
-                padding: 20px;
+            .receipt {
+                padding: 1mm;
             }
         }
     </style>
 </head>
 <body>
     <div class="receipt">
-        <div class="receipt-content">
-            <div class="header">
-                <div class="logo">🔥 PATOGRILLS 🔥</div>
-                <div class="store-details">
-                    Campus 4 Road, Opposite Oma's Hostel<br>
-                    Abraka — Delta State<br>
-                    Tel: 08029811578
-                </div>
-            </div>
-            
-            <div class="receipt-title">PAYMENT RECEIPT</div>
-            
-            <div class="info-grid">
-                <div class="info-row">
-                    <span class="info-label">Receipt Number:</span>
-                    <span class="info-value"><strong>${escapeHtml(safeTrackingId)}</strong></span>
-                </div>
-                <div class="info-row">
-                    <span class="info-label">Date & Time:</span>
-                    <span class="info-value">${escapeHtml(verifiedDate)}</span>
-                </div>
-                <div class="info-row">
-                    <span class="info-label">Cashier/Verified By:</span>
-                    <span class="info-value">${escapeHtml(verifiedBy)}</span>
-                </div>
-            </div>
-            
-            <div class="divider"></div>
-            
-            <div class="info-grid">
-                <div class="info-row">
-                    <span class="info-label">Customer Name:</span>
-                    <span class="info-value"><strong>${escapeHtml(customerName)}</strong></span>
-                </div>
-                <div class="info-row">
-                    <span class="info-label">Phone Number:</span>
-                    <span class="info-value">${escapeHtml(phone)}</span>
-                </div>
-                <div class="info-row">
-                    <span class="info-label">Order Type:</span>
-                    <span class="info-value">
-                        ${orderType === 'Delivery' ? '🚚 Delivery' : '📦 Pickup'}
-                    </span>
-                </div>
-                ${orderType === 'Delivery' ? `
-                <div class="info-row">
-                    <span class="info-label">Delivery Address:</span>
-                    <span class="info-value">${escapeHtml(address)}</span>
-                </div>
-                ` : ''}
-            </div>
-            
-            <div class="divider"></div>
-            
-            <table class="items-table">
-                <thead>
-                    <tr>
-                        <th>Item Description</th>
-                        <th style="text-align: center;">Quantity</th>
-                        <th style="text-align: right;">Unit Price</th>
-                        <th style="text-align: right;">Total</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    ${itemsHtml}
-                </tbody>
-            </table>
-            
-            <div class="total-section">
-                <div class="total-line">
-                    <strong>Subtotal:</strong> ₦${subtotal.toLocaleString()}
-                </div>
-                ${deliveryFee > 0 ? `
-                <div class="total-line">
-                    <strong>Delivery Fee:</strong> ₦${deliveryFee.toLocaleString()}
-                </div>
-                ` : ''}
-                <div class="grand-total">
-                    <strong>TOTAL PAID:</strong> ₦${totalAmount.toLocaleString()}
-                </div>
-            </div>
-            
-            <div class="footer">
-                <div class="thankyou">🔥 Good Food No Dey Rush 🔥</div>
-                <div>Thank you for choosing Patogrills!</div>
-                <div class="social">
-                    <i class="fab fa-instagram"></i> @patogrills | 
-                    <i class="fab fa-facebook"></i> Patogrills Restaurant
-                </div>
-                <div style="margin-top: 10px; font-size: 10px; color: #9ca3af;">
-                    This is a computer-generated receipt. No signature required.
-                </div>
+        <div class="header">
+            <div class="logo">PATOGRILLS</div>
+            <div class="store-details">
+                Campus 4 Road, Opp Oma's Hostel
+                Abraka — Delta State
+                Tel: 08029811578
             </div>
         </div>
         
-        <div class="print-btn-container">
-            <button class="print-btn" onclick="window.print();">
-                🖨️ Print Receipt
-            </button>
-            <button class="print-btn secondary" onclick="window.close();">
-                ✖️ Close Window
-            </button>
+        <div class="receipt-title">PAYMENT RECEIPT</div>
+        
+        <div class="divider"></div>
+        
+        <div class="info-row">
+            <span>Receipt No:</span>
+            <span><strong>${safeTrackingId}</strong></span>
+        </div>
+        <div class="info-row">
+            <span>Date:</span>
+            <span>${verifiedDate}</span>
+        </div>
+        <div class="info-row">
+            <span>Cashier:</span>
+            <span>${verifiedBy}</span>
+        </div>
+        
+        <div class="divider"></div>
+        
+        <div class="info-row">
+            <span>Customer:</span>
+            <span>${customerName}</span>
+        </div>
+        <div class="info-row">
+            <span>Phone:</span>
+            <span>${phone}</span>
+        </div>
+        <div class="info-row">
+            <span>Order Type:</span>
+            <span>${orderType === 'Delivery' ? 'Delivery' : 'Pickup'}</span>
+        </div>
+        ${orderType === 'Delivery' ? `
+        <div class="info-row">
+            <span>Address:</span>
+            <span style="text-align:right; max-width:50mm;">${address}</span>
+        </div>
+        ` : ''}
+        
+        <div class="divider"></div>
+        
+        <div class="items-header">ITEMS</div>
+        <div class="item-line">${itemsHtml.replace(/\n/g, '<br>')}</div>
+        
+        <div class="divider"></div>
+        
+        <div class="total-section">
+            <div class="total-line">Subtotal: ₦${subtotal.toLocaleString()}</div>
+            ${deliveryFee > 0 ? `<div class="total-line">Delivery Fee: ₦${deliveryFee.toLocaleString()}</div>` : ''}
+            <div class="grand-total">TOTAL: ₦${totalAmount.toLocaleString()}</div>
+        </div>
+        
+        <div class="footer">
+            <div class="thankyou">Good Food No Dey Rush!</div>
+            <div>Thank you for patronizing Patogrills!</div>
+            <div>Follow us: @patogrills</div>
+            <div class="qrcode">*** END OF RECEIPT ***</div>
         </div>
     </div>
+    
+    <div class="print-btn-container">
+        <button class="print-btn" onclick="window.print();">🖨️ PRINT</button>
+        <button class="print-btn" style="background:#666; margin-left:6px;" onclick="window.close();">CLOSE</button>
+    </div>
+    
     <script>
         if (window.location.search.includes('autoPrint=true')) {
-            setTimeout(function() { 
-                window.print(); 
-            }, 500);
+            setTimeout(function() { window.print(); }, 300);
         }
     <\/script>
 </body>
 </html>`;
     }
     
-    // PRINT RECEIPT FUNCTION - Opens new window with receipt
+    // PRINT RECEIPT FUNCTION - Opens new window with thermal receipt
     window.printReceipt = async (orderId, trackingId) => {
         const snapshot = await rtdb.ref('orders/' + orderId).once('value');
         const order = snapshot.val();
@@ -1324,10 +1257,9 @@
         modal.innerHTML = `
             <div class="decision-card">
                 <h3><i class="fas fa-receipt"></i> Receipt Options</h3>
-                <p>Choose how to handle receipt for <strong>${escapeHtml(safeTracking)}</strong></p>
+                <p>Choose how to print receipt for <strong>${escapeHtml(safeTracking)}</strong></p>
                 <div class="decision-buttons">
                     <button class="decision-btn print-option" id="choosePrint"><i class="fas fa-print"></i> Print Receipt</button>
-                    <button class="decision-btn save-pdf-option" id="chooseSavePDF"><i class="fas fa-save"></i> Save as PDF</button>
                     <button class="decision-btn cancel-option" id="chooseCancel">Cancel</button>
                 </div>
             </div>
@@ -1336,11 +1268,11 @@
         
         const closeModal = () => modal.remove();
         
-        // PRINT option - opens new window with receipt and auto-print
+        // PRINT option - opens new window with thermal receipt
         document.getElementById('choosePrint').onclick = () => {
             closeModal();
             const receiptHTML = generateReceiptHTML(order, safeTracking, verifiedBy, verifiedDate);
-            const printWindow = window.open('', '_blank', 'width=800,height=900,toolbar=yes,menubar=yes,scrollbars=yes');
+            const printWindow = window.open('', '_blank', 'width=400,height=600,toolbar=no,menubar=no,scrollbars=yes');
             if (!printWindow) { 
                 toast('❌ Popup blocked! Please allow popups for this site.'); 
                 return; 
@@ -1348,50 +1280,10 @@
             printWindow.document.write(receiptHTML);
             printWindow.document.close();
             printWindow.focus();
-            toast(`🖨️ Receipt ready for ${safeTracking}`);
+            toast(`🖨️ Thermal receipt ready for ${safeTracking}`);
             
             // Mark as printed
             rtdb.ref('orders/' + orderId).update({ printed: true, printedAt: Date.now() }).catch(e=>console.warn);
-        };
-        
-        // PDF option - generates PDF using html2pdf
-        document.getElementById('chooseSavePDF').onclick = async () => {
-            closeModal();
-            toast(`📄 Generating PDF for ${safeTracking}...`);
-            try {
-                const receiptHTML = generateReceiptHTML(order, safeTracking, verifiedBy, verifiedDate);
-                
-                // Create temporary container for PDF generation
-                const tempDiv = document.createElement('div');
-                tempDiv.style.position = 'fixed';
-                tempDiv.style.left = '-9999px';
-                tempDiv.style.top = '0';
-                tempDiv.style.width = '800px';
-                tempDiv.innerHTML = receiptHTML;
-                document.body.appendChild(tempDiv);
-                
-                // Extract just the receipt div without the print buttons
-                const receiptElement = tempDiv.querySelector('.receipt');
-                if (!receiptElement) throw new Error('Could not find receipt element');
-                
-                const opt = {
-                    margin: [0.5, 0.5, 0.5, 0.5],
-                    filename: `Patogrills_Receipt_${safeTracking}.pdf`,
-                    image: { type: 'jpeg', quality: 0.98 },
-                    html2canvas: { scale: 2, letterRendering: true },
-                    jsPDF: { unit: 'in', format: 'a4', orientation: 'portrait' }
-                };
-                
-                await html2pdf().set(opt).from(receiptElement).save();
-                document.body.removeChild(tempDiv);
-                toast(`💾 PDF saved successfully!`);
-                
-                // Mark as printed
-                await rtdb.ref('orders/' + orderId).update({ printed: true, printedAt: Date.now() });
-            } catch (err) {
-                console.error('PDF error:', err);
-                toast('❌ PDF generation failed: ' + err.message);
-            }
         };
         
         document.getElementById('chooseCancel').onclick = closeModal;
