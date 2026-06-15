@@ -9,12 +9,13 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
-    <!-- html2pdf for reliable PDF generation -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <!-- html2pdf bundle for fallback PDF generation when no printer is available -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js" integrity="sha512-GsLlZN/3F2ErC5ifS5QtgpiJtWd43JWSuIgh7mbzZ8zBps+dvLusV+eNQATqgA/HdeKFVgA5v3S/cIrLF7QnIg==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { font-family: 'DM Sans', sans-serif; background: #f5f5f5; overflow-x: hidden; }
 
+        /* Access Denied Screen */
         .access-denied {
             display: flex;
             position: fixed;
@@ -68,9 +69,11 @@
         .denied-content button:hover { background: #c84318; }
         .error-msg { color: #ef4444; font-size: 0.85rem; margin-bottom: 16px; display: none; }
 
+        /* Admin Container */
         .admin-container { display: flex; min-height: 100vh; }
         .admin-container.hidden { display: none; }
 
+        /* Sidebar */
         .sidebar {
             width: 280px;
             background: white;
@@ -110,6 +113,7 @@
         .nav-item.active { background: #fff0e8; border-left-color: #f2622e; color: #f2622e; font-weight: 600; }
         .nav-item i { width: 24px; color: #f2622e; font-size: 1.2rem; }
 
+        /* Main Content */
         .main-content { flex: 1; margin-left: 0; width: 100%; }
         .top-bar {
             background: white;
@@ -152,6 +156,7 @@
         .panel.active { display: block; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
 
+        /* Stats Grid */
         .stats-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
@@ -172,6 +177,7 @@
         }
         .stat-label { font-size: 0.8rem; color: #666; margin-top: 5px; text-transform: uppercase; }
 
+        /* Menu Editor */
         .menu-editor-list { display: flex; flex-direction: column; gap: 15px; }
         .menu-item-edit {
             background: white;
@@ -200,6 +206,7 @@
             cursor: pointer;
         }
 
+        /* Orders Table */
         .orders-filter {
             background: white;
             border-radius: 15px;
@@ -225,6 +232,7 @@
             color: white;
         }
         
+        /* Verify Section */
         .verify-payment-section {
             background: #fff8f2;
             border-radius: 15px;
@@ -343,6 +351,7 @@
             max-width: 200px;
         }
 
+        /* Popular */
         .popular-items { display: flex; flex-wrap: wrap; gap: 10px; }
         .popular-badge {
             background: white;
@@ -390,37 +399,66 @@
             background: #f0fdf4;
         }
         
-        /* Print Decision Modal */
-        .print-decision-modal {
+        /* print preview enhancements */
+        .print-option-modal {
             position: fixed;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
-            background: rgba(0,0,0,0.7);
+            background: rgba(0,0,0,0.6);
             z-index: 30000;
             display: flex;
             align-items: center;
             justify-content: center;
             font-family: 'DM Sans', sans-serif;
         }
-        .decision-card {
+        .print-option-card {
             background: white;
-            border-radius: 32px;
-            max-width: 400px;
+            border-radius: 28px;
+            max-width: 420px;
             width: 90%;
             padding: 28px 24px;
             text-align: center;
-            box-shadow: 0 25px 40px rgba(0,0,0,0.3);
+            box-shadow: 0 25px 40px rgba(0,0,0,0.2);
         }
-        .decision-card h3 { font-size: 1.6rem; color: #f2622e; margin-bottom: 12px; }
-        .decision-card p { color: #4b5563; margin-bottom: 20px; }
-        .decision-buttons { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
-        .decision-btn { border: none; padding: 10px 24px; border-radius: 50px; font-weight: 600; font-size: 0.9rem; cursor: pointer; transition: 0.2s; }
-        .print-option { background: #1a73e8; color: white; }
-        .save-pdf-option { background: #059669; color: white; }
-        .cancel-option { background: #e5e7eb; color: #1f2937; }
-        .decision-btn:hover { opacity: 0.85; transform: scale(0.97); }
+        .print-option-card h3 {
+            font-size: 1.7rem;
+            color: #f2622e;
+            margin-bottom: 12px;
+        }
+        .print-option-card p {
+            color: #4b5563;
+            margin-bottom: 24px;
+        }
+        .opt-buttons {
+            display: flex;
+            gap: 16px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+        .opt-btn {
+            border: none;
+            padding: 12px 28px;
+            border-radius: 50px;
+            font-weight: 600;
+            font-size: 0.95rem;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+        .opt-print {
+            background: #1a73e8;
+            color: white;
+        }
+        .opt-save {
+            background: #059669;
+            color: white;
+        }
+        .opt-cancel {
+            background: #e5e7eb;
+            color: #1f2937;
+        }
+        .opt-btn:hover { opacity: 0.85; transform: scale(0.97); }
         
         @media (max-width: 768px) {
             .sidebar { width: 260px; }
@@ -432,7 +470,7 @@
         }
         
         @media print {
-            .sidebar, .top-bar, .orders-filter, .action-btn, .copy-btn, .logout-btn, .hamburger-btn, .verify-payment-section, .print-decision-modal {
+            .sidebar, .top-bar, .orders-filter, .action-btn, .copy-btn, .logout-btn, .hamburger-btn, .verify-payment-section, .print-option-modal {
                 display: none !important;
             }
         }
@@ -440,6 +478,7 @@
 </head>
 <body>
 
+<!-- ACCESS DENIED SCREEN -->
 <div id="accessDenied" class="access-denied">
     <div class="denied-content">
         <h2><i class="fas fa-lock"></i> Access Denied</h2>
@@ -447,13 +486,19 @@
         <input type="password" id="loginPassword" placeholder="Enter admin password">
         <div id="loginError" class="error-msg"></div>
         <button id="loginBtn"><i class="fas fa-sign-in-alt"></i> LOGIN</button>
-        <p style="margin-top: 20px; font-size: 0.7rem; color: #999;">Admin access only</p>
+        <p style="margin-top: 20px; font-size: 0.7rem; color: #999;">
+            Admin access only
+        </p>
     </div>
 </div>
 
+<!-- MAIN ADMIN PANEL -->
 <div id="adminPanel" class="admin-container hidden">
     <div class="sidebar" id="sidebar">
-        <div class="sidebar-header"><h2><i class="fas fa-crown"></i> PATOGRILLS</h2><p>Admin Control Panel</p></div>
+        <div class="sidebar-header">
+            <h2><i class="fas fa-crown"></i> PATOGRILLS</h2>
+            <p>Admin Control Panel</p>
+        </div>
         <div class="sidebar-nav">
             <div class="nav-item active" data-panel="dashboard"><i class="fas fa-chart-line"></i><span>Dashboard</span></div>
             <div class="nav-item" data-panel="menu-editor"><i class="fas fa-utensils"></i><span>Menu & Stock</span></div>
@@ -465,9 +510,13 @@
 
     <div class="main-content">
         <div class="top-bar">
-            <div class="top-bar-left"><button class="hamburger-btn" id="hamburgerBtn"><i class="fas fa-bars"></i></button><h1 id="panelTitle">Dashboard</h1></div>
+            <div class="top-bar-left">
+                <button class="hamburger-btn" id="hamburgerBtn"><i class="fas fa-bars"></i></button>
+                <h1 id="panelTitle">Dashboard</h1>
+            </div>
             <button class="logout-btn" id="logoutBtn"><i class="fas fa-sign-out-alt"></i> Logout</button>
         </div>
+
         <div class="content-area">
             <div class="panel active" id="dashboardPanel"><div class="stats-grid" id="statsContainer"><div class="stat-card"><div class="stat-number">-</div><div class="stat-label">Pending Payments</div></div></div></div>
             <div class="panel" id="menuEditorPanel"><div id="menuEditorList">Loading menu...</div></div>
@@ -491,13 +540,14 @@
             <div class="panel" id="popularPanel"><div id="popularList">Calculating...</div></div>
             <div class="panel" id="housekeepingPanel">
                 <button class="clean-btn" id="cleanOrdersBtn"><i class="fas fa-trash-alt"></i> Clean Old Orders (>24 hours)</button>
-                <p style="margin-top: 20px; color: #666;">This will permanently delete all orders older than 24 hours.</p>
+                <p style="margin-top: 20px; color: #666; font-size: 0.85rem;">This will permanently delete all orders older than 24 hours.</p>
                 <hr style="margin: 20px 0;">
                 <button class="clean-btn" id="exportDataBtn" style="background: #059669;"><i class="fas fa-download"></i> Export Orders to CSV</button>
             </div>
         </div>
     </div>
 </div>
+
 <div class="overlay" id="overlay"></div>
 <div class="toast" id="toast"></div>
 
@@ -518,39 +568,27 @@
     let adminName = localStorage.getItem('adminName') || 'Admin';
 
     function isAuthenticated() { return localStorage.getItem('adminAuth') !== null; }
-    
-    function login() { 
-        const password = document.getElementById('loginPassword').value; 
-        const errorDiv = document.getElementById('loginError'); 
-        errorDiv.style.display = 'none'; 
-        if (!password) { errorDiv.textContent = 'Please enter password'; errorDiv.style.display = 'block'; return; } 
-        const storedAuth = localStorage.getItem('adminAuth'); 
-        const enteredAuth = btoa(password); 
-        if (storedAuth === enteredAuth) { 
-            sessionStorage.setItem('adminLoggedIn', 'true'); 
-            document.getElementById('accessDenied').classList.add('hidden'); 
-            document.getElementById('adminPanel').classList.remove('hidden'); 
-            document.getElementById('loginPassword').value = ''; 
-            loadAllData(); 
-            toast('✅ Login successful!'); 
-        } else { 
-            errorDiv.textContent = '❌ Incorrect password. Please try again.'; 
-            errorDiv.style.display = 'block'; 
-        } 
+    function login() {
+        const password = document.getElementById('loginPassword').value;
+        const errorDiv = document.getElementById('loginError');
+        errorDiv.style.display = 'none';
+        if (!password) { errorDiv.textContent = 'Please enter password'; errorDiv.style.display = 'block'; return; }
+        const storedAuth = localStorage.getItem('adminAuth');
+        const enteredAuth = btoa(password);
+        if (storedAuth === enteredAuth) {
+            sessionStorage.setItem('adminLoggedIn', 'true');
+            document.getElementById('accessDenied').classList.add('hidden');
+            document.getElementById('adminPanel').classList.remove('hidden');
+            document.getElementById('loginPassword').value = '';
+            loadAllData();
+            toast('✅ Login successful!');
+        } else { errorDiv.textContent = '❌ Incorrect password. Please try again.'; errorDiv.style.display = 'block'; }
     }
-    
     function logout() { sessionStorage.removeItem('adminLoggedIn'); document.getElementById('accessDenied').classList.remove('hidden'); document.getElementById('adminPanel').classList.add('hidden'); toast('Logged out'); }
-    
-    if (sessionStorage.getItem('adminLoggedIn') === 'true' && isAuthenticated()) { 
-        document.getElementById('accessDenied').classList.add('hidden'); 
-        document.getElementById('adminPanel').classList.remove('hidden'); 
-        loadAllData(); 
-    }
-    
-    document.getElementById('loginBtn').addEventListener('click', login); 
-    document.getElementById('logoutBtn').addEventListener('click', logout); 
+    if (sessionStorage.getItem('adminLoggedIn') === 'true' && isAuthenticated()) { document.getElementById('accessDenied').classList.add('hidden'); document.getElementById('adminPanel').classList.remove('hidden'); loadAllData(); }
+    document.getElementById('loginBtn').addEventListener('click', login);
+    document.getElementById('logoutBtn').addEventListener('click', logout);
     document.getElementById('loginPassword').addEventListener('keypress', (e) => { if (e.key === 'Enter') login(); });
-    
     function toast(message) { const toastEl = document.getElementById('toast'); toastEl.textContent = message; toastEl.classList.add('show'); setTimeout(() => toastEl.classList.remove('show'), 3000); }
     function formatMoney(n) { if (n === undefined || n === null) return '₦0'; return '₦' + Number(n).toLocaleString(); }
     function escapeHtml(str) { if (!str) return ''; return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;'); }
@@ -562,198 +600,82 @@
     const DEFAULT_MENU = [{id:1, name:"Spaghetti", price:1500, desc:"Classic pasta", cat:"MAINS", img:"Spaghetti.jpg", stock:99},{id:2, name:"Chips (Fries)", price:1500, desc:"Crispy fries", cat:"MAINS", img:"chip.jpg", stock:99},{id:3, name:"Sharp Wrap", price:3500, desc:"Shawarma wrap", cat:"MAINS", img:"shawarma.jpg", stock:99},{id:4, name:"Sabi Talk Turkey", price:6000, desc:"Jumbo turkey", cat:"PROTEINS", img:"turk.jpg", stock:99},{id:5, name:"Talkless Turkey", price:4000, desc:"Small turkey", cat:"PROTEINS", img:"trk.jpg", stock:99},{id:6, name:"Big Chicken", price:5000, desc:"Full chicken", cat:"PROTEINS", img:"chick.jpg", stock:99},{id:7, name:"Small Chicken", price:3500, desc:"Half chicken", cat:"PROTEINS", img:"chken.jpg", stock:99},{id:8, name:"Sausage", price:500, desc:"Smoky sausage", cat:"EXTRAS", img:"suss.png", stock:99},{id:9, name:"Fresh Salad", price:700, desc:"Veggie mix", cat:"EXTRAS", img:"salad.jpg", stock:99}];
     async function loadMenu() { const snapshot = await rtdb.ref('menu').once('value'); const fbMenu = snapshot.val(); if (fbMenu) menuItems = Object.values(fbMenu); else { menuItems = DEFAULT_MENU; for (let item of menuItems) await rtdb.ref('menu/' + item.id).set(item); } renderMenuEditor(); }
     function renderMenuEditor() { const container = document.getElementById('menuEditorList'); if(!container) return; container.innerHTML = menuItems.map(item => `<div class="menu-item-edit"><img src="${item.img}" onerror="this.src='https://placehold.co/100/fef0e6/f2622e?text=🔥'"><div class="edit-fields"><strong>${escapeHtml(item.name)}</strong><textarea id="desc_${item.id}" rows="2">${escapeHtml(item.desc)}</textarea><input type="number" id="price_${item.id}" value="${item.price}" step="100"><input type="number" id="stock_${item.id}" value="${item.stock}"><button class="save-btn" onclick="saveMenuItem(${item.id})">SAVE</button></div></div>`).join(''); }
-    window.saveMenuItem = async (id) => { const newDesc = document.getElementById(`desc_${id}`).value; const newPrice = parseInt(document.getElementById(`price_${id}`).value); const newStock = parseInt(document.getElementById(`stock_${id}`).value); if (isNaN(newPrice) || isNaN(newStock)) { toast('❌ Invalid price or stock'); return; } await rtdb.ref('menu/' + id).update({ desc: newDesc, price: newPrice, stock: newStock }); toast('✅ Menu item updated!'); await loadMenu(); };
+    window.saveMenuItem = async (id) => { const newDesc = document.getElementById(`desc_${id}`).value; const newPrice = parseInt(document.getElementById(`price_${id}`).value); const newStock = parseInt(document.getElementById(`stock_${id}`).value); if (isNaN(newPrice) || isNaN(newStock)) { toast('❌ Invalid price or stock'); return; } await rtdb.ref('menu/' + id).update({ desc: newDesc, price: newPrice, stock: newStock }); toast('✅ Updated'); await loadMenu(); };
     
-    window.verifyPayment = async (orderId, trackingId) => { 
-        const orderSnap = await rtdb.ref('orders/' + orderId).once('value'); 
-        const order = orderSnap.val(); 
-        if(!order) { toast('❌ Order not found'); return false; } 
-        if(order.paymentStatus === 'Paid'){ toast(`⚠️ Already PAID`); return false; } 
-        await rtdb.ref('orders/' + orderId).update({ paymentStatus: 'Paid', receiptIssued: true, verifiedAt: Date.now(), verifiedAtFormatted: new Date().toLocaleString(), verifiedBy: adminName }); 
-        toast(`✅✅ PAYMENT VERIFIED! ${trackingId} is PAID.`); 
-        await loadOrders(); 
-        await updateDashboard(); 
-        return true; 
-    };
+    window.verifyPayment = async (orderId, trackingId) => { const orderSnap = await rtdb.ref('orders/' + orderId).once('value'); const order = orderSnap.val(); if(!order) { toast('❌ Order not found'); return false; } if(order.paymentStatus === 'Paid'){ toast(`⚠️ Already PAID`); return false; } await rtdb.ref('orders/' + orderId).update({ paymentStatus: 'Paid', receiptIssued: true, verifiedAt: Date.now(), verifiedAtFormatted: new Date().toLocaleString(), verifiedBy: adminName }); toast(`✅✅ PAYMENT VERIFIED! ${trackingId} is PAID.`); await loadOrders(); await updateDashboard(); return true; };
+    window.quickVerifyPayment = async () => { const trackingId = document.getElementById('quickOrderId').value.trim(); if(!trackingId){ toast('❌ Enter Tracking ID'); return; } const snapshot = await rtdb.ref('orders').once('value'); const orders = snapshot.val(); let foundOrderId = null; for (let [key, order] of Object.entries(orders)) { if ((order.trackingId || order.orderId) === trackingId) { foundOrderId = key; break; } } if(!foundOrderId){ toast(`❌ No order found`); return; } await window.verifyPayment(foundOrderId, trackingId); document.getElementById('quickOrderId').value = ''; };
     
-    window.quickVerifyPayment = async () => { 
-        const trackingId = document.getElementById('quickOrderId').value.trim(); 
-        if(!trackingId){ toast('❌ Enter Tracking ID'); return; } 
-        const snapshot = await rtdb.ref('orders').once('value'); 
-        const orders = snapshot.val(); 
-        let foundOrderId = null; 
-        for (let [key, order] of Object.entries(orders)) { 
-            if ((order.trackingId || order.orderId) === trackingId) { foundOrderId = key; break; } 
-        } 
-        if(!foundOrderId){ toast(`❌ No order found`); return; } 
-        await window.verifyPayment(foundOrderId, trackingId); 
-        document.getElementById('quickOrderId').value = ''; 
-    };
+    // --- enhanced print with preview & fallback save PDF ---
+    function showPrintOrSaveDialog(orderId, trackingId, orderData) {
+        const modalDiv = document.createElement('div');
+        modalDiv.className = 'print-option-modal';
+        modalDiv.innerHTML = `
+            <div class="print-option-card">
+                <h3><i class="fas fa-receipt"></i> Receipt Options</h3>
+                <p>Would you like to preview & print the receipt, or save as PDF document?</p>
+                <div class="opt-buttons">
+                    <button class="opt-btn opt-print" id="optPrintBtn"><i class="fas fa-print"></i> Print Preview</button>
+                    <button class="opt-btn opt-save" id="optSaveBtn"><i class="fas fa-save"></i> Save as PDF</button>
+                    <button class="opt-btn opt-cancel" id="optCancelBtn">Cancel</button>
+                </div>
+            </div>
+        `;
+        document.body.appendChild(modalDiv);
+        const closeModal = () => modalDiv.remove();
+        document.getElementById('optPrintBtn').onclick = () => { closeModal(); initiatePrintWindow(orderId, trackingId, orderData, 'print'); };
+        document.getElementById('optSaveBtn').onclick = () => { closeModal(); initiatePrintWindow(orderId, trackingId, orderData, 'save'); };
+        document.getElementById('optCancelBtn').onclick = closeModal;
+    }
     
-    // Build receipt HTML
-    function buildReceiptHtml(order, trackingIdVal, verifiedBy, verifiedDate) {
-        const safeTrackingId = trackingIdVal || order.trackingId || order.orderId || 'N/A';
+    async function initiatePrintWindow(orderId, trackingId, order, action) {
+        const safeTrackingId = trackingId || order.trackingId || order.orderId || 'N/A';
         const customerName = order.customerName || 'N/A';
         const phone = order.phone || 'N/A';
         const orderType = order.orderType || 'N/A';
         const address = order.address || 'N/A';
+        const verifiedBy = order.verifiedBy || adminName;
+        const verifiedDate = order.verifiedAtFormatted || new Date().toLocaleString();
         let totalAmount = order.totalAmount || order.total || 0;
         let subtotal = totalAmount;
         const deliveryFee = (orderType === 'Delivery' && totalAmount > 0) ? 1000 : 0;
         if (deliveryFee > 0) subtotal = totalAmount - deliveryFee;
         let itemsHtml = '';
         if (order.items && Array.isArray(order.items) && order.items.length) {
-            order.items.forEach(item => { 
-                const itemName = escapeHtml(item.name || 'Item'); 
-                const qty = item.quantity || 1; 
-                const price = item.price || 0; 
-                const itemTotal = price * qty; 
-                itemsHtml += `<tr><td style="padding:4px 0;">${itemName}</td><td style="text-align:center;">${qty}</td><td style="text-align:right;">₦${price.toLocaleString()}</td><td style="text-align:right;">₦${itemTotal.toLocaleString()}</td></tr>`; 
+            order.items.forEach(item => {
+                const itemName = escapeHtml(item.name || 'Item');
+                const quantity = item.quantity || 1;
+                const price = item.price || 0;
+                const itemTotal = price * quantity;
+                itemsHtml += `<tr><td style="padding:4px 0;">${itemName}</td><td style="text-align:center;">${quantity}</td><td style="text-align:right;">₦${price.toLocaleString()}</td><td style="text-align:right;">₦${itemTotal.toLocaleString()}</td></tr>`;
             });
         } else { itemsHtml = '<tr><td colspan="4" style="text-align:center;">No items</td></tr>'; }
-        
-        return `<!DOCTYPE html>
-<html>
-<head>
-    <meta charset="UTF-8">
-    <title>Patogrills Receipt - ${safeTrackingId}</title>
-    <style>
-        @page { size: A6; margin: 5mm; }
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: 'Courier New', 'DM Sans', monospace; background: white; font-size: 10px; color: black; }
-        .receipt { width: 100%; max-width: 105mm; margin: 0 auto; }
-        .header { text-align: center; border-bottom: 1px dashed black; padding-bottom: 8px; margin-bottom: 8px; }
-        .logo-text { font-family: 'Bebas Neue', 'Courier New'; font-size: 18px; font-weight: bold; }
-        .store-details { font-size: 7px; }
-        .receipt-title { text-align: center; font-size: 11px; font-weight: bold; border-bottom: 1px dashed black; margin: 6px 0; }
-        .info-row { display: flex; justify-content: space-between; margin-bottom: 4px; font-size: 9px; }
-        .dotted-divider { margin: 6px 0; border-top: 1px dotted black; }
-        .items-table { width: 100%; border-collapse: collapse; margin: 6px 0; font-size: 9px; }
-        .items-table th { text-align: left; border-bottom: 1px solid black; padding: 4px 0; }
-        .items-table td { padding: 3px 0; }
-        .total-row { margin-top: 6px; border-top: 1px dashed black; text-align: right; font-size: 9px; padding-top: 4px; }
-        .grand-total { font-size: 11px; font-weight: bold; }
-        .footer { text-align: center; margin-top: 10px; border-top: 1px dashed black; font-size: 7px; padding-top: 6px; }
-        .thankyou { font-size: 8px; font-weight: bold; margin: 5px 0; }
-        .print-btn { margin-top: 12px; background: #1a73e8; color: white; border: none; padding: 8px 16px; border-radius: 20px; cursor: pointer; font-size: 10px; }
-        @media print { .print-btn { display: none; } }
-    </style>
-</head>
-<body>
-    <div class="receipt">
-        <div class="header">
-            <div class="logo-text">🔥 PATOGRILLS 🔥</div>
-            <div class="store-details">Campus 4 Road, Opposite Oma's Hostel<br>Abraka — Delta State<br>Tel: 08029811578</div>
-        </div>
-        <div class="receipt-title">PAYMENT RECEIPT</div>
-        <div class="info-row"><span>Receipt No:</span><strong>${escapeHtml(safeTrackingId)}</strong></div>
-        <div class="info-row"><span>Date:</span><span>${escapeHtml(verifiedDate)}</span></div>
-        <div class="info-row"><span>Verified By:</span><span>${escapeHtml(verifiedBy)}</span></div>
-        <div class="dotted-divider"></div>
-        <div class="info-row"><span>Customer:</span><span>${escapeHtml(customerName)}</span></div>
-        <div class="info-row"><span>Phone:</span><span>${escapeHtml(phone)}</span></div>
-        <div class="info-row"><span>Order Type:</span><span>${escapeHtml(orderType)}</span></div>
-        <div class="info-row"><span>Address:</span><span>${escapeHtml(address)}</span></div>
-        <div class="dotted-divider"></div>
-        <table class="items-table">
-            <thead><tr><th>Item</th><th style="text-align:center;">Qty</th><th style="text-align:right;">Price</th><th style="text-align:right;">Total</th></tr></thead>
-            <tbody>${itemsHtml}</tbody>
-        </table>
-        <div class="dotted-divider"></div>
-        <div class="total-row">
-            <p>Subtotal: ₦${subtotal.toLocaleString()}</p>
-            ${deliveryFee > 0 ? `<p>Delivery Fee: ₦${deliveryFee.toLocaleString()}</p>` : ''}
-            <p class="grand-total">TOTAL PAID: ₦${totalAmount.toLocaleString()}</p>
-        </div>
-        <div class="footer">
-            <div class="thankyou">🔥 Good Food No Dey Rush 🔥</div>
-            <div>Thank you for patronizing Patogrills!</div>
-            <div>Follow us: @patogrills</div>
-            <button class="print-btn" onclick="window.print();">🖨️ Print Receipt</button>
-        </div>
-    </div>
-</body>
-</html>`;
+        const receiptHtml = `<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Patogrills Receipt - ${safeTrackingId}</title><style>@page { size: A6; margin: 5mm; } *{margin:0;padding:0;box-sizing:border-box;} body{font-family:'Courier New','DM Sans',monospace;background:white;font-size:10px;color:black;} .receipt{width:100%;max-width:105mm;margin:0 auto;} .header{text-align:center;border-bottom:1px dashed black;padding-bottom:8px;margin-bottom:8px;} .logo-text{font-family:'Bebas Neue','Courier New';font-size:18px;font-weight:bold;} .store-details{font-size:7px;} .receipt-title{text-align:center;font-size:11px;font-weight:bold;border-bottom:1px dashed black;margin:6px 0;} .info-row{display:flex;justify-content:space-between;margin-bottom:4px;font-size:9px;} .dotted-divider{margin:6px 0;border-top:1px dotted black;} .items-table{width:100%;border-collapse:collapse;margin:6px 0;font-size:9px;} .items-table th{text-align:left;border-bottom:1px solid black;} .total-row{margin-top:6px;border-top:1px dashed black;text-align:right;font-size:9px;} .grand-total{font-size:11px;font-weight:bold;} .footer{text-align:center;margin-top:10px;border-top:1px dashed black;font-size:7px;} .thankyou{font-size:8px;font-weight:bold;margin:5px 0;} .print-hint{text-align:center;margin-top:12px;font-size:8px;color:#555;} @media print{.print-hint{display:none;}}</style></head><body><div class="receipt"><div class="header"><div class="logo-text">🔥 PATOGRILLS 🔥</div><div class="store-details">Campus 4 Road, Abraka — Delta State<br>Tel: 08029811578</div></div><div class="receipt-title">PAYMENT RECEIPT</div><div class="info-row"><span class="info-label">Receipt No:</span><span class="bold">${escapeHtml(safeTrackingId)}</span></div><div class="info-row"><span class="info-label">Date:</span><span>${escapeHtml(verifiedDate)}</span></div><div class="info-row"><span class="info-label">Verified By:</span><span>${escapeHtml(verifiedBy)}</span></div><div class="dotted-divider"></div><div class="info-row"><span>Customer:</span><span>${escapeHtml(customerName)}</span></div><div class="info-row"><span>Phone:</span><span>${escapeHtml(phone)}</span></div><div class="info-row"><span>Order Type:</span><span>${escapeHtml(orderType)}</span></div><div class="info-row"><span>Address:</span><span>${escapeHtml(address)}</span></div><div class="dotted-divider"></div><table class="items-table"><thead><tr><th>Item</th><th style="text-align:center;">Qty</th><th style="text-align:right;">Price</th><th style="text-align:right;">Total</th></tr></thead><tbody>${itemsHtml}</tbody></table><div class="dotted-divider"></div><div class="total-row"><p>Subtotal: ₦${subtotal.toLocaleString()}</p>${deliveryFee > 0 ? `<p>Delivery Fee: ₦${deliveryFee.toLocaleString()}</p>` : ''}<p class="grand-total">TOTAL PAID: ₦${totalAmount.toLocaleString()}</p></div><div class="footer"><div class="thankyou">🔥 Good Food No Dey Rush 🔥</div><div>Thank you for patronizing Patogrills!</div><div>@patogrills</div><div class="print-hint">✓ Receipt ready</div></div></div></body></html>`;
+        const previewWindow = window.open('', '_blank', 'width=480,height=700,toolbar=yes,scrollbars=yes');
+        if (!previewWindow) { toast('❌ Popup blocked. Please allow popups.'); return; }
+        previewWindow.document.write(receiptHtml);
+        previewWindow.document.close();
+        if (action === 'save') {
+            setTimeout(() => {
+                try {
+                    html2pdf().set({ margin: 0.2, filename: `Receipt_${safeTrackingId}.pdf`, image: { type: 'jpeg', quality: 0.98 }, html2canvas: { scale: 2 }, jsPDF: { unit: 'mm', format: 'a6', orientation: 'portrait' } }).from(previewWindow.document.body).save().then(() => { toast(`💾 PDF saved: ${safeTrackingId}.pdf`); previewWindow.close(); }).catch(err => { toast('PDF error, try print'); console.warn(err); });
+                } catch(e) { toast('PDF generation error'); previewWindow.close(); }
+            }, 400);
+        } else {
+            toast(`🖨️ Print preview ready — click print in the new window.`);
+            previewWindow.focus();
+        }
+        await rtdb.ref('orders/' + orderId).update({ printed: true, printedAt: Date.now() });
     }
     
-    // PRINT BUTTON: Shows modal with Print or Save PDF options
     window.printReceipt = async (orderId, trackingId) => {
         const snapshot = await rtdb.ref('orders/' + orderId).once('value');
         const order = snapshot.val();
         if (!order) { toast('❌ Order not found'); return; }
-        if (order.paymentStatus !== 'Paid') { toast('❌ Payment not verified! Please click "Payment Received" first.'); return; }
-        
-        const safeTracking = trackingId || order.trackingId || order.orderId;
-        const verifiedBy = order.verifiedBy || adminName;
-        const verifiedDate = order.verifiedAtFormatted || new Date().toLocaleString();
-        const receiptHtml = buildReceiptHtml(order, safeTracking, verifiedBy, verifiedDate);
-        
-        // Show modal for user choice
-        const modal = document.createElement('div');
-        modal.className = 'print-decision-modal';
-        modal.innerHTML = `
-            <div class="decision-card">
-                <h3><i class="fas fa-receipt"></i> Receipt Options</h3>
-                <p>Choose how to handle receipt for <strong>${escapeHtml(safeTracking)}</strong></p>
-                <div class="decision-buttons">
-                    <button class="decision-btn print-option" id="choosePrint"><i class="fas fa-print"></i> Print Preview</button>
-                    <button class="decision-btn save-pdf-option" id="chooseSavePDF"><i class="fas fa-save"></i> Save as PDF</button>
-                    <button class="decision-btn cancel-option" id="chooseCancel">Cancel</button>
-                </div>
-            </div>
-        `;
-        document.body.appendChild(modal);
-        
-        const closeModal = () => modal.remove();
-        
-        document.getElementById('choosePrint').onclick = () => {
-            closeModal();
-            const printWindow = window.open('', '_blank', 'width=500,height=700,toolbar=yes,scrollbars=yes');
-            if (!printWindow) { toast('❌ Popup blocked! Please allow popups.'); return; }
-            printWindow.document.write(receiptHtml);
-            printWindow.document.close();
-            printWindow.focus();
-            toast(`🖨️ Print preview opened for ${safeTracking}`);
-            rtdb.ref('orders/' + orderId).update({ printed: true, printedAt: Date.now() }).catch(e=>console.warn);
-        };
-        
-        document.getElementById('chooseSavePDF').onclick = async () => {
-            closeModal();
-            toast(`📄 Generating PDF for ${safeTracking}...`);
-            try {
-                // Create temporary element with receipt HTML
-                const tempDiv = document.createElement('div');
-                tempDiv.style.position = 'fixed';
-                tempDiv.style.left = '-9999px';
-                tempDiv.style.top = '0';
-                tempDiv.innerHTML = receiptHtml;
-                document.body.appendChild(tempDiv);
-                
-                const receiptElement = tempDiv.querySelector('.receipt');
-                if (!receiptElement) throw new Error('Could not find receipt element');
-                
-                const opt = {
-                    margin: [0.2, 0.2, 0.2, 0.2],
-                    filename: `Patogrills_Receipt_${safeTracking}.pdf`,
-                    image: { type: 'jpeg', quality: 0.98 },
-                    html2canvas: { scale: 2, letterRendering: true, useCORS: false },
-                    jsPDF: { unit: 'mm', format: 'a6', orientation: 'portrait' }
-                };
-                
-                await html2pdf().set(opt).from(receiptElement).save();
-                document.body.removeChild(tempDiv);
-                toast(`💾 PDF saved successfully!`);
-                await rtdb.ref('orders/' + orderId).update({ printed: true, printedAt: Date.now() });
-            } catch (err) {
-                console.error('PDF error:', err);
-                toast('❌ PDF generation failed: ' + err.message);
-            }
-        };
-        
-        document.getElementById('chooseCancel').onclick = closeModal;
+        if (order.paymentStatus !== 'Paid') { toast('❌ Payment not verified! Please mark as PAID first.'); return; }
+        showPrintOrSaveDialog(orderId, trackingId, order);
     };
     
-    window.copyTrackingId = (trackingId) => { if(trackingId){ navigator.clipboard.writeText(trackingId); toast(`✅ Copied: ${trackingId}`); } };
+    window.copyTrackingId = (trackingId) => { if(trackingId){ navigator.clipboard.writeText(trackingId); toast(`✅ Copied: ${trackingId}`); } else toast('Nothing to copy'); };
     
     function renderOrders() {
         let filteredOrders = [...currentOrders];
@@ -763,124 +685,21 @@
         else if (currentFilter === 'pickup') filteredOrders = filteredOrders.filter(o => o.orderType === 'Pickup');
         filteredOrders.sort((a,b) => (b.timestamp||0)-(a.timestamp||0));
         if(filteredOrders.length===0){ document.getElementById('ordersList').innerHTML='<div style="text-align:center;padding:40px;">No orders found.</div>'; return; }
-        
-        const tableHtml = `<table><thead><tr><th>Tracking ID</th><th>Customer</th><th>Items</th><th>Total</th><th>Type</th><th>Status</th><th>Action</th></tr></thead><tbody>${filteredOrders.map(order => { 
-            const trackingIdVal = order.trackingId || order.orderId || 'N/A'; 
-            const orderTotal = order.totalAmount || order.total || 0; 
-            const orderItems = order.items && Array.isArray(order.items) ? order.items : []; 
-            return `<tr class="${order.paymentStatus === 'Pending' ? 'row-pending' : 'row-paid'}">
-                <td><strong style="color:#f2622e;">${escapeHtml(trackingIdVal)}</strong> <button class="copy-btn" onclick="copyTrackingId('${escapeHtml(trackingIdVal)}')"><i class="fas fa-copy"></i></button></td>
-                <td>${escapeHtml(order.customerName || 'N/A')}<br><small>${escapeHtml(order.phone || '')}</small></td>
-                <td class="order-items">${orderItems.map(i => `${escapeHtml(i.name)} x${i.quantity || 1}`).join(', ') || 'N/A'}</td>
-                <td><strong>${formatMoney(orderTotal)}</strong></td>
-                <td>${order.orderType === 'Delivery' ? '🚚 Delivery' : '📦 Pickup'}</td>
-                <td><span class="payment-badge ${order.paymentStatus === 'Paid' ? 'payment-paid' : 'payment-pending'}">${order.paymentStatus === 'Paid' ? '✅ PAID' : '⏳ PENDING'}</span></td>
-                <td class="actions">${order.paymentStatus === 'Pending' ? 
-                    `<button class="action-btn verify-btn" onclick="verifyPayment('${order.id}', '${escapeHtml(trackingIdVal)}')"><i class="fas fa-check-circle"></i> Payment Received</button>` : 
-                    `<button class="action-btn print-btn" onclick="printReceipt('${order.id}', '${escapeHtml(trackingIdVal)}')"><i class="fas fa-print"></i> Print / Save PDF</button>`}
-                </td>
-            </tr>`}).join('')}</tbody></table>`;
+        const tableHtml = `<table><thead><tr><th>Tracking ID</th><th>Customer</th><th>Items</th><th>Total</th><th>Type</th><th>Status</th><th>Action</th></tr></thead><tbody>${filteredOrders.map(order => { const trackingIdVal = order.trackingId || order.orderId || 'N/A'; const orderTotal = order.totalAmount || order.total || 0; const orderItems = order.items && Array.isArray(order.items) ? order.items : []; return `<tr class="${order.paymentStatus === 'Pending' ? 'row-pending' : 'row-paid'}"><td><strong style="color:#f2622e;">${escapeHtml(trackingIdVal)}</strong> <button class="copy-btn" onclick="copyTrackingId('${escapeHtml(trackingIdVal)}')"><i class="fas fa-copy"></i></button></td><td>${escapeHtml(order.customerName || 'N/A')}<br><small>${escapeHtml(order.phone || '')}</small></td><td class="order-items">${orderItems.map(i => `${escapeHtml(i.name)} x${i.quantity || 1}`).join(', ') || 'N/A'}</td><td><strong>${formatMoney(orderTotal)}</strong></td><td>${order.orderType === 'Delivery' ? '🚚 Delivery' : '📦 Pickup'}</td><td><span class="payment-badge ${order.paymentStatus === 'Paid' ? 'payment-paid' : 'payment-pending'}">${order.paymentStatus === 'Paid' ? '✅ PAID' : '⏳ PENDING'}</span></td><td class="actions">${order.paymentStatus === 'Pending' ? `<button class="action-btn verify-btn" onclick="verifyPayment('${order.id}', '${escapeHtml(trackingIdVal)}')"><i class="fas fa-check-circle"></i> Payment Received</button>` : `<button class="action-btn print-btn" onclick="printReceipt('${order.id}', '${escapeHtml(trackingIdVal)}')"><i class="fas fa-print"></i> Print / Save PDF</button>`}</td></tr>`}).join('')}</tbody></table>`;
         document.getElementById('ordersList').innerHTML = tableHtml;
     }
     
-    async function updateDashboard() { 
-        const snapshot = await rtdb.ref('orders').once('value'); 
-        const orders = snapshot.val() || {}; 
-        const now = Date.now(); 
-        const ordersArray = Object.values(orders); 
-        const pendingPayments = ordersArray.filter(o => o.paymentStatus === 'Pending').length; 
-        const last24h = ordersArray.filter(o => o.timestamp > now - 86400000).length; 
-        const startWeek = new Date(); startWeek.setDate(startWeek.getDate() - startWeek.getDay()); 
-        const thisWeek = ordersArray.filter(o => o.timestamp > startWeek.getTime()).length; 
-        const startMonth = new Date(); startMonth.setDate(1); 
-        const thisMonth = ordersArray.filter(o => o.timestamp > startMonth.getTime()).length; 
-        const totalDeliveries = ordersArray.filter(o => o.orderType === 'Delivery').length; 
-        const totalOrders = ordersArray.length; 
-        const totalRevenue = ordersArray.reduce((sum, o) => sum + (o.totalAmount || o.total || 0), 0); 
-        let visitorCount = (await rtdb.ref('visitors/count').once('value')).val() || 0; 
-        document.getElementById('statsContainer').innerHTML = `
-            <div class="stat-card"><div class="stat-number" style="color:#d97706;">${pendingPayments}</div><div class="stat-label">⏳ PENDING PAYMENTS</div></div>
-            <div class="stat-card"><div class="stat-number">${last24h}</div><div class="stat-label">LAST 24h</div></div>
-            <div class="stat-card"><div class="stat-number">${thisWeek}</div><div class="stat-label">THIS WEEK</div></div>
-            <div class="stat-card"><div class="stat-number">${thisMonth}</div><div class="stat-label">THIS MONTH</div></div>
-            <div class="stat-card"><div class="stat-number">${totalDeliveries}</div><div class="stat-label">DELIVERIES</div></div>
-            <div class="stat-card"><div class="stat-number">${visitorCount}</div><div class="stat-label">VISITORS</div></div>
-            <div class="stat-card"><div class="stat-number">${totalOrders}</div><div class="stat-label">ALL ORDERS</div></div>
-            <div class="stat-card"><div class="stat-number">${formatMoney(totalRevenue)}</div><div class="stat-label">REVENUE</div></div>
-        `;
-    }
-    
-    async function renderPopularItems() { 
-        const snapshot = await rtdb.ref('orders').once('value'); 
-        const orders = snapshot.val() || {}; 
-        const itemCount = {}; 
-        for (let order of Object.values(orders)) { 
-            if (order.items && Array.isArray(order.items)) { 
-                for (let item of order.items) { 
-                    const itemName = item.name || 'Unknown'; 
-                    const qty = item.quantity || 1; 
-                    itemCount[itemName] = (itemCount[itemName] || 0) + qty; 
-                } 
-            } 
-        } 
-        const sorted = Object.entries(itemCount).sort((a,b)=>b[1]-a[1]).slice(0,10); 
-        if(sorted.length===0) document.getElementById('popularList').innerHTML='<div style="padding:40px;text-align:center;">No orders yet.</div>'; 
-        else document.getElementById('popularList').innerHTML = sorted.map(([name,qty])=>`<div class="popular-badge">🔥 ${escapeHtml(name)} — ordered ${qty} times</div>`).join(''); 
-    }
-    
-    async function cleanOldOrders() { 
-        if(!confirm('⚠️ Delete all orders older than 24 hours?')) return; 
-        const cutoff = Date.now()-86400000; 
-        const snapshot = await rtdb.ref('orders').once('value'); 
-        const orders = snapshot.val(); 
-        if(!orders) return; 
-        let deleted=0; 
-        for(let [key,order] of Object.entries(orders)){ 
-            if(order.timestamp && order.timestamp < cutoff){ 
-                await rtdb.ref('orders/'+key).remove(); 
-                deleted++; 
-            } 
-        } 
-        toast(`🧹 Deleted ${deleted} old order(s)`); 
-        await updateDashboard(); 
-        await loadOrders(); 
-    }
-    
-    async function exportToCSV() { 
-        const snapshot = await rtdb.ref('orders').once('value'); 
-        const orders = snapshot.val() || {}; 
-        const ordersArray = Object.values(orders); 
-        if(ordersArray.length===0){ toast('No orders'); return; } 
-        const headers = ['Tracking ID','Customer Name','Phone','Order Type','Address','Total Amount','Payment Status','Created At','Verified At','Verified By']; 
-        const rows = ordersArray.map(order => [order.trackingId||order.orderId||'', order.customerName||'', order.phone||'', order.orderType||'', `"${(order.address||'').replace(/"/g,'""')}"`, order.totalAmount||order.total||0, order.paymentStatus||'', order.timestamp?new Date(order.timestamp).toLocaleString():'', order.verifiedAtFormatted||'', order.verifiedBy||'']); 
-        const csvContent = [headers, ...rows].map(row=>row.join(',')).join('\n'); 
-        const blob=new Blob([csvContent],{type:'text/csv'}); 
-        const url=URL.createObjectURL(blob); 
-        const a=document.createElement('a'); 
-        a.href=url; 
-        a.download=`patogrills_orders_${new Date().toISOString().split('T')[0]}.csv`; 
-        a.click(); 
-        URL.revokeObjectURL(url); 
-        toast('📊 Export complete!'); 
-    }
+    async function updateDashboard() { const snapshot = await rtdb.ref('orders').once('value'); const orders = snapshot.val() || {}; const now = Date.now(); const ordersArray = Object.values(orders); const pendingPayments = ordersArray.filter(o => o.paymentStatus === 'Pending').length; const last24h = ordersArray.filter(o => o.timestamp > now - 86400000).length; const startWeek = new Date(); startWeek.setDate(startWeek.getDate() - startWeek.getDay()); const thisWeek = ordersArray.filter(o => o.timestamp > startWeek.getTime()).length; const startMonth = new Date(); startMonth.setDate(1); const thisMonth = ordersArray.filter(o => o.timestamp > startMonth.getTime()).length; const totalDeliveries = ordersArray.filter(o => o.orderType === 'Delivery').length; const totalOrders = ordersArray.length; const totalRevenue = ordersArray.reduce((sum, o) => sum + (o.totalAmount || o.total || 0), 0); let visitorCount = (await rtdb.ref('visitors/count').once('value')).val() || 0; document.getElementById('statsContainer').innerHTML = `<div class="stat-card"><div class="stat-number" style="color:#d97706;">${pendingPayments}</div><div class="stat-label">⏳ PENDING PAYMENTS</div></div><div class="stat-card"><div class="stat-number">${last24h}</div><div class="stat-label">LAST 24h</div></div><div class="stat-card"><div class="stat-number">${thisWeek}</div><div class="stat-label">THIS WEEK</div></div><div class="stat-card"><div class="stat-number">${thisMonth}</div><div class="stat-label">THIS MONTH</div></div><div class="stat-card"><div class="stat-number">${totalDeliveries}</div><div class="stat-label">DELIVERIES</div></div><div class="stat-card"><div class="stat-number">${visitorCount}</div><div class="stat-label">VISITORS</div></div><div class="stat-card"><div class="stat-number">${totalOrders}</div><div class="stat-label">ALL ORDERS</div></div><div class="stat-card"><div class="stat-number">${formatMoney(totalRevenue)}</div><div class="stat-label">REVENUE</div></div>`; }
+    async function renderPopularItems() { const snapshot = await rtdb.ref('orders').once('value'); const orders = snapshot.val() || {}; const itemCount = {}; for (let order of Object.values(orders)) { if (order.items && Array.isArray(order.items)) { for (let item of order.items) { const itemName = item.name || 'Unknown'; const qty = item.quantity || 1; itemCount[itemName] = (itemCount[itemName] || 0) + qty; } } } const sorted = Object.entries(itemCount).sort((a,b)=>b[1]-a[1]).slice(0,10); if(sorted.length===0) document.getElementById('popularList').innerHTML='<div style="padding:40px;text-align:center;">No orders yet.</div>'; else document.getElementById('popularList').innerHTML = sorted.map(([name,qty])=>`<div class="popular-badge">🔥 ${escapeHtml(name)} — ordered ${qty} times</div>`).join(''); }
+    async function cleanOldOrders() { if(!confirm('⚠️ Delete all orders older than 24 hours?')) return; const cutoff = Date.now()-86400000; const snapshot = await rtdb.ref('orders').once('value'); const orders = snapshot.val(); if(!orders) return; let deleted=0; for(let [key,order] of Object.entries(orders)){ if(order.timestamp && order.timestamp < cutoff){ await rtdb.ref('orders/'+key).remove(); deleted++; } } toast(`🧹 Deleted ${deleted} old order(s)`); await updateDashboard(); await loadOrders(); }
+    async function exportToCSV() { const snapshot = await rtdb.ref('orders').once('value'); const orders = snapshot.val() || {}; const ordersArray = Object.values(orders); if(ordersArray.length===0){ toast('No orders'); return; } const headers = ['Tracking ID','Customer Name','Phone','Order Type','Address','Total Amount','Payment Status','Created At','Verified At','Verified By']; const rows = ordersArray.map(order => [order.trackingId||order.orderId||'', order.customerName||'', order.phone||'', order.orderType||'', `"${(order.address||'').replace(/"/g,'""')}"`, order.totalAmount||order.total||0, order.paymentStatus||'', order.timestamp?new Date(order.timestamp).toLocaleString():'', order.verifiedAtFormatted||'', order.verifiedBy||'']); const csvContent = [headers, ...rows].map(row=>row.join(',')).join('\n'); const blob=new Blob([csvContent],{type:'text/csv'}); const url=URL.createObjectURL(blob); const a=document.createElement('a'); a.href=url; a.download=`patogrills_orders_${new Date().toISOString().split('T')[0]}.csv`; a.click(); URL.revokeObjectURL(url); toast('📊 Export complete!'); }
     
     const panels = { dashboard:{element:'dashboardPanel',title:'Dashboard',callback:updateDashboard}, 'menu-editor':{element:'menuEditorPanel',title:'Menu & Stock',callback:()=>loadMenu()}, orders:{element:'ordersPanel',title:'Order Management',callback:()=>loadOrders()}, popular:{element:'popularPanel',title:'Popular Items',callback:renderPopularItems}, housekeeping:{element:'housekeepingPanel',title:'Housekeeping',callback:null} };
-    
-    function switchPanel(panelId) { 
-        document.querySelectorAll('.nav-item').forEach(item=>{ item.classList.remove('active'); if(item.getAttribute('data-panel')===panelId) item.classList.add('active'); }); 
-        Object.keys(panels).forEach(key=>{ const panel=document.getElementById(panels[key].element); if(panel){ if(key===panelId){ panel.classList.add('active'); document.getElementById('panelTitle').textContent=panels[key].title; if(panels[key].callback) panels[key].callback(); } else panel.classList.remove('active'); } }); 
-    }
-    
+    function switchPanel(panelId) { document.querySelectorAll('.nav-item').forEach(item=>{ item.classList.remove('active'); if(item.getAttribute('data-panel')===panelId) item.classList.add('active'); }); Object.keys(panels).forEach(key=>{ const panel=document.getElementById(panels[key].element); if(panel){ if(key===panelId){ panel.classList.add('active'); document.getElementById('panelTitle').textContent=panels[key].title; if(panels[key].callback) panels[key].callback(); } else panel.classList.remove('active'); } }); }
     document.querySelectorAll('.filter-btn').forEach(btn=>{ btn.addEventListener('click',()=>{ document.querySelectorAll('.filter-btn').forEach(b=>b.classList.remove('active')); btn.classList.add('active'); currentFilter=btn.getAttribute('data-filter'); renderOrders(); }); });
-    
-    const sidebar=document.getElementById('sidebar'), overlay=document.getElementById('overlay'), hamburgerBtn=document.getElementById('hamburgerBtn'); 
-    function toggleSidebar(){ sidebar.classList.toggle('open'); overlay.classList.toggle('active'); } 
-    hamburgerBtn.addEventListener('click',toggleSidebar); overlay.addEventListener('click',toggleSidebar);
-    
+    const sidebar=document.getElementById('sidebar'), overlay=document.getElementById('overlay'), hamburgerBtn=document.getElementById('hamburgerBtn'); function toggleSidebar(){ sidebar.classList.toggle('open'); overlay.classList.toggle('active'); } hamburgerBtn.addEventListener('click',toggleSidebar); overlay.addEventListener('click',toggleSidebar);
     document.querySelectorAll('.nav-item').forEach(item=>{ item.addEventListener('click',()=>{ const panelId=item.getAttribute('data-panel'); switchPanel(panelId); if(window.innerWidth<768) toggleSidebar(); }); });
-    
-    document.getElementById('cleanOrdersBtn').addEventListener('click', cleanOldOrders); 
-    document.getElementById('exportDataBtn').addEventListener('click', exportToCSV);
+    document.getElementById('cleanOrdersBtn').addEventListener('click', cleanOldOrders); document.getElementById('exportDataBtn').addEventListener('click', exportToCSV);
 </script>
 </body>
 </html>

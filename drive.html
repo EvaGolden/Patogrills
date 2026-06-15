@@ -1,0 +1,664 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>Patogrills Driver Console | Live Delivery Tracker</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: 'DM Sans', sans-serif;
+      background: #f5f0eb;
+      color: #1a1410;
+      padding-bottom: 20px;
+    }
+    .auth-screen, .dashboard-screen {
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 20px;
+    }
+    .auth-screen {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+    }
+    .auth-card {
+      background: white;
+      border-radius: 32px;
+      padding: 40px 32px;
+      width: 100%;
+      max-width: 380px;
+      text-align: center;
+      box-shadow: 0 20px 35px -12px rgba(0,0,0,0.15);
+    }
+    .auth-card h2 {
+      font-family: 'Bebas Neue', cursive;
+      font-size: 2rem;
+      color: #f2622e;
+      margin-bottom: 20px;
+    }
+    .auth-card input {
+      width: 100%;
+      padding: 14px 16px;
+      border: 2px solid #f0e4dc;
+      border-radius: 20px;
+      font-size: 1rem;
+      margin-bottom: 20px;
+      outline: none;
+    }
+    .auth-card input:focus {
+      border-color: #f2622e;
+    }
+    .auth-card button {
+      width: 100%;
+      background: #f2622e;
+      color: white;
+      border: none;
+      padding: 14px;
+      border-radius: 30px;
+      font-family: 'Bebas Neue', cursive;
+      font-size: 1.3rem;
+      cursor: pointer;
+      transition: 0.2s;
+    }
+    .auth-card button:hover {
+      background: #c84318;
+    }
+    .error-msg {
+      color: #ef4444;
+      font-size: 0.85rem;
+      margin-top: 12px;
+      display: none;
+    }
+
+    /* Dashboard */
+    .dashboard-screen {
+      display: none;
+    }
+    .top-bar {
+      background: white;
+      border-radius: 28px;
+      padding: 14px 24px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 24px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+    }
+    .logo h1 {
+      font-family: 'Bebas Neue', cursive;
+      font-size: 1.6rem;
+      color: #f2622e;
+    }
+    .logout-btn {
+      background: #ef4444;
+      color: white;
+      border: none;
+      padding: 8px 20px;
+      border-radius: 30px;
+      cursor: pointer;
+      font-weight: 600;
+    }
+    .driver-stats {
+      display: flex;
+      gap: 15px;
+      margin-bottom: 24px;
+      flex-wrap: wrap;
+    }
+    .stat-card {
+      background: white;
+      border-radius: 20px;
+      padding: 16px 24px;
+      flex: 1;
+      min-width: 160px;
+      border-left: 4px solid #f2622e;
+    }
+    .stat-number {
+      font-family: 'Bebas Neue', cursive;
+      font-size: 2rem;
+      color: #f2622e;
+    }
+    .main-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 24px;
+    }
+    @media (max-width: 900px) {
+      .main-grid { grid-template-columns: 1fr; }
+    }
+    .orders-panel {
+      background: white;
+      border-radius: 28px;
+      padding: 20px;
+      box-shadow: 0 8px 20px rgba(0,0,0,0.05);
+    }
+    .orders-panel h3 {
+      font-family: 'Bebas Neue', cursive;
+      font-size: 1.4rem;
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .order-list {
+      max-height: 500px;
+      overflow-y: auto;
+    }
+    .order-card {
+      border: 2px solid #f0e4dc;
+      border-radius: 20px;
+      padding: 14px;
+      margin-bottom: 12px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .order-card.selected {
+      border-color: #f2622e;
+      background: #fff8f2;
+    }
+    .order-card:hover {
+      background: #fff8f2;
+    }
+    .order-header {
+      display: flex;
+      justify-content: space-between;
+      font-weight: 700;
+      margin-bottom: 8px;
+    }
+    .tracking-id {
+      color: #f2622e;
+      font-family: monospace;
+    }
+    .customer-info {
+      font-size: 0.85rem;
+      color: #555;
+      margin-bottom: 8px;
+    }
+    .status-badge {
+      display: inline-block;
+      padding: 4px 12px;
+      border-radius: 40px;
+      font-size: 0.7rem;
+      font-weight: 700;
+    }
+    .status-pending { background: #fef3c7; color: #d97706; }
+    .status-enroute { background: #dbeafe; color: #1e40af; }
+    .status-delivered { background: #d1fae5; color: #059669; }
+    
+    .map-panel {
+      background: white;
+      border-radius: 28px;
+      padding: 20px;
+      box-shadow: 0 8px 20px rgba(0,0,0,0.05);
+    }
+    #deliveryMap {
+      height: 380px;
+      border-radius: 20px;
+      background: #e9e5e0;
+      margin-bottom: 16px;
+    }
+    .action-buttons {
+      display: flex;
+      gap: 12px;
+      margin-top: 12px;
+      flex-wrap: wrap;
+    }
+    .action-btn {
+      flex: 1;
+      padding: 12px;
+      border: none;
+      border-radius: 40px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: 0.2s;
+    }
+    .start-btn {
+      background: #1a73e8;
+      color: white;
+    }
+    .complete-btn {
+      background: #059669;
+      color: white;
+    }
+    .location-update {
+      background: #f59e0b;
+      color: white;
+      margin-top: 12px;
+      width: 100%;
+    }
+    .toast {
+      position: fixed;
+      bottom: 30px;
+      right: 30px;
+      background: #1a1410;
+      color: white;
+      padding: 12px 24px;
+      border-radius: 40px;
+      z-index: 2000;
+      display: none;
+    }
+    .toast.show { display: block; }
+    hr { margin: 15px 0; border-color: #f0e4dc; }
+  </style>
+</head>
+<body>
+
+<!-- LOGIN SCREEN -->
+<div id="authScreen" class="auth-screen">
+  <div class="auth-card">
+    <h2><i class="fas fa-truck"></i> Driver Portal</h2>
+    <input type="password" id="driverPin" placeholder="Enter Driver PIN" autocomplete="off">
+    <button id="loginDriverBtn">LOGIN</button>
+    <div id="loginError" class="error-msg"></div>
+    <p style="margin-top: 20px; font-size: 0.7rem; color: #aaa;">Use PIN: <strong>pato2026</strong> (demo)</p>
+  </div>
+</div>
+
+<!-- DASHBOARD (visible after login) -->
+<div id="dashboardScreen" class="dashboard-screen">
+  <div class="top-bar">
+    <div class="logo"><h1><i class="fas fa-motorcycle"></i> Patogrills Rider</h1></div>
+    <button class="logout-btn" id="driverLogoutBtn"><i class="fas fa-sign-out-alt"></i> Logout</button>
+  </div>
+
+  <div class="driver-stats">
+    <div class="stat-card"><div class="stat-number" id="totalDeliveries">0</div><div class="stat-label">Total Deliveries</div></div>
+    <div class="stat-card"><div class="stat-number" id="activeDeliveries">0</div><div class="stat-label">Active Orders</div></div>
+    <div class="stat-card"><div class="stat-number" id="completedToday">0</div><div class="stat-label">Completed Today</div></div>
+  </div>
+
+  <div class="main-grid">
+    <!-- Orders List -->
+    <div class="orders-panel">
+      <h3><i class="fas fa-clipboard-list"></i> Assigned Deliveries</h3>
+      <div id="ordersList" class="order-list">Loading orders...</div>
+    </div>
+
+    <!-- Map & Actions -->
+    <div class="map-panel">
+      <h3><i class="fas fa-map-marked-alt"></i> Live Delivery</h3>
+      <div id="deliveryMap"></div>
+      <div id="orderDetailsPanel" style="background: #fef5ef; border-radius: 20px; padding: 12px; margin-top: 10px;">
+        <p style="color: #777; text-align: center;">Select an order to start delivery</p>
+      </div>
+      <div class="action-buttons" id="actionButtons" style="display: none;">
+        <button class="action-btn start-btn" id="startDeliveryBtn"><i class="fas fa-play"></i> Start Delivery</button>
+        <button class="action-btn complete-btn" id="completeDeliveryBtn"><i class="fas fa-check-circle"></i> Mark Delivered</button>
+      </div>
+      <button class="action-btn location-update" id="updateLocationBtn"><i class="fas fa-location-dot"></i> Send My Live Location</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toastMsg"></div>
+
+<script>
+  // ========== FIREBASE CONFIG ==========
+  const firebaseConfig = {
+    apiKey: "AIzaSyDNZUtiUoEuV6cqF90144wqwsGAFERnsuw",
+    authDomain: "tracking-61ea4.firebaseapp.com",
+    databaseURL: "https://tracking-61ea4-default-rtdb.europe-west1.firebasedatabase.app",
+    projectId: "tracking-61ea4",
+    storageBucket: "tracking-61ea4.firebasestorage.app",
+    appId: "1:397920553801:web:8326ae436c7fa169a46898"
+  };
+  firebase.initializeApp(firebaseConfig);
+  const rtdb = firebase.database();
+
+  // Global state
+  let currentDriverId = null;
+  let ordersRef = null;
+  let currentSelectedOrderId = null;
+  let currentOrderData = null;
+  let map = null;
+  let riderMarker = null;
+  let customerMarker = null;
+  let routeControl = null;
+  let watchPositionId = null;
+
+  // Helper functions
+  function toast(msg) {
+    const el = document.getElementById('toastMsg');
+    el.textContent = msg;
+    el.classList.add('show');
+    setTimeout(() => el.classList.remove('show'), 3000);
+  }
+
+  function formatMoney(n) { return '₦' + Number(n).toLocaleString(); }
+
+  // ========== AUTHENTICATION ==========
+  function loginDriver(pin) {
+    // Demo PIN check (same as user-side rider modal)
+    if (pin === 'pato2026') {
+      localStorage.setItem('driverAuth', 'true');
+      currentDriverId = 'driver_' + Date.now();
+      showDashboard();
+      toast('✅ Welcome, Rider!');
+    } else {
+      document.getElementById('loginError').style.display = 'block';
+      document.getElementById('loginError').textContent = '❌ Invalid PIN. Access Denied.';
+    }
+  }
+
+  function logoutDriver() {
+    if (watchPositionId) navigator.geolocation.clearWatch(watchPositionId);
+    localStorage.removeItem('driverAuth');
+    document.getElementById('authScreen').style.display = 'flex';
+    document.getElementById('dashboardScreen').style.display = 'none';
+    if (ordersRef) ordersRef.off();
+    if (map) map.remove();
+    toast('Logged out');
+  }
+
+  function showDashboard() {
+    document.getElementById('authScreen').style.display = 'none';
+    document.getElementById('dashboardScreen').style.display = 'block';
+    initMap();
+    loadOrders();
+    updateStats();
+    startLocationTracking(); // optional: track rider's own location periodically
+  }
+
+  // ========== LOAD ORDERS (paid delivery orders) ==========
+  function loadOrders() {
+    if (ordersRef) ordersRef.off();
+    ordersRef = rtdb.ref('orders');
+    ordersRef.on('value', (snapshot) => {
+      const allOrders = snapshot.val() || {};
+      // Filter: paid + delivery + not delivered
+      const deliveries = [];
+      for (let [id, order] of Object.entries(allOrders)) {
+        if (order.orderType === 'Delivery' && 
+            order.paymentStatus === 'Paid' && 
+            order.orderStatus !== 'delivered') {
+          deliveries.push({ id, ...order });
+        }
+      }
+      renderOrdersList(deliveries);
+      updateStats(deliveries);
+    });
+  }
+
+  function renderOrdersList(orders) {
+    const container = document.getElementById('ordersList');
+    if (!orders.length) {
+      container.innerHTML = '<div style="text-align:center; padding:40px;">No active delivery orders.<br>👍 All caught up!</div>';
+      return;
+    }
+    container.innerHTML = orders.map(order => `
+      <div class="order-card ${currentSelectedOrderId === order.id ? 'selected' : ''}" data-id="${order.id}">
+        <div class="order-header">
+          <span class="tracking-id">${order.trackingId}</span>
+          <span class="status-badge ${order.orderStatus === 'enroute' ? 'status-enroute' : 'status-pending'}">
+            ${order.orderStatus === 'enroute' ? '🚚 EN ROUTE' : '⏳ PENDING'}
+          </span>
+        </div>
+        <div class="customer-info">
+          <i class="fas fa-user"></i> ${escapeHtml(order.customerName)}<br>
+          <i class="fas fa-phone"></i> ${order.phone}<br>
+          <i class="fas fa-map-pin"></i> ${order.address || 'No address'}
+        </div>
+        <div class="order-footer">
+          <strong>${formatMoney(order.totalAmount)}</strong>
+        </div>
+      </div>
+    `).join('');
+    // attach click listeners
+    document.querySelectorAll('.order-card').forEach(card => {
+      card.addEventListener('click', () => {
+        const orderId = card.dataset.id;
+        selectOrder(orderId, orders.find(o => o.id === orderId));
+      });
+    });
+  }
+
+  async function selectOrder(orderId, order) {
+    currentSelectedOrderId = orderId;
+    currentOrderData = order;
+    // highlight selected card
+    document.querySelectorAll('.order-card').forEach(c => c.classList.remove('selected'));
+    const selectedCard = document.querySelector(`.order-card[data-id="${orderId}"]`);
+    if (selectedCard) selectedCard.classList.add('selected');
+    
+    // update details panel
+    const panel = document.getElementById('orderDetailsPanel');
+    panel.innerHTML = `
+      <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap;">
+        <div><strong style="color:#f2622e;">${order.trackingId}</strong><br>
+        <i class="fas fa-user"></i> ${escapeHtml(order.customerName)}<br>
+        <i class="fas fa-map-marker-alt"></i> ${order.address || '—'}<br>
+        <i class="fas fa-money-bill"></i> ${formatMoney(order.totalAmount)}</div>
+        <div><span class="status-badge ${order.orderStatus === 'enroute' ? 'status-enroute' : 'status-pending'}">${order.orderStatus === 'enroute' ? 'EN ROUTE' : 'PENDING START'}</span></div>
+      </div>
+    `;
+    
+    // show/hide action buttons based on status
+    const actionDiv = document.getElementById('actionButtons');
+    actionDiv.style.display = 'flex';
+    const startBtn = document.getElementById('startDeliveryBtn');
+    const completeBtn = document.getElementById('completeDeliveryBtn');
+    if (order.orderStatus === 'enroute') {
+      startBtn.style.display = 'none';
+      completeBtn.style.display = 'block';
+    } else {
+      startBtn.style.display = 'block';
+      completeBtn.style.display = 'none';
+    }
+    
+    // update map: show customer location if exists
+    const custLoc = order.customerLocation;
+    if (custLoc && custLoc.latitude && custLoc.longitude) {
+      const customerLatLng = [custLoc.latitude, custLoc.longitude];
+      if (customerMarker) map.removeLayer(customerMarker);
+      customerMarker = L.marker(customerLatLng, { icon: L.divIcon({ html: '📍', iconSize: [30,30] }) }).addTo(map)
+        .bindPopup(`<b>${order.customerName}</b><br>${order.address}`).openPopup();
+      map.setView(customerLatLng, 13);
+      
+      // if rider has a current location, draw route
+      if (riderMarker) {
+        const riderPos = riderMarker.getLatLng();
+        updateRoute(riderPos, customerLatLng);
+      } else {
+        // remove any existing route
+        if (routeControl) map.removeControl(routeControl);
+      }
+    } else {
+      toast('⚠️ Customer location not available – they may have declined sharing.');
+    }
+  }
+
+  // ========== MAP & ROUTING ==========
+  function initMap() {
+    map = L.map('deliveryMap').setView([6.5244, 3.3792], 12); // default to Lagos
+    L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
+      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OSM</a>'
+    }).addTo(map);
+  }
+
+  function updateRoute(startLatLng, endLatLng) {
+    if (routeControl) map.removeControl(routeControl);
+    routeControl = L.Routing.control({
+      waypoints: [startLatLng, endLatLng],
+      router: L.Routing.osrmv1({ serviceUrl: 'https://router.project-osrm.org/route/v1' }),
+      show: false,
+      lineOptions: { styles: [{ color: '#f2622e', weight: 4 }] }
+    }).addTo(map);
+  }
+
+  // ========== LOCATION TRACKING (rider) ==========
+  function startLocationTracking() {
+    if (!navigator.geolocation) return;
+    // get current position once and then watch
+    navigator.geolocation.getCurrentPosition(pos => {
+      const { latitude, longitude } = pos.coords;
+      if (riderMarker) map.removeLayer(riderMarker);
+      riderMarker = L.marker([latitude, longitude], { icon: L.divIcon({ html: '🏍️', iconSize: [30,30] }) }).addTo(map)
+        .bindPopup('You (Rider)').openPopup();
+      map.setView([latitude, longitude], 14);
+    });
+    // watch position
+    if (watchPositionId) navigator.geolocation.clearWatch(watchPositionId);
+    watchPositionId = navigator.geolocation.watchPosition(
+      (pos) => {
+        const { latitude, longitude } = pos.coords;
+        if (riderMarker) {
+          riderMarker.setLatLng([latitude, longitude]);
+        } else {
+          riderMarker = L.marker([latitude, longitude], { icon: L.divIcon({ html: '🏍️', iconSize: [30,30] }) }).addTo(map)
+            .bindPopup('You (Rider)');
+        }
+        // If we have a selected order and it's enroute, update route & send location to Firebase
+        if (currentSelectedOrderId && currentOrderData && currentOrderData.orderStatus === 'enroute') {
+          const custLoc = currentOrderData.customerLocation;
+          if (custLoc && custLoc.latitude) {
+            updateRoute([latitude, longitude], [custLoc.latitude, custLoc.longitude]);
+          }
+          // send live location to Firebase for customer tracking
+          rtdb.ref(`orders/${currentSelectedOrderId}/riderLocation`).set({
+            latitude: latitude,
+            longitude: longitude,
+            timestamp: Date.now()
+          }).catch(console.warn);
+        }
+      },
+      (err) => console.warn(err),
+      { enableHighAccuracy: true, maximumAge: 5000 }
+    );
+  }
+
+  // Manually send location (button)
+  async function sendLiveLocation() {
+    if (!currentSelectedOrderId) {
+      toast('Select an order first');
+      return;
+    }
+    if (!navigator.geolocation) {
+      toast('Geolocation not supported');
+      return;
+    }
+    navigator.geolocation.getCurrentPosition(async (pos) => {
+      const { latitude, longitude } = pos.coords;
+      await rtdb.ref(`orders/${currentSelectedOrderId}/riderLocation`).set({
+        latitude, longitude,
+        timestamp: Date.now()
+      });
+      toast('📍 Location updated for customer tracking');
+      if (riderMarker) riderMarker.setLatLng([latitude, longitude]);
+      else {
+        riderMarker = L.marker([latitude, longitude], { icon: L.divIcon({ html: '🏍️', iconSize: [30,30] }) }).addTo(map);
+      }
+      // update route if order active
+      if (currentOrderData && currentOrderData.customerLocation) {
+        const cust = currentOrderData.customerLocation;
+        updateRoute([latitude, longitude], [cust.latitude, cust.longitude]);
+      }
+    }, () => toast('Failed to get location'));
+  }
+
+  // ========== ORDER ACTIONS ==========
+  async function startDelivery() {
+    if (!currentSelectedOrderId) {
+      toast('Select an order first');
+      return;
+    }
+    await rtdb.ref(`orders/${currentSelectedOrderId}`).update({
+      orderStatus: 'enroute',
+      riderStartedAt: Date.now(),
+      driverId: currentDriverId
+    });
+    toast('✅ Delivery started! Customer can now track you.');
+    // refresh selected order data
+    const snap = await rtdb.ref(`orders/${currentSelectedOrderId}`).once('value');
+    currentOrderData = snap.val();
+    // update UI buttons
+    document.getElementById('startDeliveryBtn').style.display = 'none';
+    document.getElementById('completeDeliveryBtn').style.display = 'block';
+    // update order card status
+    loadOrders(); // refresh list
+  }
+
+  async function completeDelivery() {
+    if (!currentSelectedOrderId) {
+      toast('Select an order');
+      return;
+    }
+    const confirmOk = confirm('Mark order as DELIVERED? This will complete the delivery.');
+    if (!confirmOk) return;
+    await rtdb.ref(`orders/${currentSelectedOrderId}`).update({
+      orderStatus: 'delivered',
+      completedAt: Date.now(),
+      deliveredAtFormatted: new Date().toLocaleString()
+    });
+    // remove riderLocation from order after completion (optional)
+    await rtdb.ref(`orders/${currentSelectedOrderId}/riderLocation`).remove();
+    toast('🎉 Delivery completed!');
+    currentSelectedOrderId = null;
+    currentOrderData = null;
+    document.getElementById('actionButtons').style.display = 'none';
+    document.getElementById('orderDetailsPanel').innerHTML = '<p style="color:#777; text-align:center;">Delivery completed. Select another order.</p>';
+    if (routeControl) map.removeControl(routeControl);
+    loadOrders(); // refresh list
+    updateStats();
+  }
+
+  // ========== STATS (simple counts) ==========
+  async function updateStats(deliveriesList = null) {
+    if (!deliveriesList) {
+      const snapshot = await rtdb.ref('orders').once('value');
+      const all = snapshot.val() || {};
+      deliveriesList = Object.values(all).filter(o => o.orderType === 'Delivery' && o.paymentStatus === 'Paid' && o.orderStatus !== 'delivered');
+    }
+    const active = deliveriesList.length;
+    document.getElementById('activeDeliveries').innerHTML = active;
+    // total deliveries (all time for this driver? simplifed: count all delivered)
+    const allOrdersSnap = await rtdb.ref('orders').once('value');
+    const allOrders = Object.values(allOrdersSnap.val() || {});
+    const totalDelivered = allOrders.filter(o => o.orderStatus === 'delivered').length;
+    document.getElementById('totalDeliveries').innerHTML = totalDelivered;
+    const today = new Date().toDateString();
+    const todayCompleted = allOrders.filter(o => o.orderStatus === 'delivered' && o.completedAt && new Date(o.completedAt).toDateString() === today).length;
+    document.getElementById('completedToday').innerHTML = todayCompleted;
+  }
+
+  // ========== HELPER ==========
+  function escapeHtml(str) {
+    if (!str) return '';
+    return str.replace(/[&<>]/g, function(m) {
+      if (m === '&') return '&amp;';
+      if (m === '<') return '&lt;';
+      if (m === '>') return '&gt;';
+      return m;
+    });
+  }
+
+  // ========== EVENT LISTENERS ==========
+  document.getElementById('loginDriverBtn').addEventListener('click', () => {
+    const pin = document.getElementById('driverPin').value;
+    loginDriver(pin);
+  });
+  document.getElementById('driverLogoutBtn').addEventListener('click', logoutDriver);
+  document.getElementById('startDeliveryBtn').addEventListener('click', startDelivery);
+  document.getElementById('completeDeliveryBtn').addEventListener('click', completeDelivery);
+  document.getElementById('updateLocationBtn').addEventListener('click', sendLiveLocation);
+  document.getElementById('driverPin').addEventListener('keypress', (e) => {
+    if (e.key === 'Enter') loginDriver(e.target.value);
+  });
+
+  // Auto-login if previously authenticated (demo convenience)
+  if (localStorage.getItem('driverAuth') === 'true') {
+    currentDriverId = 'driver_' + Date.now();
+    showDashboard();
+  } else {
+    document.getElementById('authScreen').style.display = 'flex';
+  }
+</script>
+</body>
+</html>
