@@ -1,1043 +1,2294 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-  <!-- Strong no-cache headers to avoid stale page -->
-  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate, max-age=0" />
-  <meta http-equiv="Pragma" content="no-cache" />
-  <meta http-equiv="Expires" content="0" />
-  <title>Patogrills | Fire & Flavor – Order with Live Tracking</title>
-  <link rel="icon" type="image/png" href="logo.png" />
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" />
-  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js">
-  </script>
-  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js">
-  </script>
-  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js">
-  </script>
-  <style>
-    /* ===== BASE STYLES (unchanged) ===== */
-    :root {
-      --fire: #f2622e;
-      --fire-deep: #c84318;
-      --fire-light: #ff9142;
-      --black: #0d0a08;
-      --charcoal: #1a1410;
-      --cream: #fff8f2;
-      --warm-white: #fffaf6;
-      --text-main: #1a1410;
-      --text-muted: #7a6255;
-      --border: rgba(242, 98, 46, 0.15);
-      --nav-h: 68px;
-      --safe-bottom: env(safe-area-inset-bottom, 0px);
-      --BF: 'Bebas Neue', impact, sans-serif;
-      --DF: 'DM Sans', system-ui, sans-serif;
-    }
-    * { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
-    body {
-      font-family: var(--DF);
-      background: var(--warm-white);
-      color: var(--text-main);
-      overflow-x: hidden;
-      padding-bottom: calc(var(--nav-h) + var(--safe-bottom) + 8px);
-    }
-    /* Onboarding (fixed) */
-    #onboarding {
-      position: fixed; inset: 0; z-index: 9999;
-      display: flex; flex-direction: column;
-      align-items: center; justify-content: flex-end;
-      background: rgba(13,10,8,0.85);
-      backdrop-filter: blur(8px);
-      padding: 0 0 calc(var(--nav-h) + var(--safe-bottom) + 10px);
-      transition: opacity 0.35s;
-    }
-    #onboarding.fade-out {
-      opacity: 0;
-      pointer-events: none;
-    }
-    #onboarding.gone {
-      display: none;
-    }
-    .ob-sheet {
-      background: white;
-      border-radius: 28px 28px 0 0;
-      width: 100%; max-width: 520px;
-      padding: 26px 22px 22px;
-      animation: sheetUp 0.45s cubic-bezier(0.34,1.5,0.64,1);
-    }
-    @keyframes sheetUp {
-      from { transform: translateY(100%); opacity: 0; }
-      to { transform: translateY(0); opacity: 1; }
-    }
-    .ob-dots {
-      display: flex; gap: 7px; justify-content: center; margin-bottom: 22px;
-    }
-    .ob-dot {
-      width: 32px; height: 4px; border-radius: 4px;
-      background: #f0e4dc; transition: background .3s;
-    }
-    .ob-dot.on {
-      background: var(--fire);
-    }
-    .ob-step {
-      display: none;
-      animation: fadeSlide .3s ease;
-    }
-    .ob-step.on {
-      display: block;
-    }
-    @keyframes fadeSlide {
-      from { opacity:0; transform: translateX(18px); }
-      to { opacity:1; transform: translateX(0); }
-    }
-    .ob-icon-wrap {
-      width:68px; height:68px; border-radius:22px;
-      background: linear-gradient(135deg, var(--fire), var(--fire-light));
-      display:flex; align-items:center; justify-content:center;
-      margin: 0 auto 16px; font-size:2rem;
-    }
-    .ob-step h2 {
-      font-family: var(--BF); font-size:2.1rem; letter-spacing:2px;
-      text-align:center; color:var(--black); margin-bottom:10px;
-    }
-    .ob-step p {
-      text-align:center; color:var(--text-muted); font-size:.9rem; line-height:1.6;
-    }
-    .ob-chip {
-      display:inline-flex; align-items:center; gap:5px;
-      background:var(--fire); color:white; padding:2px 10px;
-      border-radius:30px; font-weight:700; font-size:.85rem;
-    }
-    .ob-actions {
-      display: flex; gap: 10px; margin-top: 22px;
-    }
-    .ob-skip {
-      flex:1; padding:13px; border-radius:16px; background:#f4ede8;
-      color:var(--text-muted); border:none; font-family:var(--DF);
-      font-weight:600; font-size:.9rem; cursor:pointer;
-    }
-    .ob-next {
-      flex:2; padding:13px; border-radius:16px; background:var(--fire);
-      color:white; border:none; font-family:var(--BF); font-size:1.3rem;
-      letter-spacing:1.5px; cursor:pointer; transition:background .15s;
-    }
-    .ob-next:hover { background:var(--fire-deep); }
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate, max-age=0" />
+    <meta http-equiv="Pragma" content="no-cache" />
+    <meta http-equiv="Expires" content="0" />
+    <title>Patogrills | Fire & Flavor – Order with Live Tracking</title>
+    <link rel="icon" type="image/png" href="logo.png" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" />
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js">
+    </script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js">
+    </script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js">
+    </script>
+    <style>
+        /* ===== BASE STYLES ===== */
+        :root {
+            --fire: #f2622e;
+            --fire-deep: #c84318;
+            --fire-light: #ff9142;
+            --black: #0d0a08;
+            --charcoal: #1a1410;
+            --cream: #fff8f2;
+            --warm-white: #fffaf6;
+            --text-main: #1a1410;
+            --text-muted: #7a6255;
+            --border: rgba(242, 98, 46, 0.15);
+            --nav-h: 68px;
+            --safe-bottom: env(safe-area-inset-bottom, 0px);
+            --BF: 'Bebas Neue', impact, sans-serif;
+            --DF: 'DM Sans', system-ui, sans-serif;
+        }
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+        body {
+            font-family: var(--DF);
+            background: var(--warm-white);
+            color: var(--text-main);
+            overflow-x: hidden;
+            padding-bottom: calc(var(--nav-h) + var(--safe-bottom) + 8px);
+        }
+        /* Onboarding */
+        #onboarding {
+            position: fixed;
+            inset: 0;
+            z-index: 9999;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-end;
+            background: rgba(13, 10, 8, 0.85);
+            backdrop-filter: blur(8px);
+            padding: 0 0 calc(var(--nav-h) + var(--safe-bottom) + 10px);
+            transition: opacity 0.35s;
+        }
+        #onboarding.fade-out {
+            opacity: 0;
+            pointer-events: none;
+        }
+        #onboarding.gone {
+            display: none;
+        }
+        .ob-sheet {
+            background: white;
+            border-radius: 28px 28px 0 0;
+            width: 100%;
+            max-width: 520px;
+            padding: 26px 22px 22px;
+            animation: sheetUp 0.45s cubic-bezier(0.34, 1.5, 0.64, 1);
+        }
+        @keyframes sheetUp {
+            from {
+                transform: translateY(100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+        .ob-dots {
+            display: flex;
+            gap: 7px;
+            justify-content: center;
+            margin-bottom: 22px;
+        }
+        .ob-dot {
+            width: 32px;
+            height: 4px;
+            border-radius: 4px;
+            background: #f0e4dc;
+            transition: background .3s;
+        }
+        .ob-dot.on {
+            background: var(--fire);
+        }
+        .ob-step {
+            display: none;
+            animation: fadeSlide .3s ease;
+        }
+        .ob-step.on {
+            display: block;
+        }
+        @keyframes fadeSlide {
+            from {
+                opacity: 0;
+                transform: translateX(18px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+        .ob-icon-wrap {
+            width: 68px;
+            height: 68px;
+            border-radius: 22px;
+            background: linear-gradient(135deg, var(--fire), var(--fire-light));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 16px;
+            font-size: 2rem;
+        }
+        .ob-step h2 {
+            font-family: var(--BF);
+            font-size: 2.1rem;
+            letter-spacing: 2px;
+            text-align: center;
+            color: var(--black);
+            margin-bottom: 10px;
+        }
+        .ob-step p {
+            text-align: center;
+            color: var(--text-muted);
+            font-size: .9rem;
+            line-height: 1.6;
+        }
+        .ob-chip {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            background: var(--fire);
+            color: white;
+            padding: 2px 10px;
+            border-radius: 30px;
+            font-weight: 700;
+            font-size: .85rem;
+        }
+        .ob-actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 22px;
+        }
+        .ob-skip {
+            flex: 1;
+            padding: 13px;
+            border-radius: 16px;
+            background: #f4ede8;
+            color: var(--text-muted);
+            border: none;
+            font-family: var(--DF);
+            font-weight: 600;
+            font-size: .9rem;
+            cursor: pointer;
+        }
+        .ob-next {
+            flex: 2;
+            padding: 13px;
+            border-radius: 16px;
+            background: var(--fire);
+            color: white;
+            border: none;
+            font-family: var(--BF);
+            font-size: 1.3rem;
+            letter-spacing: 1.5px;
+            cursor: pointer;
+            transition: background .15s;
+        }
+        .ob-next:hover {
+            background: var(--fire-deep);
+        }
 
-    /* Top Bar & Hero (unchanged) */
-    .top-bar {
-      position:sticky; top:0; z-index:900;
-      background: rgba(255, 250, 246, 0.7);
-      backdrop-filter: blur(24px);
-      border-bottom: 1px solid rgba(242,98,46,0.2);
-    }
-    .top-bar-inner { max-width:900px; margin:0 auto; padding:8px 16px; display:flex; align-items:center; justify-content:space-between; gap:12px; }
-    .brand { display:flex; align-items:center; gap:10px; cursor:default; }
-    .brand-logo { width:46px; height:46px; border-radius:13px; object-fit:cover; flex-shrink:0; }
-    .brand-logo-fb { width:46px; height:46px; border-radius:13px; background:linear-gradient(135deg,var(--fire),var(--fire-light)); display:none; align-items:center; justify-content:center; font-size:1.5rem; flex-shrink:0; }
-    .brand-text { line-height:1; }
-    .brand-name { font-family:var(--BF); font-size:1.85rem; letter-spacing:3px; color:var(--black); display:block; }
-    .brand-sub { font-size:.62rem; font-weight:700; color:var(--fire); letter-spacing:.1em; text-transform:uppercase; display:block; margin-top:1px; }
-    .cart-pill { background:var(--fire); color:white; border-radius:40px; padding:7px 14px; display:flex; align-items:center; gap:6px; cursor:pointer; border:none; font-family:var(--BF); font-size:1rem; letter-spacing:.5px; transition:transform .15s, background .15s; }
-    .cart-pill:active { transform:scale(.95); }
-    .cart-pill .cnt { background:white; color:var(--fire); border-radius:50%; width:20px; height:20px; font-size:.72rem; font-weight:700; font-family:var(--DF); display:flex; align-items:center; justify-content:center; }
+        /* Top Bar & Hero */
+        .top-bar {
+            position: sticky;
+            top: 0;
+            z-index: 900;
+            background: rgba(255, 250, 246, 0.7);
+            backdrop-filter: blur(24px);
+            border-bottom: 1px solid rgba(242, 98, 46, 0.2);
+        }
+        .top-bar-inner {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 8px 16px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+        }
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            cursor: default;
+        }
+        .brand-logo {
+            width: 46px;
+            height: 46px;
+            border-radius: 13px;
+            object-fit: cover;
+            flex-shrink: 0;
+        }
+        .brand-logo-fb {
+            width: 46px;
+            height: 46px;
+            border-radius: 13px;
+            background: linear-gradient(135deg, var(--fire), var(--fire-light));
+            display: none;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            flex-shrink: 0;
+        }
+        .brand-text {
+            line-height: 1;
+        }
+        .brand-name {
+            font-family: var(--BF);
+            font-size: 1.85rem;
+            letter-spacing: 3px;
+            color: var(--black);
+            display: block;
+        }
+        .brand-sub {
+            font-size: .62rem;
+            font-weight: 700;
+            color: var(--fire);
+            letter-spacing: .1em;
+            text-transform: uppercase;
+            display: block;
+            margin-top: 1px;
+        }
+        .cart-pill {
+            background: var(--fire);
+            color: white;
+            border-radius: 40px;
+            padding: 7px 14px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            cursor: pointer;
+            border: none;
+            font-family: var(--BF);
+            font-size: 1rem;
+            letter-spacing: .5px;
+            transition: transform .15s, background .15s;
+        }
+        .cart-pill:active {
+            transform: scale(.95);
+        }
+        .cart-pill .cnt {
+            background: white;
+            color: var(--fire);
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            font-size: .72rem;
+            font-weight: 700;
+            font-family: var(--DF);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
 
-    .hero {
-      margin:12px 12px 0; border-radius:28px;
-      background: linear-gradient(115deg, rgba(0,0,0,0.7) 0%, rgba(0,0,0,0.25) 100%), url('hero.png') center/cover no-repeat;
-      min-height: 290px; display:flex; align-items:flex-end;
-      padding:24px 20px; overflow:hidden; position:relative;
-      box-shadow: 0 15px 30px -12px rgba(0,0,0,0.25);
-    }
-    .hero::before { content:''; position:absolute; inset:0; background:radial-gradient(ellipse at 15% 85%, rgba(242,98,46,0.35) 0%, transparent 65%); pointer-events:none; }
-    .hero-content { position:relative; z-index:1; color:white; text-shadow: 0 2px 6px rgba(0,0,0,0.3); }
-    .hero-content h1 { font-family:var(--BF); font-size:3.5rem; letter-spacing:5px; line-height:.92; text-transform:uppercase; }
-    .hero-content h1 span { color: var(--fire-light); text-shadow: 0 0 8px rgba(242,98,46,0.5);}
-    .hero-content p { font-size:.8rem; opacity:.85; margin-top:8px; letter-spacing:.1em; font-weight:500;}
-    .hero-tag { display:inline-flex; align-items:center; gap:6px; margin-top:14px; background:rgba(242,98,46,.9); backdrop-filter:blur(8px); padding:6px 14px; border-radius:40px; font-size:.75rem; font-weight:700; letter-spacing:.08em; text-transform:uppercase; }
+        .hero {
+            margin: 12px 12px 0;
+            border-radius: 28px;
+            background: linear-gradient(115deg, rgba(0, 0, 0, 0.7) 0%, rgba(0, 0, 0, 0.25) 100%), url('hero.png') center/cover no-repeat;
+            min-height: 290px;
+            display: flex;
+            align-items: flex-end;
+            padding: 24px 20px;
+            overflow: hidden;
+            position: relative;
+            box-shadow: 0 15px 30px -12px rgba(0, 0, 0, 0.25);
+        }
+        .hero::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: radial-gradient(ellipse at 15% 85%, rgba(242, 98, 46, 0.35) 0%, transparent 65%);
+            pointer-events: none;
+        }
+        .hero-content {
+            position: relative;
+            z-index: 1;
+            color: white;
+            text-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+        }
+        .hero-content h1 {
+            font-family: var(--BF);
+            font-size: 3.5rem;
+            letter-spacing: 5px;
+            line-height: .92;
+            text-transform: uppercase;
+        }
+        .hero-content h1 span {
+            color: var(--fire-light);
+            text-shadow: 0 0 8px rgba(242, 98, 46, 0.5);
+        }
+        .hero-content p {
+            font-size: .8rem;
+            opacity: .85;
+            margin-top: 8px;
+            letter-spacing: .1em;
+            font-weight: 500;
+        }
+        .hero-tag {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            margin-top: 14px;
+            background: rgba(242, 98, 46, .9);
+            backdrop-filter: blur(8px);
+            padding: 6px 14px;
+            border-radius: 40px;
+            font-size: .75rem;
+            font-weight: 700;
+            letter-spacing: .08em;
+            text-transform: uppercase;
+        }
 
-    /* Pages */
-    .page { display:none; max-width:900px; margin:0 auto; padding:16px 12px; animation:pgIn .25s ease; }
-    .page.active { display:block; }
-    @keyframes pgIn { from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:translateY(0)} }
-    .cat-scroll { display:flex; gap:8px; overflow-x:auto; padding:4px 0 10px; scrollbar-width:none; }
-    .cat-scroll::-webkit-scrollbar { display:none; }
-    .cat-pill { flex-shrink:0; padding:7px 16px; border-radius:40px; font-family:var(--BF); font-size:.95rem; letter-spacing:.5px; cursor:pointer; border:2px solid var(--border); background:white; color:var(--text-muted); transition:all .2s; }
-    .cat-pill.active,.cat-pill:hover { background:var(--fire); color:white; border-color:var(--fire); }
-    .sec-title { font-family:var(--BF); font-size:1.5rem; letter-spacing:1.5px; margin:18px 0 12px; display:flex; align-items:center; gap:10px; color:var(--black); text-transform:uppercase; }
-    .sec-title::after { content:''; flex:1; height:2px; background:var(--border); border-radius:2px; }
-    .menu-grid { display:grid; grid-template-columns:repeat(2,1fr); gap:12px; }
-    @media(min-width:600px){.menu-grid{grid-template-columns:repeat(3,1fr);}}
-    @media(min-width:800px){.menu-grid{grid-template-columns:repeat(4,1fr);}}
-    .menu-card { background:white; border-radius:20px; overflow:hidden; border:2px solid rgba(242,98,46,.1); transition:transform .2s, box-shadow .2s; display:flex; flex-direction:column; position:relative; }
-    .menu-card:hover { transform:translateY(-3px); box-shadow:0 12px 32px -8px rgba(242,98,46,.2); }
-    .menu-card:active { transform:scale(.98); }
-    .menu-img { width:100%; height:120px; object-fit:cover; background:#fef0e6; }
-    .outofstock-badge {
-      position: absolute;
-      top: 10px;
-      right: 10px;
-      background: rgba(0,0,0,0.7);
-      color: white;
-      padding: 4px 8px;
-      border-radius: 20px;
-      font-size: 0.7rem;
-      font-weight: bold;
-      z-index: 2;
-    }
-    .menu-info { padding:10px 10px 12px; flex:1; display:flex; flex-direction:column; }
-    .menu-name { font-family:var(--BF); font-size:1.05rem; letter-spacing:.5px; margin-bottom:3px; line-height:1.15; }
-    .menu-desc { font-size:.7rem; color:var(--text-muted); line-height:1.35; flex:1; margin-bottom:10px; }
-    .menu-bottom { display:flex; align-items:center; justify-content:space-between; gap:8px; flex-wrap:wrap; }
-    .menu-price { font-family:var(--BF); font-size:1rem; letter-spacing:.5px; color:var(--fire); }
-    .order-btn { background:var(--fire); color:white; border:none; border-radius:40px; padding:6px 16px; font-family:var(--BF); font-size:0.85rem; letter-spacing:1px; cursor:pointer; transition:all .15s ease; display:inline-flex; align-items:center; gap:4px; }
-    .order-btn i { font-size:0.8rem; }
-    .order-btn:hover { background:var(--fire-deep); transform:scale(0.96); }
-    .order-btn.disabled, .order-btn:disabled { background: #999; cursor: not-allowed; transform: none; opacity: 0.6; }
+        /* Pages */
+        .page {
+            display: none;
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 16px 12px;
+            animation: pgIn .25s ease;
+        }
+        .page.active {
+            display: block;
+        }
+        @keyframes pgIn {
+            from {
+                opacity: 0;
+                transform: translateY(8px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        .cat-scroll {
+            display: flex;
+            gap: 8px;
+            overflow-x: auto;
+            padding: 4px 0 10px;
+            scrollbar-width: none;
+        }
+        .cat-scroll::-webkit-scrollbar {
+            display: none;
+        }
+        .cat-pill {
+            flex-shrink: 0;
+            padding: 7px 16px;
+            border-radius: 40px;
+            font-family: var(--BF);
+            font-size: .95rem;
+            letter-spacing: .5px;
+            cursor: pointer;
+            border: 2px solid var(--border);
+            background: white;
+            color: var(--text-muted);
+            transition: all .2s;
+        }
+        .cat-pill.active,
+        .cat-pill:hover {
+            background: var(--fire);
+            color: white;
+            border-color: var(--fire);
+        }
+        .sec-title {
+            font-family: var(--BF);
+            font-size: 1.5rem;
+            letter-spacing: 1.5px;
+            margin: 18px 0 12px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            color: var(--black);
+            text-transform: uppercase;
+        }
+        .sec-title::after {
+            content: '';
+            flex: 1;
+            height: 2px;
+            background: var(--border);
+            border-radius: 2px;
+        }
+        .menu-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+        }
+        @media(min-width:600px) {
+            .menu-grid {
+                grid-template-columns: repeat(3, 1fr);
+            }
+        }
+        @media(min-width:800px) {
+            .menu-grid {
+                grid-template-columns: repeat(4, 1fr);
+            }
+        }
+        .menu-card {
+            background: white;
+            border-radius: 20px;
+            overflow: hidden;
+            border: 2px solid rgba(242, 98, 46, .1);
+            transition: transform .2s, box-shadow .2s;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+        }
+        .menu-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 12px 32px -8px rgba(242, 98, 46, .2);
+        }
+        .menu-card:active {
+            transform: scale(.98);
+        }
+        .menu-img {
+            width: 100%;
+            height: 120px;
+            object-fit: cover;
+            background: #fef0e6;
+        }
+        .outofstock-badge {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: rgba(0, 0, 0, 0.7);
+            color: white;
+            padding: 4px 8px;
+            border-radius: 20px;
+            font-size: 0.7rem;
+            font-weight: bold;
+            z-index: 2;
+        }
+        .menu-info {
+            padding: 10px 10px 12px;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+        .menu-name {
+            font-family: var(--BF);
+            font-size: 1.05rem;
+            letter-spacing: .5px;
+            margin-bottom: 3px;
+            line-height: 1.15;
+        }
+        .menu-desc {
+            font-size: .7rem;
+            color: var(--text-muted);
+            line-height: 1.35;
+            flex: 1;
+            margin-bottom: 10px;
+        }
+        .menu-bottom {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+        .menu-price {
+            font-family: var(--BF);
+            font-size: 1rem;
+            letter-spacing: .5px;
+            color: var(--fire);
+        }
+        .order-btn {
+            background: var(--fire);
+            color: white;
+            border: none;
+            border-radius: 40px;
+            padding: 6px 16px;
+            font-family: var(--BF);
+            font-size: 0.85rem;
+            letter-spacing: 1px;
+            cursor: pointer;
+            transition: all .15s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+        }
+        .order-btn i {
+            font-size: 0.8rem;
+        }
+        .order-btn:hover {
+            background: var(--fire-deep);
+            transform: scale(0.96);
+        }
+        .order-btn.disabled,
+        .order-btn:disabled {
+            background: #999;
+            cursor: not-allowed;
+            transform: none;
+            opacity: 0.6;
+        }
 
-    /* Google Reviews & Map (unchanged) */
-    .g-review-wrap { background:white; border-radius:28px; margin:32px 0 24px; padding:24px 22px; box-shadow:0 12px 28px -8px rgba(0,0,0,0.08); border:1px solid var(--border); }
-    .g-review-header { display:flex; align-items:center; gap:12px; font-family:var(--BF); font-size:1.5rem; letter-spacing:1px; color:var(--black); margin-bottom:12px; }
-    .g-review-header i { color:var(--fire); font-size:1.6rem; }
-    .rating-stars { display:inline-flex; gap:4px; font-size:1rem; color:#fb8c00; margin:0 8px 0 0; }
-    .rating-score { display:inline-flex; align-items:center; gap:12px; flex-wrap:wrap; margin-bottom:20px; background:#fef5ef; padding:10px 18px; border-radius:60px; width:fit-content; }
-    .g-badge { background:white; border-radius:50px; padding:4px 14px; font-size:.75rem; font-weight:700; box-shadow:0 2px 6px rgba(0,0,0,0.05); color:var(--fire); }
-    .review-card { background:#fefaf7; border-radius:24px; padding:18px; margin-bottom:16px; border-left:4px solid var(--fire); transition:transform 0.2s; }
-    .review-card:hover { transform:translateX(4px); }
-    .reviewer { display:flex; align-items:center; gap:10px; margin-bottom:8px; font-weight:600; flex-wrap:wrap; }
-    .reviewer i { font-size:1.3rem; color:var(--fire); background:#fff0e8; padding:8px; border-radius:50%; }
-    .time-price { font-size:0.72rem; color:var(--text-muted); margin-bottom:10px; }
-    .rev-stars { color:#ffb347; font-size:.85rem; letter-spacing:2px; margin-bottom:8px; }
-    .rev-text { font-size:.9rem; color:var(--text-main); line-height:1.5; margin-bottom:10px; font-weight:500; }
-    .rating-detail { font-size:0.7rem; color:var(--text-muted); border-top:1px solid #f0e0d6; padding-top:8px; margin-top:8px; display:flex; gap:12px; }
-    .g-review-btn { display:flex; align-items:center; justify-content:center; gap:12px; background:#1a73e8; color:white; text-decoration:none; padding:14px 20px; border-radius:60px; font-weight:700; font-size:.95rem; margin-top:20px; transition:all 0.2s ease; border:none; width:100%; font-family:var(--DF); }
-    .g-review-btn:hover { background:#0d5bbb; transform:scale(0.98); }
-    .map-card { background:white; border-radius:28px; margin:20px 0 24px; padding:22px 20px; box-shadow:0 12px 28px -8px rgba(0,0,0,0.08); border:1px solid var(--border); }
-    .map-container { border-radius:24px; overflow:hidden; box-shadow:0 6px 14px rgba(0,0,0,0.1); margin-bottom:20px; }
-    .map-container iframe { width:100%; height:240px; border:0; display:block; }
-    .directions-buttons { display:flex; gap:12px; flex-wrap:wrap; justify-content:center; margin-top:8px; }
-    .dir-btn { flex:1; min-width:160px; background:var(--fire); border-radius:60px; padding:12px 18px; font-weight:700; font-size:0.9rem; display:inline-flex; align-items:center; justify-content:center; gap:8px; transition:all 0.2s ease; text-decoration:none; color:white; font-family:var(--DF); }
-    .dir-btn.google-orange { background:#ea4335; }
-    .dir-btn.google-blue { background:#1a73e8; }
-    .dir-btn:hover { transform:translateY(-2px); filter:brightness(1.05); }
-    .store-address { text-align:center; font-size:0.8rem; margin-top:16px; color:var(--text-muted); display:flex; align-items:center; justify-content:center; gap:6px; flex-wrap:wrap; }
+        /* Google Reviews & Map */
+        .g-review-wrap {
+            background: white;
+            border-radius: 28px;
+            margin: 32px 0 24px;
+            padding: 24px 22px;
+            box-shadow: 0 12px 28px -8px rgba(0, 0, 0, 0.08);
+            border: 1px solid var(--border);
+        }
+        .g-review-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-family: var(--BF);
+            font-size: 1.5rem;
+            letter-spacing: 1px;
+            color: var(--black);
+            margin-bottom: 12px;
+        }
+        .g-review-header i {
+            color: var(--fire);
+            font-size: 1.6rem;
+        }
+        .rating-stars {
+            display: inline-flex;
+            gap: 4px;
+            font-size: 1rem;
+            color: #fb8c00;
+            margin: 0 8px 0 0;
+        }
+        .rating-score {
+            display: inline-flex;
+            align-items: center;
+            gap: 12px;
+            flex-wrap: wrap;
+            margin-bottom: 20px;
+            background: #fef5ef;
+            padding: 10px 18px;
+            border-radius: 60px;
+            width: fit-content;
+        }
+        .g-badge {
+            background: white;
+            border-radius: 50px;
+            padding: 4px 14px;
+            font-size: .75rem;
+            font-weight: 700;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+            color: var(--fire);
+        }
+        .review-card {
+            background: #fefaf7;
+            border-radius: 24px;
+            padding: 18px;
+            margin-bottom: 16px;
+            border-left: 4px solid var(--fire);
+            transition: transform 0.2s;
+        }
+        .review-card:hover {
+            transform: translateX(4px);
+        }
+        .reviewer {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 8px;
+            font-weight: 600;
+            flex-wrap: wrap;
+        }
+        .reviewer i {
+            font-size: 1.3rem;
+            color: var(--fire);
+            background: #fff0e8;
+            padding: 8px;
+            border-radius: 50%;
+        }
+        .time-price {
+            font-size: 0.72rem;
+            color: var(--text-muted);
+            margin-bottom: 10px;
+        }
+        .rev-stars {
+            color: #ffb347;
+            font-size: .85rem;
+            letter-spacing: 2px;
+            margin-bottom: 8px;
+        }
+        .rev-text {
+            font-size: .9rem;
+            color: var(--text-main);
+            line-height: 1.5;
+            margin-bottom: 10px;
+            font-weight: 500;
+        }
+        .rating-detail {
+            font-size: 0.7rem;
+            color: var(--text-muted);
+            border-top: 1px solid #f0e0d6;
+            padding-top: 8px;
+            margin-top: 8px;
+            display: flex;
+            gap: 12px;
+        }
+        .g-review-btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            background: #1a73e8;
+            color: white;
+            text-decoration: none;
+            padding: 14px 20px;
+            border-radius: 60px;
+            font-weight: 700;
+            font-size: .95rem;
+            margin-top: 20px;
+            transition: all 0.2s ease;
+            border: none;
+            width: 100%;
+            font-family: var(--DF);
+        }
+        .g-review-btn:hover {
+            background: #0d5bbb;
+            transform: scale(0.98);
+        }
+        .map-card {
+            background: white;
+            border-radius: 28px;
+            margin: 20px 0 24px;
+            padding: 22px 20px;
+            box-shadow: 0 12px 28px -8px rgba(0, 0, 0, 0.08);
+            border: 1px solid var(--border);
+        }
+        .map-container {
+            border-radius: 24px;
+            overflow: hidden;
+            box-shadow: 0 6px 14px rgba(0, 0, 0, 0.1);
+            margin-bottom: 20px;
+        }
+        .map-container iframe {
+            width: 100%;
+            height: 240px;
+            border: 0;
+            display: block;
+        }
+        .directions-buttons {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+            justify-content: center;
+            margin-top: 8px;
+        }
+        .dir-btn {
+            flex: 1;
+            min-width: 160px;
+            background: var(--fire);
+            border-radius: 60px;
+            padding: 12px 18px;
+            font-weight: 700;
+            font-size: 0.9rem;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            transition: all 0.2s ease;
+            text-decoration: none;
+            color: white;
+            font-family: var(--DF);
+        }
+        .dir-btn.google-orange {
+            background: #ea4335;
+        }
+        .dir-btn.google-blue {
+            background: #1a73e8;
+        }
+        .dir-btn:hover {
+            transform: translateY(-2px);
+            filter: brightness(1.05);
+        }
+        .store-address {
+            text-align: center;
+            font-size: 0.8rem;
+            margin-top: 16px;
+            color: var(--text-muted);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            flex-wrap: wrap;
+        }
 
-    /* Cart, Form, Nav, etc. (unchanged) */
-    .cart-empty { text-align:center; padding:60px 20px; color:var(--text-muted); }
-    .cart-empty i { font-size:3rem; color:#f5cfc0; margin-bottom:12px; display:block; }
-    .cart-empty h3 { font-family:var(--BF); font-size:1.4rem; letter-spacing:1px; margin-bottom:6px; }
-    .cart-list { display:flex; flex-direction:column; gap:10px; }
-    .cart-item { background:white; border-radius:18px; padding:14px 16px; display:flex; align-items:center; gap:12px; border:2px solid var(--border); }
-    .ci-img { width:54px; height:54px; border-radius:12px; object-fit:cover; background:#fef0e6; flex-shrink:0; }
-    .ci-info { flex:1; }
-    .ci-name { font-family:var(--BF); font-size:1rem; letter-spacing:.5px; }
-    .ci-unit { font-size:.75rem; color:var(--text-muted); }
-    .qty-row { display:flex; align-items:center; gap:10px; margin-top:6px; }
-    .qty-btn { width:30px; height:30px; border-radius:50%; border:2px solid var(--border); background:white; font-size:1.1rem; font-weight:700; cursor:pointer; display:flex; align-items:center; justify-content:center; color:var(--fire); }
-    .qty-btn:hover { background:var(--fire); color:white; border-color:var(--fire); }
-    .qty-num { font-family:var(--BF); font-size:1.1rem; min-width:20px; text-align:center; }
-    .ci-price { font-family:var(--BF); font-size:1rem; letter-spacing:.5px; color:var(--fire); flex-shrink:0; }
-    .order-summary { background:var(--charcoal); border-radius:24px; padding:18px; margin-top:16px; color:white; }
-    .sum-row { display:flex; justify-content:space-between; font-size:.88rem; padding:4px 0; color:rgba(255,255,255,.7); }
-    .sum-row.tot { font-family:var(--BF); font-size:1.5rem; letter-spacing:1px; color:white; border-top:1px solid rgba(255,255,255,.1); margin-top:10px; padding-top:12px; }
-    .ft { color:var(--fire-light); }
+        /* Cart, Form, Nav */
+        .cart-empty {
+            text-align: center;
+            padding: 60px 20px;
+            color: var(--text-muted);
+        }
+        .cart-empty i {
+            font-size: 3rem;
+            color: #f5cfc0;
+            margin-bottom: 12px;
+            display: block;
+        }
+        .cart-empty h3 {
+            font-family: var(--BF);
+            font-size: 1.4rem;
+            letter-spacing: 1px;
+            margin-bottom: 6px;
+        }
+        .cart-list {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        .cart-item {
+            background: white;
+            border-radius: 18px;
+            padding: 14px 16px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            border: 2px solid var(--border);
+        }
+        .ci-img {
+            width: 54px;
+            height: 54px;
+            border-radius: 12px;
+            object-fit: cover;
+            background: #fef0e6;
+            flex-shrink: 0;
+        }
+        .ci-info {
+            flex: 1;
+        }
+        .ci-name {
+            font-family: var(--BF);
+            font-size: 1rem;
+            letter-spacing: .5px;
+        }
+        .ci-unit {
+            font-size: .75rem;
+            color: var(--text-muted);
+        }
+        .qty-row {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-top: 6px;
+        }
+        .qty-btn {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            border: 2px solid var(--border);
+            background: white;
+            font-size: 1.1rem;
+            font-weight: 700;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--fire);
+        }
+        .qty-btn:hover {
+            background: var(--fire);
+            color: white;
+            border-color: var(--fire);
+        }
+        .qty-num {
+            font-family: var(--BF);
+            font-size: 1.1rem;
+            min-width: 20px;
+            text-align: center;
+        }
+        .ci-price {
+            font-family: var(--BF);
+            font-size: 1rem;
+            letter-spacing: .5px;
+            color: var(--fire);
+            flex-shrink: 0;
+        }
+        .order-summary {
+            background: var(--charcoal);
+            border-radius: 24px;
+            padding: 18px;
+            margin-top: 16px;
+            color: white;
+        }
+        .sum-row {
+            display: flex;
+            justify-content: space-between;
+            font-size: .88rem;
+            padding: 4px 0;
+            color: rgba(255, 255, 255, .7);
+        }
+        .sum-row.tot {
+            font-family: var(--BF);
+            font-size: 1.5rem;
+            letter-spacing: 1px;
+            color: white;
+            border-top: 1px solid rgba(255, 255, 255, .1);
+            margin-top: 10px;
+            padding-top: 12px;
+        }
+        .ft {
+            color: var(--fire-light);
+        }
 
-    .form-sec { background:white; border-radius:20px; padding:18px; margin-bottom:14px; border:2px solid var(--border); }
-    .form-sec h3 { font-family:var(--BF); font-size:1.2rem; letter-spacing:1px; margin-bottom:14px; display:flex; align-items:center; gap:8px; }
-    .form-sec h3 i { color:var(--fire); }
-    label { font-size:.78rem; font-weight:600; color:var(--text-muted); text-transform:uppercase; letter-spacing:.05em; display:block; margin-bottom:5px; }
-    .iw { margin-bottom:14px; }
-    input, textarea { width:100%; background:#fffcf9; border:2px solid #f0e4dc; border-radius:14px; padding:12px 14px; font-size:.95rem; font-family:var(--DF); color:#1a1410; outline:none; transition: all 0.2s; }
-    input:focus, textarea:focus { border-color:var(--fire); background:white; box-shadow:0 0 0 3px rgba(242,98,46,0.1); }
-    .ot-grid { display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-bottom:14px; }
-    .ot-opt { border:2px solid #f0e4dc; border-radius:16px; padding:14px 12px; cursor:pointer; text-align:center; background:white; transition:all .2s; }
-    .ot-opt.sel { border-color:var(--fire); background:#fff4ef; }
-    .ot-opt i { font-size:1.4rem; color:#b0a096; display:block; margin-bottom:5px; }
-    .ot-opt.sel i { color:var(--fire); }
-    .preview-card { background:var(--charcoal); border-radius:20px; padding:16px; font-family:monospace; font-size:.75rem; color:#e8d5c4; white-space:pre-wrap; margin-bottom:14px; line-height:1.55; }
-    .wa-btn { display:flex; align-items:center; justify-content:center; gap:10px; width:100%; background:#25D366; color:white; text-decoration:none; border-radius:18px; padding:15px; font-family:var(--BF); font-size:1.2rem; cursor:pointer; border:none; transition:0.2s; }
-    .wa-btn:hover { background:#1da850; transform:scale(0.98); }
-    .bot-nav { position:fixed; bottom:0; left:0; right:0; z-index:1000; background:rgba(255,250,246,.96); backdrop-filter:blur(24px); border-top:1px solid var(--border); padding:0 0 var(--safe-bottom); }
-    .nav-inner { max-width:520px; margin:0 auto; display:flex; height:var(--nav-h); }
-    .ni { flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:3px; cursor:pointer; background:none; border:none; color:var(--text-muted); font-family:var(--BF); font-size:.78rem; position:relative; }
-    .ni i { font-size:1.35rem; transition:transform .2s; }
-    .ni.active { color:var(--fire); }
-    .ni.active i { transform:scale(1.12); }
-    .ni.active::before { content:''; position:absolute; top:0; left:50%; transform:translateX(-50%); width:24px; height:3px; background:var(--fire); border-radius:0 0 4px 4px; }
-    .ni.nc .nb { width:52px; height:52px; border-radius:50%; background:linear-gradient(135deg,var(--fire),var(--fire-light)); display:flex; align-items:center; justify-content:center; box-shadow:0 6px 20px -4px rgba(242,98,46,.5); margin-bottom:2px; }
-    .ni.nc .nb i { color:white; font-size:1.3rem; }
-    .ni.nc.active::before { display:none; }
-    .n-badge { position:absolute; top:8px; left:50%; transform:translateX(2px); background:var(--fire); color:white; border-radius:50%; width:17px; height:17px; font-size:.65rem; font-weight:700; display:flex; align-items:center; justify-content:center; border:2px solid var(--warm-white); }
-    .social-sec { display:flex; gap:12px; justify-content:center; flex-wrap:wrap; padding:24px 0 8px; }
-    .soc-btn { display:flex; align-items:center; gap:8px; padding:9px 18px; border-radius:40px; background:var(--charcoal); color:#e8d5c4; text-decoration:none; font-size:.82rem; font-weight:600; transition:all .2s; }
-    .soc-btn i { font-size:1rem; }
-    .soc-btn:hover { background:var(--fire); color:white; transform:translateY(-2px); }
-    .foot-txt { text-align:center; font-size:.75rem; color:var(--text-muted); padding:10px 0 4px; }
-    .toast { position:fixed; top:72px; left:50%; transform:translateX(-50%) translateY(-10px); background:var(--charcoal); color:white; padding:9px 18px; border-radius:40px; font-size:.82rem; z-index:9000; opacity:0; pointer-events:none; transition:all .3s; white-space:nowrap; }
-    .toast.show { opacity:1; transform:translateX(-50%) translateY(0); }
-    #addrWrap { transition: all 0.2s; }
-    .hidden-address { display: none !important; }
-    .order-id-banner { background:var(--charcoal); border-radius:20px; padding:16px 20px; margin-bottom:16px; display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap; border-left:4px solid var(--fire); }
-    .oid-left { display:flex; flex-direction:column; gap:3px; }
-    .oid-label { font-size:0.65rem; text-transform:uppercase; letter-spacing:2px; color:rgba(255,255,255,0.45); font-weight:700; }
-    .oid-value { font-family:var(--BF); font-size:1.5rem; letter-spacing:3px; color:var(--fire-light); }
-    .oid-copy-btn { background:rgba(242,98,46,0.15); border:1px solid rgba(242,98,46,0.3); color:var(--fire-light); border-radius:12px; padding:8px 16px; font-family:var(--BF); font-size:0.85rem; letter-spacing:1px; cursor:pointer; transition:all 0.15s; display:flex; align-items:center; gap:6px; white-space:nowrap; }
-    .oid-copy-btn:hover { background:rgba(242,98,46,0.25); }
-    .oid-tip { font-size:0.7rem; color:rgba(255,255,255,0.35); margin-top:2px; width:100%; }
-    .track-toggle-bar { display:flex; gap:12px; margin-bottom:24px; background:#f3efea; padding:6px; border-radius:60px; }
-    .track-toggle-btn { flex:1; text-align:center; padding:12px 0; border-radius:40px; font-family:var(--BF); font-size:1rem; letter-spacing:1px; cursor:pointer; background:transparent; border:none; transition:0.2s; color:var(--text-muted); }
-    .track-toggle-btn.active-toggle { background:var(--fire); color:white; box-shadow:0 4px 10px rgba(242,98,46,0.3); }
-    .track-panel { background:white; border-radius:28px; padding:20px; border:2px solid var(--border); transition:0.2s; }
-    .track-panel.hidden-panel { display:none; }
-    .track-input-group { display:flex; gap:10px; flex-wrap:wrap; margin:16px 0; }
-    .track-input-group input { flex:2; }
-    .track-btn { background:var(--fire); border:none; padding:0 20px; border-radius:60px; color:white; font-weight:bold; cursor:pointer; font-family:var(--DF); }
-    .status-box { background:#fef3ed; border-radius:20px; padding:14px; margin-top:16px; border-left:5px solid var(--fire); font-size:0.85rem; }
-    #liveTrackingMap { height:280px; border-radius:20px; margin-top:12px; background:#e9e5e0; z-index:1; width:100%; }
-    .dir-btn-map { display:inline-block; background:var(--fire); color:white; padding:10px 20px; border-radius:40px; text-decoration:none; font-weight:600; margin:8px 0; }
-    .rider-modal { display:none; position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(0,0,0,0.9); z-index:10000; backdrop-filter:blur(12px); align-items:center; justify-content:center; padding:20px; }
-    .rider-modal.active { display:flex; }
-    .rider-modal-content { background:#0e0e0e; border-radius:32px; width:100%; max-width:450px; max-height:90vh; overflow-y:auto; color:#f0ede8; font-family:'DM Sans', sans-serif; border:1px solid #2a2a2a; position:relative; }
-    .rider-close { position:absolute; top:16px; right:20px; font-size:24px; cursor:pointer; color:#888; }
-    .rider-inner { padding:28px 24px; }
-    .rider-logo { font-family:'Bebas Neue', sans-serif; font-size:28px; letter-spacing:2px; color:#FF6B00; margin-bottom:20px; }
-    .rider-input { width:100%; background:#161616; border:1px solid #2a2a2a; border-radius:12px; color:white; padding:14px 18px; font-size:15px; margin-bottom:18px; outline:none; }
-    .rider-btn { width:100%; padding:14px; border:none; border-radius:12px; font-family:'Bebas Neue', sans-serif; font-size:20px; letter-spacing:2px; cursor:pointer; background:#FF6B00; color:white; margin-bottom:12px; }
-    .retry-location-btn { background:var(--fire); color:white; border:none; padding:6px 12px; border-radius:30px; margin-left:8px; cursor:pointer; font-size:0.7rem; }
-  </style>
+        .form-sec {
+            background: white;
+            border-radius: 20px;
+            padding: 18px;
+            margin-bottom: 14px;
+            border: 2px solid var(--border);
+        }
+        .form-sec h3 {
+            font-family: var(--BF);
+            font-size: 1.2rem;
+            letter-spacing: 1px;
+            margin-bottom: 14px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .form-sec h3 i {
+            color: var(--fire);
+        }
+        label {
+            font-size: .78rem;
+            font-weight: 600;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: .05em;
+            display: block;
+            margin-bottom: 5px;
+        }
+        .iw {
+            margin-bottom: 14px;
+        }
+        input,
+        textarea {
+            width: 100%;
+            background: #fffcf9;
+            border: 2px solid #f0e4dc;
+            border-radius: 14px;
+            padding: 12px 14px;
+            font-size: .95rem;
+            font-family: var(--DF);
+            color: #1a1410;
+            outline: none;
+            transition: all 0.2s;
+        }
+        input:focus,
+        textarea:focus {
+            border-color: var(--fire);
+            background: white;
+            box-shadow: 0 0 0 3px rgba(242, 98, 46, 0.1);
+        }
+        .ot-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+            margin-bottom: 14px;
+        }
+        .ot-opt {
+            border: 2px solid #f0e4dc;
+            border-radius: 16px;
+            padding: 14px 12px;
+            cursor: pointer;
+            text-align: center;
+            background: white;
+            transition: all .2s;
+        }
+        .ot-opt.sel {
+            border-color: var(--fire);
+            background: #fff4ef;
+        }
+        .ot-opt i {
+            font-size: 1.4rem;
+            color: #b0a096;
+            display: block;
+            margin-bottom: 5px;
+        }
+        .ot-opt.sel i {
+            color: var(--fire);
+        }
+        .preview-card {
+            background: var(--charcoal);
+            border-radius: 20px;
+            padding: 16px;
+            font-family: monospace;
+            font-size: .75rem;
+            color: #e8d5c4;
+            white-space: pre-wrap;
+            margin-bottom: 14px;
+            line-height: 1.55;
+        }
+        .wa-btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            width: 100%;
+            background: #25D366;
+            color: white;
+            text-decoration: none;
+            border-radius: 18px;
+            padding: 15px;
+            font-family: var(--BF);
+            font-size: 1.2rem;
+            cursor: pointer;
+            border: none;
+            transition: 0.2s;
+        }
+        .wa-btn:hover {
+            background: #1da850;
+            transform: scale(0.98);
+        }
+        .bot-nav {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            z-index: 1000;
+            background: rgba(255, 250, 246, .96);
+            backdrop-filter: blur(24px);
+            border-top: 1px solid var(--border);
+            padding: 0 0 var(--safe-bottom);
+        }
+        .nav-inner {
+            max-width: 520px;
+            margin: 0 auto;
+            display: flex;
+            height: var(--nav-h);
+        }
+        .ni {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 3px;
+            cursor: pointer;
+            background: none;
+            border: none;
+            color: var(--text-muted);
+            font-family: var(--BF);
+            font-size: .78rem;
+            position: relative;
+        }
+        .ni i {
+            font-size: 1.35rem;
+            transition: transform .2s;
+        }
+        .ni.active {
+            color: var(--fire);
+        }
+        .ni.active i {
+            transform: scale(1.12);
+        }
+        .ni.active::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 24px;
+            height: 3px;
+            background: var(--fire);
+            border-radius: 0 0 4px 4px;
+        }
+        .ni.nc .nb {
+            width: 52px;
+            height: 52px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--fire), var(--fire-light));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 6px 20px -4px rgba(242, 98, 46, .5);
+            margin-bottom: 2px;
+        }
+        .ni.nc .nb i {
+            color: white;
+            font-size: 1.3rem;
+        }
+        .ni.nc.active::before {
+            display: none;
+        }
+        .n-badge {
+            position: absolute;
+            top: 8px;
+            left: 50%;
+            transform: translateX(2px);
+            background: var(--fire);
+            color: white;
+            border-radius: 50%;
+            width: 17px;
+            height: 17px;
+            font-size: .65rem;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 2px solid var(--warm-white);
+        }
+        .social-sec {
+            display: flex;
+            gap: 12px;
+            justify-content: center;
+            flex-wrap: wrap;
+            padding: 24px 0 8px;
+        }
+        .soc-btn {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 9px 18px;
+            border-radius: 40px;
+            background: var(--charcoal);
+            color: #e8d5c4;
+            text-decoration: none;
+            font-size: .82rem;
+            font-weight: 600;
+            transition: all .2s;
+        }
+        .soc-btn i {
+            font-size: 1rem;
+        }
+        .soc-btn:hover {
+            background: var(--fire);
+            color: white;
+            transform: translateY(-2px);
+        }
+        .foot-txt {
+            text-align: center;
+            font-size: .75rem;
+            color: var(--text-muted);
+            padding: 10px 0 4px;
+        }
+        .toast {
+            position: fixed;
+            top: 72px;
+            left: 50%;
+            transform: translateX(-50%) translateY(-10px);
+            background: var(--charcoal);
+            color: white;
+            padding: 9px 18px;
+            border-radius: 40px;
+            font-size: .82rem;
+            z-index: 9000;
+            opacity: 0;
+            pointer-events: none;
+            transition: all .3s;
+            white-space: nowrap;
+        }
+        .toast.show {
+            opacity: 1;
+            transform: translateX(-50%) translateY(0);
+        }
+        #addrWrap {
+            transition: all 0.2s;
+        }
+        .hidden-address {
+            display: none !important;
+        }
+        .order-id-banner {
+            background: var(--charcoal);
+            border-radius: 20px;
+            padding: 16px 20px;
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            flex-wrap: wrap;
+            border-left: 4px solid var(--fire);
+        }
+        .oid-left {
+            display: flex;
+            flex-direction: column;
+            gap: 3px;
+        }
+        .oid-label {
+            font-size: 0.65rem;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            color: rgba(255, 255, 255, 0.45);
+            font-weight: 700;
+        }
+        .oid-value {
+            font-family: var(--BF);
+            font-size: 1.5rem;
+            letter-spacing: 3px;
+            color: var(--fire-light);
+        }
+        .oid-copy-btn {
+            background: rgba(242, 98, 46, 0.15);
+            border: 1px solid rgba(242, 98, 46, 0.3);
+            color: var(--fire-light);
+            border-radius: 12px;
+            padding: 8px 16px;
+            font-family: var(--BF);
+            font-size: 0.85rem;
+            letter-spacing: 1px;
+            cursor: pointer;
+            transition: all 0.15s;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            white-space: nowrap;
+        }
+        .oid-copy-btn:hover {
+            background: rgba(242, 98, 46, 0.25);
+        }
+        .oid-tip {
+            font-size: 0.7rem;
+            color: rgba(255, 255, 255, 0.35);
+            margin-top: 2px;
+            width: 100%;
+        }
+        .track-toggle-bar {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 24px;
+            background: #f3efea;
+            padding: 6px;
+            border-radius: 60px;
+        }
+        .track-toggle-btn {
+            flex: 1;
+            text-align: center;
+            padding: 12px 0;
+            border-radius: 40px;
+            font-family: var(--BF);
+            font-size: 1rem;
+            letter-spacing: 1px;
+            cursor: pointer;
+            background: transparent;
+            border: none;
+            transition: 0.2s;
+            color: var(--text-muted);
+        }
+        .track-toggle-btn.active-toggle {
+            background: var(--fire);
+            color: white;
+            box-shadow: 0 4px 10px rgba(242, 98, 46, 0.3);
+        }
+        .track-panel {
+            background: white;
+            border-radius: 28px;
+            padding: 20px;
+            border: 2px solid var(--border);
+            transition: 0.2s;
+        }
+        .track-panel.hidden-panel {
+            display: none;
+        }
+        .track-input-group {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin: 16px 0;
+        }
+        .track-input-group input {
+            flex: 2;
+        }
+        .track-btn {
+            background: var(--fire);
+            border: none;
+            padding: 0 20px;
+            border-radius: 60px;
+            color: white;
+            font-weight: bold;
+            cursor: pointer;
+            font-family: var(--DF);
+        }
+        .status-box {
+            background: #fef3ed;
+            border-radius: 20px;
+            padding: 14px;
+            margin-top: 16px;
+            border-left: 5px solid var(--fire);
+            font-size: 0.85rem;
+        }
+        #liveTrackingMap {
+            height: 280px;
+            border-radius: 20px;
+            margin-top: 12px;
+            background: #e9e5e0;
+            z-index: 1;
+            width: 100%;
+        }
+        .dir-btn-map {
+            display: inline-block;
+            background: var(--fire);
+            color: white;
+            padding: 10px 20px;
+            border-radius: 40px;
+            text-decoration: none;
+            font-weight: 600;
+            margin: 8px 0;
+        }
+        .rider-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.9);
+            z-index: 10000;
+            backdrop-filter: blur(12px);
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        .rider-modal.active {
+            display: flex;
+        }
+        .rider-modal-content {
+            background: #0e0e0e;
+            border-radius: 32px;
+            width: 100%;
+            max-width: 450px;
+            max-height: 90vh;
+            overflow-y: auto;
+            color: #f0ede8;
+            font-family: 'DM Sans', sans-serif;
+            border: 1px solid #2a2a2a;
+            position: relative;
+        }
+        .rider-close {
+            position: absolute;
+            top: 16px;
+            right: 20px;
+            font-size: 24px;
+            cursor: pointer;
+            color: #888;
+        }
+        .rider-inner {
+            padding: 28px 24px;
+        }
+        .rider-logo {
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 28px;
+            letter-spacing: 2px;
+            color: #FF6B00;
+            margin-bottom: 20px;
+        }
+        .rider-input {
+            width: 100%;
+            background: #161616;
+            border: 1px solid #2a2a2a;
+            border-radius: 12px;
+            color: white;
+            padding: 14px 18px;
+            font-size: 15px;
+            margin-bottom: 18px;
+            outline: none;
+        }
+        .rider-btn {
+            width: 100%;
+            padding: 14px;
+            border: none;
+            border-radius: 12px;
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 20px;
+            letter-spacing: 2px;
+            cursor: pointer;
+            background: #FF6B00;
+            color: white;
+            margin-bottom: 12px;
+        }
+        .retry-location-btn {
+            background: var(--fire);
+            color: white;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 30px;
+            margin-left: 8px;
+            cursor: pointer;
+            font-size: 0.7rem;
+        }
+
+        /* ADDED: cart badge pulsing animation on add */
+        @keyframes cartPulse {
+            0% {
+                transform: scale(1);
+            }
+            50% {
+                transform: scale(1.25);
+            }
+            100% {
+                transform: scale(1);
+            }
+        }
+        .cart-pill.pulse .cnt {
+            animation: cartPulse 0.3s ease;
+        }
+        .n-badge.pulse {
+            animation: cartPulse 0.3s ease;
+        }
+        /* ADDED: small 'just added' indicator */
+        .menu-card.just-added {
+            border-color: var(--fire);
+            box-shadow: 0 0 0 2px var(--fire), 0 8px 24px -6px rgba(242, 98, 46, 0.3);
+            transition: all 0.2s;
+        }
+        .menu-card.just-added .order-btn {
+            background: #28a745;
+        }
+        .menu-card.just-added .order-btn i {
+            animation: cartPulse 0.3s ease;
+        }
+
+        @media(max-width:480px) {
+            .brand-name {
+                font-size: 1.4rem;
+            }
+            .brand-logo {
+                width: 38px;
+                height: 38px;
+            }
+            .hero-content h1 {
+                font-size: 2.6rem;
+            }
+            .menu-grid {
+                gap: 10px;
+            }
+            .menu-img {
+                height: 100px;
+            }
+            .menu-name {
+                font-size: 0.9rem;
+            }
+        }
+    </style>
 </head>
 <body>
 
-  <!-- ONBOARDING – fixed buttons -->
-  
-  <!-- TOP BAR & HERO -->
-  <header class="top-bar"><div class="top-bar-inner"><div class="brand"><img class="brand-logo" src="logo.png" alt="Patogrills Logo" onerror="this.style.display='none';document.getElementById('lf').style.display='flex';"><div class="brand-logo-fb" id="lf">🔥</div><div class="brand-text"><span class="brand-name">Patogrills</span><span class="brand-sub">Thrills Of The Grills</span></div></div><button class="cart-pill" onclick="goTo('cart')"><i class="fas fa-bag-shopping"></i> CART <span class="cnt" id="cartCount">0</span></button></div></header>
-  <div class="hero"><div class="hero-content"><h1>FIRE &amp;<br><span>LAVOR</span></h1><p>FLAME-GRILLED · FRESH · BOLD</p><div class="hero-tag"><i class="fas fa-crown"></i> GOOD FOOD NO DEY RUSH</div></div></div>
-
-  <!-- PAGE: MENU -->
-  <div id="page-menu" class="page active">
-    <div class="cat-scroll">
-      <div class="cat-pill active" data-cat="ALL">ALL ITEMS</div>
-      <div class="cat-pill" data-cat="MAINS">🍝 MAINS</div>
-      <div class="cat-pill" data-cat="PROTEINS">🍗 PROTEINS</div>
-      <div class="cat-pill" data-cat="EXTRAS">🥗 EXTRAS</div>
-    </div>
-    <div id="menuContent">
-      <!-- ===== STATIC MENU – HARDCODED IN HTML ===== -->
-      <!-- MAINS -->
-      <div class="sec-title">MAINS</div>
-      <div class="menu-grid">
-        <div class="menu-card" data-cat="MAINS">
-          <img class="menu-img" src="Spaghetti.jpg" onerror="this.src='https://placehold.co/400x250/fef0e6/f2622e?text=🔥'">
-          <div class="menu-info">
-            <div class="menu-name">Spaghetti</div>
-            <div class="menu-desc">Classic pasta</div>
-            <div class="menu-bottom">
-              <div class="menu-price">₦1,500</div>
-              <button class="order-btn" onclick="addItem(1)"><i class="fas fa-shopping-cart"></i> ORDER</button>
+    <!-- ONBOARDING -->
+    <div id="onboarding">
+        <div class="ob-sheet">
+            <div class="ob-dots">
+                <span class="ob-dot on" id="d0"></span>
+                <span class="ob-dot" id="d1"></span>
+                <span class="ob-dot" id="d2"></span>
+                <span class="ob-dot" id="d3"></span>
             </div>
-          </div>
-        </div>
-        <div class="menu-card" data-cat="MAINS">
-          <img class="menu-img" src="chip.jpg" onerror="this.src='https://placehold.co/400x250/fef0e6/f2622e?text=🔥'">
-          <div class="menu-info">
-            <div class="menu-name">Chips (Fries)</div>
-            <div class="menu-desc">Crispy fries</div>
-            <div class="menu-bottom">
-              <div class="menu-price">₦1,500</div>
-              <button class="order-btn" onclick="addItem(2)"><i class="fas fa-shopping-cart"></i> ORDER</button>
+            <div class="ob-step on" id="os0">
+                <div class="ob-icon-wrap">🔥</div>
+                <h2>FIRE &amp; FLAVOR</h2>
+                <p>Welcome to <strong>Patogrills</strong> — where every bite is flame-kissed and unforgettable.<br><span class="ob-chip"><i class="fas fa-crown"></i> Thrills Of The Grills</span></p>
             </div>
-          </div>
-        </div>
-        <div class="menu-card" data-cat="MAINS">
-          <img class="menu-img" src="shawarma.jpg" onerror="this.src='https://placehold.co/400x250/fef0e6/f2622e?text=🔥'">
-          <div class="menu-info">
-            <div class="menu-name">Sharp Wrap</div>
-            <div class="menu-desc">Shawarma wrap</div>
-            <div class="menu-bottom">
-              <div class="menu-price">₦3,500</div>
-              <button class="order-btn" onclick="addItem(3)"><i class="fas fa-shopping-cart"></i> ORDER</button>
+            <div class="ob-step" id="os1">
+                <div class="ob-icon-wrap">🍢</div>
+                <h2>BOLD MENU</h2>
+                <p>From jumbo turkey to spicy wraps and fresh salads — all grilled to perfection with our signature fire.</p>
             </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- PROTEINS -->
-      <div class="sec-title">PROTEINS</div>
-      <div class="menu-grid">
-        <div class="menu-card" data-cat="PROTEINS">
-          <img class="menu-img" src="turk.jpg" onerror="this.src='https://placehold.co/400x250/fef0e6/f2622e?text=🔥'">
-          <div class="menu-info">
-            <div class="menu-name">Sabi Talk Turkey</div>
-            <div class="menu-desc">Jumbo turkey</div>
-            <div class="menu-bottom">
-              <div class="menu-price">₦6,000</div>
-              <button class="order-btn" onclick="addItem(4)"><i class="fas fa-shopping-cart"></i> ORDER</button>
+            <div class="ob-step" id="os2">
+                <div class="ob-icon-wrap">📍</div>
+                <h2>LIVE TRACKING</h2>
+                <p>Order with confidence! Track your rider in real-time from our kitchen to your doorstep.</p>
             </div>
-          </div>
-        </div>
-        <div class="menu-card" data-cat="PROTEINS">
-          <img class="menu-img" src="trk.jpg" onerror="this.src='https://placehold.co/400x250/fef0e6/f2622e?text=🔥'">
-          <div class="menu-info">
-            <div class="menu-name">Talkless Turkey</div>
-            <div class="menu-desc">Small turkey</div>
-            <div class="menu-bottom">
-              <div class="menu-price">₦4,000</div>
-              <button class="order-btn" onclick="addItem(5)"><i class="fas fa-shopping-cart"></i> ORDER</button>
+            <div class="ob-step" id="os3">
+                <div class="ob-icon-wrap">💬</div>
+                <h2>ORDER VIA WHATSAPP</h2>
+                <p>Tap the green button to send your order directly to our kitchen. Simple, fast, and delicious.</p>
             </div>
-          </div>
-        </div>
-        <div class="menu-card" data-cat="PROTEINS">
-          <img class="menu-img" src="chick.jpg" onerror="this.src='https://placehold.co/400x250/fef0e6/f2622e?text=🔥'">
-          <div class="menu-info">
-            <div class="menu-name">Big Chicken</div>
-            <div class="menu-desc">Full chicken</div>
-            <div class="menu-bottom">
-              <div class="menu-price">₦5,000</div>
-              <button class="order-btn" onclick="addItem(6)"><i class="fas fa-shopping-cart"></i> ORDER</button>
+            <div class="ob-actions">
+                <button class="ob-skip" id="obSkip">SKIP</button>
+                <button class="ob-next" id="obNext">NEXT →</button>
             </div>
-          </div>
         </div>
-        <div class="menu-card" data-cat="PROTEINS">
-          <img class="menu-img" src="chken.jpg" onerror="this.src='https://placehold.co/400x250/fef0e6/f2622e?text=🔥'">
-          <div class="menu-info">
-            <div class="menu-name">Small Chicken</div>
-            <div class="menu-desc">Half chicken</div>
-            <div class="menu-bottom">
-              <div class="menu-price">₦3,500</div>
-              <button class="order-btn" onclick="addItem(7)"><i class="fas fa-shopping-cart"></i> ORDER</button>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- EXTRAS -->
-      <div class="sec-title">EXTRAS</div>
-      <div class="menu-grid">
-        <div class="menu-card" data-cat="EXTRAS">
-          <img class="menu-img" src="suss.png" onerror="this.src='https://placehold.co/400x250/fef0e6/f2622e?text=🔥'">
-          <div class="menu-info">
-            <div class="menu-name">Sausage</div>
-            <div class="menu-desc">Smoky sausage</div>
-            <div class="menu-bottom">
-              <div class="menu-price">₦500</div>
-              <button class="order-btn" onclick="addItem(8)"><i class="fas fa-shopping-cart"></i> ORDER</button>
-            </div>
-          </div>
-        </div>
-        <div class="menu-card" data-cat="EXTRAS">
-          <img class="menu-img" src="salad.jpg" onerror="this.src='https://placehold.co/400x250/fef0e6/f2622e?text=🔥'">
-          <div class="menu-info">
-            <div class="menu-name">Fresh Salad</div>
-            <div class="menu-desc">Veggie mix</div>
-            <div class="menu-bottom">
-              <div class="menu-price">₦700</div>
-              <button class="order-btn" onclick="addItem(9)"><i class="fas fa-shopping-cart"></i> ORDER</button>
-            </div>
-          </div>
-        </div>
-      </div>
     </div>
 
-    <!-- Google Reviews (unchanged) -->
-    <div class="g-review-wrap"><div class="g-review-header"><i class="fab fa-google"></i> Google Reviews</div><div class="rating-score"><div class="rating-stars"><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star-half-alt"></i></div><span style="font-weight:800;">4.9 ★</span><span class="g-badge">10+ reviews</span></div><div class="review-card"><div class="reviewer"><i class="fas fa-user-circle"></i> <strong>Iwelumo Rita.</strong> <span style="font-size:0.7rem; color:#aaa; margin-left:6px;">a year ago</span></div><div class="time-price">Takeaway  |  Dinner  |  ₦4,000–6,000</div><div class="rev-stars">★★★★★</div><div class="rev-text">“The very best grill spot in Delta state. I can recommend 100%”</div><div class="rating-detail">Food: 5/5  |  Service: 5/5  |  Atmosphere: 5/5</div></div><div class="review-card"><div class="reviewer"><i class="fas fa-user-circle"></i> <strong>Chibuzor Olamilekan.</strong> <span style="font-size:0.7rem; color:#aaa; margin-left:6px;">8 months ago</span></div><div class="time-price">Delivery  |  Lunch  |  ₦3,000–5,000</div><div class="rev-stars">★★★★★</div><div class="rev-text">“It’s the best stir-fry pasta on that side of town”</div><div class="rating-detail">Food: 5/5  |  Service: 5/5  |  Atmosphere: 5/5</div></div><div class="review-card"><div class="reviewer"><i class="fas fa-user-circle"></i> <strong>Idosi Talent.</strong> <span style="font-size:0.7rem; color:#aaa; margin-left:6px;">2 weeks ago</span></div><div class="time-price">Takeaway  |  Dinner  |  ₦4,000–6,000</div><div class="rev-stars">★★★★★</div><div class="rev-text">“The boy de try 😊😊<br>Plus na my destiny helper”</div><div class="rating-detail">Food: 5/5  |  Service: 5/5  |  Atmosphere: 5/5</div></div><a class="g-review-btn" href="https://search.google.com/local/writereview?placeid=ChIJN6xYtU_uShARlQHxr2ANz8Q" target="_blank" rel="noopener noreferrer"><i class="fab fa-google"></i> ✍️ Write a review on Google</a><p style="font-size: .7rem; color: var(--text-muted); text-align: center; margin-top: 14px;">⭐ Your feedback fuels our fire — share your experience!</p></div>
-
-    <div class="social-sec">
-      <a href="https://www.tiktok.com/@patogrills1" target="_blank" rel="noopener noreferrer" class="soc-btn"><i class="fab fa-tiktok"></i> @patogrills1</a>
-      <a href="https://www.instagram.com/patogrills" target="_blank" rel="noopener noreferrer" class="soc-btn"><i class="fab fa-instagram"></i> @patogrills</a>
-      <a href="https://www.facebook.com/patogrills" target="_blank" rel="noopener noreferrer" class="soc-btn"><i class="fab fa-facebook-f"></i> Patogrills</a>
-    </div>
-  </div>
-
-  <!-- PAGE: CART (unchanged) -->
-  <div id="page-cart" class="page">
-    <div class="sec-title"><i class="fas fa-bag-shopping" style="color:var(--fire);"></i> Your Cart</div>
-    <div id="cartContent"></div>
-    <div id="cartSummary" class="order-summary" style="display:none;">
-      <div class="sum-row"><span>Subtotal</span><span id="sSub">₦0</span></div>
-      <div class="sum-row" id="dRow"><span>Delivery fee</span><span class="ft">+₦1,000</span></div>
-      <div class="sum-row tot"><span>Total</span><span id="sTotal">₦0</span></div>
-    </div>
-    <div style="margin-top:14px;" id="chkWrap"></div>
-  </div>
-
-  <!-- PAGE: ORDER (unchanged) -->
-  <div id="page-order" class="page">
-    <div class="sec-title"><i class="fas fa-receipt"></i> Your Details</div>
-    <div id="orderIdBanner" class="order-id-banner">
-      <div class="oid-left"><span class="oid-label">Your Order ID (Tracking Number)</span><span class="oid-value" id="orderIdDisplay">—</span><span class="oid-tip">Save this ID to track your delivery</span></div>
-      <button class="oid-copy-btn" onclick="copyOrderId()"><i class="fas fa-copy"></i> COPY</button>
-    </div>
-    <div class="form-sec"><h3><i class="fas fa-user-circle"></i> Personal Info</h3><div class="iw"><label>Full Name <span style="color:var(--fire);">*</span></label><input type="text" id="name" placeholder="Your name"></div><div class="iw"><label>Phone Number <span style="color:var(--fire);">*</span></label><input type="tel" id="phone" placeholder="080xxxxxxxx"></div></div>
-    <div class="form-sec"><h3><i class="fas fa-truck"></i> Order Type</h3><div class="ot-grid"><div class="ot-opt sel" id="od" onclick="selOT('Delivery')"><i class="fas fa-truck"></i><span>Delivery</span><small>+₦1,000 fee</small></div><div class="ot-opt" id="op" onclick="selOT('Pickup')"><i class="fas fa-store"></i><span>Pickup</span><small>No fee</small></div></div><div id="addrWrap" class="iw"><label id="addressLabel">Delivery Address <span style="color:var(--fire);">*</span></label><textarea id="address" rows="2" placeholder="Street, landmark, building name..."></textarea></div><div class="iw"><label>Special Notes (optional)</label><textarea id="notes" rows="2" placeholder="Extra spice, no onion..."></textarea></div><div id="locationStatus" style="font-size:0.75rem; margin-top:6px; text-align:center; color:var(--text-muted);"></div></div>
-    <div class="form-sec"><h3><i class="fab fa-whatsapp"></i> Order Preview</h3><div id="preview" class="preview-card">✨ Your order summary will appear here.</div><a id="sendLink" class="wa-btn" href="#"><i class="fab fa-whatsapp"></i> SEND ORDER ON WHATSAPP</a></div>
-  </div>
-
-  <!-- PAGE: TRACK (unchanged) -->
-  <div id="page-track" class="page">
-    <div class="sec-title"><i class="fas fa-map-marked-alt"></i> Track Order</div>
-    <div class="track-toggle-bar"><button class="track-toggle-btn active-toggle" id="togglePickupBtn">📍 Pickup Spot</button><button class="track-toggle-btn" id="toggleDeliveryTrackBtn">🚚 Delivery Tracking</button></div>
-    <div id="pickupPanel" class="track-panel"><div><i class="fas fa-store" style="color:var(--fire);"></i><h3>Find Our Spot</h3></div><div class="map-container"><iframe src="https://maps.google.com/?q=Patogrills+Abraka+Delta+State+Nigeria&output=embed" title="Patogrills pickup location"></iframe></div><div><a href="https://www.google.com/maps/dir/?api=1&destination=Patogrills+Abraka+Delta+State+Nigeria" target="_blank" class="dir-btn-map">Get Directions</a></div><p><i class="fas fa-location-dot"></i> Campus 4 Road, Opposite Oma's Hostel, Abraka — Delta State</p></div>
-    <div id="deliveryPanel" class="track-panel hidden-panel"><h3>Track Your Delivery</h3><p>Enter your Order ID (Tracking Number) to see rider's live location</p><div class="track-input-group"><input type="text" id="trackingIdInput" placeholder="PAT-YYYYMMDD-XXXX"><button id="trackOrderBtn" class="track-btn">Track</button></div><div id="trackStatusResult" class="status-box" style="display:none;"></div><div id="liveTrackingMap" style="display:none;"></div></div>
-  </div>
-
-  <!-- BOTTOM NAV -->
-  <nav class="bot-nav"><div class="nav-inner"><button class="ni active" id="nav-menu" onclick="goTo('menu')"><i class="fas fa-utensils"></i><span>Menu</span></button><button class="ni nc" id="nav-cart" onclick="goTo('cart')"><div class="nb"><i class="fas fa-bag-shopping"></i></div><span>Cart</span><div class="n-badge" id="navBadge" style="display:none;">0</div></button><button class="ni" id="nav-order" onclick="goTo('order')"><i class="fas fa-paper-plane"></i><span>Order</span></button><button class="ni" id="nav-track" onclick="goTo('track')"><i class="fas fa-map-marked-alt"></i><span>Track</span></button></div></nav>
-  <div class="toast" id="toast"></div>
-  <div class="foot-txt">🔥 Best Grill spot in Abraka · <span class="rider-trigger" onclick="openRiderModal()">Rider Portal</span></div>
-  <div id="riderModal" class="rider-modal"></div>
-
-  <script>
-    // ============================================================
-    // 1. FIREBASE INIT – still used for orders & tracking
-    // ============================================================
-    const firebaseConfig = {
-      apiKey: "AIzaSyDNZUtiUoEuV6cqF90144wqwsGAFERnsuw",
-      authDomain: "tracking-61ea4.firebaseapp.com",
-      databaseURL: "https://tracking-61ea4-default-rtdb.europe-west1.firebasedatabase.app",
-      projectId: "tracking-61ea4",
-      storageBucket: "tracking-61ea4.firebasestorage.app",
-      appId: "1:397920553801:web:8326ae436c7fa169a46898"
-    };
-    firebase.initializeApp(firebaseConfig);
-    // No persistence for fresh reads
-    firebase.database().setPersistenceEnabled(false);
-    const rtdb = firebase.database();
-
-    // ============================================================
-    // 2. STATIC MENU DATA (for cart logic) – IDs match the HTML cards
-    // ============================================================
-    const menuItems = [
-      { id: 1, name: "Spaghetti", price: 1500, desc: "Classic pasta", cat: "MAINS", img: "Spaghetti.jpg", stock: 99 },
-      { id: 2, name: "Chips (Fries)", price: 1500, desc: "Crispy fries", cat: "MAINS", img: "chip.jpg", stock: 99 },
-      { id: 3, name: "Sharp Wrap", price: 3500, desc: "Shawarma wrap", cat: "MAINS", img: "shawarma.jpg", stock: 99 },
-      { id: 4, name: "Sabi Talk Turkey", price: 6000, desc: "Jumbo turkey", cat: "PROTEINS", img: "turk.jpg", stock: 99 },
-      { id: 5, name: "Talkless Turkey", price: 4000, desc: "Small turkey", cat: "PROTEINS", img: "trk.jpg", stock: 99 },
-      { id: 6, name: "Big Chicken", price: 5000, desc: "Full chicken", cat: "PROTEINS", img: "chick.jpg", stock: 99 },
-      { id: 7, name: "Small Chicken", price: 3500, desc: "Half chicken", cat: "PROTEINS", img: "chken.jpg", stock: 99 },
-      { id: 8, name: "Sausage", price: 500, desc: "Smoky sausage", cat: "EXTRAS", img: "suss.png", stock: 99 },
-      { id: 9, name: "Fresh Salad", price: 700, desc: "Veggie mix", cat: "EXTRAS", img: "salad.jpg", stock: 99 }
-    ];
-
-    // ============================================================
-    // 3. CART & OTHER STATE
-    // ============================================================
-    let cart = [];
-    const FEE = 1000;
-    const PH = "2348029811578";
-    let OT = "Delivery";
-    let currentOrderId = null;
-    let trackMap = null, routingControl = null, trackOrderRef = null;
-
-    // ============================================================
-    // 4. HELPERS
-    // ============================================================
-    const fmt = n => "₦" + n.toLocaleString();
-    const toast = (m) => { const t = document.getElementById("toast");
-      t.textContent = m;
-      t.classList.add("show");
-      setTimeout(() => t.classList.remove("show"), 2000); };
-
-    function generateOrderId() {
-      const now = new Date();
-      return `PAT-${now.getFullYear()}${String(now.getMonth()+1).padStart(2,'0')}${String(now.getDate()).padStart(2,'0')}-${Math.floor(Math.random()*9000+1000)}`;
-    }
-
-    function refreshOrderId() { currentOrderId = generateOrderId();
-      document.getElementById("orderIdDisplay").innerText = currentOrderId; }
-    window.copyOrderId = () => { if (currentOrderId) { navigator.clipboard.writeText(currentOrderId);
-        toast("✅ Order ID copied"); } };
-
-    // ============================================================
-    // 5. VISITOR TRACKING (unchanged)
-    // ============================================================
-    function trackVisitor() {
-      const today = new Date().toDateString();
-      const storageKey = 'pg_visitor_tracked';
-      const lastTrackedDate = localStorage.getItem(storageKey);
-      if (lastTrackedDate !== today) {
-        localStorage.setItem(storageKey, today);
-        const todayVisitorsRef = rtdb.ref('visitors/' + today.replace(/\s/g, '_'));
-        todayVisitorsRef.transaction(current => (current || 0) + 1);
-        const totalRef = rtdb.ref('visitors/total');
-        totalRef.transaction(current => (current || 0) + 1);
-      }
-    }
-    trackVisitor();
-    document.addEventListener('visibilitychange', () => { if (!document.hidden) trackVisitor(); });
-
-    // ============================================================
-    // 6. CART FUNCTIONS
-    // ============================================================
-    window.addItem = function(id) {
-      const item = menuItems.find(i => i.id === id);
-      if (!item) { toast("❌ Item not found"); return; }
-      if (item.stock === 0) { toast(`❌ "${item.name}" is out of stock!`); return; }
-      const ex = cart.find(i => i.id === id);
-      if (ex) {
-        if (ex.qty + 1 > item.stock) { toast(`⚠️ Only ${item.stock} left in stock!`); return; }
-        ex.qty++;
-      } else {
-        cart.push({ ...item,
-          qty: 1 });
-      }
-      updBadge();
-      toast("✅ " + item.name + " added to cart!");
-      updPreview();
-    };
-
-    window.updateQty = (id, d) => {
-      const idx = cart.findIndex(i => i.id === id);
-      if (idx === -1) return;
-      const cartItem = cart[idx];
-      const menuItem = menuItems.find(m => m.id === id);
-      if (d > 0 && menuItem && (cartItem.qty + d > menuItem.stock)) { toast(`⚠️ Only ${menuItem.stock} left in stock!`);
-        return; }
-      cart[idx].qty += d;
-      if (cart[idx].qty <= 0) cart.splice(idx, 1);
-      updBadge();
-      renderCart();
-      updPreview();
-    };
-
-    const sub = () => cart.reduce((s, i) => s + i.price * i.qty, 0);
-    const tot = () => sub() + (OT === "Delivery" && cart.length ? FEE : 0);
-
-    function updBadge() {
-      const n = cart.reduce((s, i) => s + i.qty, 0);
-      document.getElementById("cartCount").textContent = n;
-      const nb = document.getElementById("navBadge");
-      if (nb) { nb.style.display = n > 0 ? "flex" : "none";
-        nb.textContent = n; }
-    }
-
-    function renderCart() {
-      const el = document.getElementById("cartContent");
-      const sm = document.getElementById("cartSummary");
-      const cw = document.getElementById("chkWrap");
-      if (!cart.length) {
-        if (el) el.innerHTML =
-          `<div class="cart-empty"><i class="fas fa-bag-shopping"></i><h3>CART IS EMPTY</h3><p>Go to Menu and tap ORDER to add items!</p></div>`;
-        if (sm) sm.style.display = "none";
-        if (cw) cw.innerHTML = "";
-        return;
-      }
-      if (el) {
-        el.innerHTML = `<div class="cart-list">${cart.map(it => `
-            <div class="cart-item">
-              <img class="ci-img" src="${it.img}" onerror="this.src='https://placehold.co/100x100/fef0e6/f2622e?text=🔥'">
-              <div class="ci-info">
-                <div class="ci-name">${it.name}</div>
-                <div class="ci-unit">${fmt(it.price)} each</div>
-                <div class="qty-row">
-                  <button class="qty-btn" onclick="updateQty(${it.id},-1)">−</button>
-                  <span class="qty-num">${it.qty}</span>
-                  <button class="qty-btn" onclick="updateQty(${it.id},1)">+</button>
+    <!-- TOP BAR & HERO -->
+    <header class="top-bar">
+        <div class="top-bar-inner">
+            <div class="brand">
+                <img class="brand-logo" src="logo.png" alt="Patogrills Logo" onerror="this.style.display='none';document.getElementById('lf').style.display='flex';">
+                <div class="brand-logo-fb" id="lf">🔥</div>
+                <div class="brand-text">
+                    <span class="brand-name">Patogrills</span>
+                    <span class="brand-sub">Thrills Of The Grills</span>
                 </div>
-              </div>
-              <div class="ci-price">${fmt(it.price * it.qty)}</div>
             </div>
-          `).join("")}</div>`;
-      }
-      const isDelivery = OT === "Delivery";
-      document.getElementById("sSub").textContent = fmt(sub());
-      document.getElementById("dRow").style.display = isDelivery && cart.length ? "flex" : "none";
-      document.getElementById("sTotal").textContent = fmt(tot());
-      if (sm) sm.style.display = "block";
-      if (cw) cw.innerHTML = `<button class="wa-btn" onclick="goTo('order')"><i class="fas fa-receipt"></i> FILL ORDER DETAILS</button>`;
-    }
+            <button class="cart-pill" onclick="goTo('cart')" id="cartPill">
+                <i class="fas fa-bag-shopping"></i> CART <span class="cnt" id="cartCount">0</span>
+            </button>
+        </div>
+    </header>
 
-    // ============================================================
-    // 7. ORDER TYPE & LOCATION (unchanged)
-    // ============================================================
-    window.selOT = function(type) {
-      OT = type;
-      document.getElementById("od").classList.toggle("sel", type === "Delivery");
-      document.getElementById("op").classList.toggle("sel", type === "Pickup");
-      const addrWrap = document.getElementById("addrWrap");
-      if (type === "Delivery") {
-        addrWrap.classList.remove("hidden-address");
-        document.getElementById("addressLabel").innerHTML = 'Delivery Address <span style="color:var(--fire);">*</span>';
-      } else {
-        addrWrap.classList.add("hidden-address");
-      }
-      renderCart();
-      updPreview();
-    };
+    <div class="hero">
+        <div class="hero-content">
+            <h1>FIRE &amp;<br><span>LAVOR</span></h1>
+            <p>FLAME-GRILLED · FRESH · BOLD</p>
+            <div class="hero-tag"><i class="fas fa-crown"></i> GOOD FOOD NO DEY RUSH</div>
+        </div>
+    </div>
 
-    function captureCustomerLocation() {
-      return new Promise((resolve, reject) => {
-        if (!navigator.geolocation) { reject(new Error("Geolocation not supported")); return; }
-        const statusDiv = document.getElementById("locationStatus");
-        if (statusDiv) statusDiv.innerHTML =
-          `<i class="fas fa-spinner fa-spin"></i> Getting your location (required for delivery)...`;
-        const timeoutId = setTimeout(() => {
-          statusDiv.innerHTML =
-            `⏰ Location request timed out. <button class="retry-location-btn" onclick="retryLocation()">Try again</button> or continue with address only.`;
-          reject(new Error("Timeout"));
-        }, 20000);
-        navigator.geolocation.getCurrentPosition(
-          (pos) => { clearTimeout(timeoutId); if (statusDiv) statusDiv.innerHTML =
-              `✅ Location captured! Rider will find you easily.`;
-            resolve({ lat: pos.coords.latitude, lng: pos.coords.longitude }); },
-          (err) => { clearTimeout(timeoutId); if (statusDiv) statusDiv.innerHTML =
-              `⚠️ Location permission denied. Please enable GPS for better delivery. <button class="retry-location-btn" onclick="retryLocation()">Retry</button>`;
-            reject(new Error("Location permission denied")); }, { enableHighAccuracy: true, timeout: 15000,
-            maximumAge: 0 }
-        );
-      });
-    }
+    <!-- PAGE: MENU -->
+    <div id="page-menu" class="page active">
+        <div class="cat-scroll">
+            <div class="cat-pill active" data-cat="ALL">ALL ITEMS</div>
+            <div class="cat-pill" data-cat="MAINS">🍝 MAINS</div>
+            <div class="cat-pill" data-cat="PROTEINS">🍗 PROTEINS</div>
+            <div class="cat-pill" data-cat="EXTRAS">🥗 EXTRAS</div>
+        </div>
+        <div id="menuContent">
+            <!-- MAINS -->
+            <div class="sec-title">MAINS</div>
+            <div class="menu-grid">
+                <div class="menu-card" data-cat="MAINS" data-id="1">
+                    <img class="menu-img" src="Spaghetti.jpg" onerror="this.src='https://placehold.co/400x250/fef0e6/f2622e?text=🔥'">
+                    <div class="menu-info">
+                        <div class="menu-name">Spaghetti</div>
+                        <div class="menu-desc">Classic pasta</div>
+                        <div class="menu-bottom">
+                            <div class="menu-price">₦1,500</div>
+                            <button class="order-btn" data-id="1"><i class="fas fa-shopping-cart"></i> ORDER</button>
+                        </div>
+                    </div>
+                </div>
+                <div class="menu-card" data-cat="MAINS" data-id="2">
+                    <img class="menu-img" src="chip.jpg" onerror="this.src='https://placehold.co/400x250/fef0e6/f2622e?text=🔥'">
+                    <div class="menu-info">
+                        <div class="menu-name">Chips (Fries)</div>
+                        <div class="menu-desc">Crispy fries</div>
+                        <div class="menu-bottom">
+                            <div class="menu-price">₦1,500</div>
+                            <button class="order-btn" data-id="2"><i class="fas fa-shopping-cart"></i> ORDER</button>
+                        </div>
+                    </div>
+                </div>
+                <div class="menu-card" data-cat="MAINS" data-id="3">
+                    <img class="menu-img" src="shawarma.jpg" onerror="this.src='https://placehold.co/400x250/fef0e6/f2622e?text=🔥'">
+                    <div class="menu-info">
+                        <div class="menu-name">Sharp Wrap</div>
+                        <div class="menu-desc">Shawarma wrap</div>
+                        <div class="menu-bottom">
+                            <div class="menu-price">₦3,500</div>
+                            <button class="order-btn" data-id="3"><i class="fas fa-shopping-cart"></i> ORDER</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
 
-    window.retryLocation = async () => {
-      const statusDiv = document.getElementById("locationStatus");
-      statusDiv.innerHTML = `<i class="fas fa-spinner fa-spin"></i> Retrying location...`;
-      try {
-        await captureCustomerLocation();
-        statusDiv.innerHTML = `✅ Location captured! You can now send your order.`;
-        toast("Location obtained!");
-      } catch (e) {
-        statusDiv.innerHTML = `⚠️ Still unable to get location. You can still place order – driver will call you.`;
-      }
-    };
+            <!-- PROTEINS -->
+            <div class="sec-title">PROTEINS</div>
+            <div class="menu-grid">
+                <div class="menu-card" data-cat="PROTEINS" data-id="4">
+                    <img class="menu-img" src="turk.jpg" onerror="this.src='https://placehold.co/400x250/fef0e6/f2622e?text=🔥'">
+                    <div class="menu-info">
+                        <div class="menu-name">Sabi Talk Turkey</div>
+                        <div class="menu-desc">Jumbo turkey</div>
+                        <div class="menu-bottom">
+                            <div class="menu-price">₦6,000</div>
+                            <button class="order-btn" data-id="4"><i class="fas fa-shopping-cart"></i> ORDER</button>
+                        </div>
+                    </div>
+                </div>
+                <div class="menu-card" data-cat="PROTEINS" data-id="5">
+                    <img class="menu-img" src="trk.jpg" onerror="this.src='https://placehold.co/400x250/fef0e6/f2622e?text=🔥'">
+                    <div class="menu-info">
+                        <div class="menu-name">Talkless Turkey</div>
+                        <div class="menu-desc">Small turkey</div>
+                        <div class="menu-bottom">
+                            <div class="menu-price">₦4,000</div>
+                            <button class="order-btn" data-id="5"><i class="fas fa-shopping-cart"></i> ORDER</button>
+                        </div>
+                    </div>
+                </div>
+                <div class="menu-card" data-cat="PROTEINS" data-id="6">
+                    <img class="menu-img" src="chick.jpg" onerror="this.src='https://placehold.co/400x250/fef0e6/f2622e?text=🔥'">
+                    <div class="menu-info">
+                        <div class="menu-name">Big Chicken</div>
+                        <div class="menu-desc">Full chicken</div>
+                        <div class="menu-bottom">
+                            <div class="menu-price">₦5,000</div>
+                            <button class="order-btn" data-id="6"><i class="fas fa-shopping-cart"></i> ORDER</button>
+                        </div>
+                    </div>
+                </div>
+                <div class="menu-card" data-cat="PROTEINS" data-id="7">
+                    <img class="menu-img" src="chken.jpg" onerror="this.src='https://placehold.co/400x250/fef0e6/f2622e?text=🔥'">
+                    <div class="menu-info">
+                        <div class="menu-name">Small Chicken</div>
+                        <div class="menu-desc">Half chicken</div>
+                        <div class="menu-bottom">
+                            <div class="menu-price">₦3,500</div>
+                            <button class="order-btn" data-id="7"><i class="fas fa-shopping-cart"></i> ORDER</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
 
-    // ============================================================
-    // 8. SAVE ORDER TO RTDB (unchanged)
-    // ============================================================
-    async function saveOrderToRTDB(customerCoords) {
-      if (!cart.length) { toast("Cart empty"); return false; }
-      if (!currentOrderId) refreshOrderId();
-      const name = document.getElementById("name").value.trim();
-      const phone = document.getElementById("phone").value.trim();
-      const address = document.getElementById("address").value.trim();
-      const notes = document.getElementById("notes").value.trim();
-      if (!name || !phone) { toast("❌ Please fill name and phone"); return false; }
-      if (OT === "Delivery" && !address) { toast("📍 Enter delivery address"); return false; }
+            <!-- EXTRAS -->
+            <div class="sec-title">EXTRAS</div>
+            <div class="menu-grid">
+                <div class="menu-card" data-cat="EXTRAS" data-id="8">
+                    <img class="menu-img" src="suss.png" onerror="this.src='https://placehold.co/400x250/fef0e6/f2622e?text=🔥'">
+                    <div class="menu-info">
+                        <div class="menu-name">Sausage</div>
+                        <div class="menu-desc">Smoky sausage</div>
+                        <div class="menu-bottom">
+                            <div class="menu-price">₦500</div>
+                            <button class="order-btn" data-id="8"><i class="fas fa-shopping-cart"></i> ORDER</button>
+                        </div>
+                    </div>
+                </div>
+                <div class="menu-card" data-cat="EXTRAS" data-id="9">
+                    <img class="menu-img" src="salad.jpg" onerror="this.src='https://placehold.co/400x250/fef0e6/f2622e?text=🔥'">
+                    <div class="menu-info">
+                        <div class="menu-name">Fresh Salad</div>
+                        <div class="menu-desc">Veggie mix</div>
+                        <div class="menu-bottom">
+                            <div class="menu-price">₦700</div>
+                            <button class="order-btn" data-id="9"><i class="fas fa-shopping-cart"></i> ORDER</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
 
-      for (const cartItem of cart) {
-        const menuItem = menuItems.find(m => m.id === cartItem.id);
-        if (!menuItem || menuItem.stock < cartItem.qty) {
-          toast(`❌ "${cartItem.name}" stock insufficient. Please update your cart.`);
-          return false;
+        <!-- Google Reviews -->
+        <div class="g-review-wrap">
+            <div class="g-review-header"><i class="fab fa-google"></i> Google Reviews</div>
+            <div class="rating-score">
+                <div class="rating-stars"><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star-half-alt"></i></div>
+                <span style="font-weight:800;">4.9 ★</span><span class="g-badge">10+ reviews</span>
+            </div>
+            <div class="review-card">
+                <div class="reviewer"><i class="fas fa-user-circle"></i> <strong>Iwelumo Rita.</strong> <span style="font-size:0.7rem; color:#aaa; margin-left:6px;">a year ago</span></div>
+                <div class="time-price">Takeaway | Dinner | ₦4,000–6,000</div>
+                <div class="rev-stars">★★★★★</div>
+                <div class="rev-text">“The very best grill spot in Delta state. I can recommend 100%”</div>
+                <div class="rating-detail">Food: 5/5 | Service: 5/5 | Atmosphere: 5/5</div>
+            </div>
+            <div class="review-card">
+                <div class="reviewer"><i class="fas fa-user-circle"></i> <strong>Chibuzor Olamilekan.</strong> <span style="font-size:0.7rem; color:#aaa; margin-left:6px;">8 months ago</span></div>
+                <div class="time-price">Delivery | Lunch | ₦3,000–5,000</div>
+                <div class="rev-stars">★★★★★</div>
+                <div class="rev-text">“It’s the best stir-fry pasta on that side of town”</div>
+                <div class="rating-detail">Food: 5/5 | Service: 5/5 | Atmosphere: 5/5</div>
+            </div>
+            <div class="review-card">
+                <div class="reviewer"><i class="fas fa-user-circle"></i> <strong>Idosi Talent.</strong> <span style="font-size:0.7rem; color:#aaa; margin-left:6px;">2 weeks ago</span></div>
+                <div class="time-price">Takeaway | Dinner | ₦4,000–6,000</div>
+                <div class="rev-stars">★★★★★</div>
+                <div class="rev-text">“The boy de try 😊😊<br>Plus na my destiny helper”</div>
+                <div class="rating-detail">Food: 5/5 | Service: 5/5 | Atmosphere: 5/5</div>
+            </div>
+            <a class="g-review-btn" href="https://search.google.com/local/writereview?placeid=ChIJN6xYtU_uShARlQHxr2ANz8Q" target="_blank" rel="noopener noreferrer"><i class="fab fa-google"></i> ✍️ Write a review on Google</a>
+            <p style="font-size: .7rem; color: var(--text-muted); text-align: center; margin-top: 14px;">⭐ Your feedback fuels our fire — share your experience!</p>
+        </div>
+
+        <div class="social-sec">
+            <a href="https://www.tiktok.com/@patogrills1" target="_blank" rel="noopener noreferrer" class="soc-btn"><i class="fab fa-tiktok"></i> @patogrills1</a>
+            <a href="https://www.instagram.com/patogrills" target="_blank" rel="noopener noreferrer" class="soc-btn"><i class="fab fa-instagram"></i> @patogrills</a>
+            <a href="https://www.facebook.com/patogrills" target="_blank" rel="noopener noreferrer" class="soc-btn"><i class="fab fa-facebook-f"></i> Patogrills</a>
+        </div>
+    </div>
+
+    <!-- PAGE: CART -->
+    <div id="page-cart" class="page">
+        <div class="sec-title"><i class="fas fa-bag-shopping" style="color:var(--fire);"></i> Your Cart</div>
+        <div id="cartContent"></div>
+        <div id="cartSummary" class="order-summary" style="display:none;">
+            <div class="sum-row"><span>Subtotal</span><span id="sSub">₦0</span></div>
+            <div class="sum-row" id="dRow"><span>Delivery fee</span><span class="ft">+₦1,000</span></div>
+            <div class="sum-row tot"><span>Total</span><span id="sTotal">₦0</span></div>
+        </div>
+        <div style="margin-top:14px;" id="chkWrap"></div>
+    </div>
+
+    <!-- PAGE: ORDER -->
+    <div id="page-order" class="page">
+        <div class="sec-title"><i class="fas fa-receipt"></i> Your Details</div>
+        <div id="orderIdBanner" class="order-id-banner">
+            <div class="oid-left"><span class="oid-label">Your Order ID (Tracking Number)</span><span class="oid-value" id="orderIdDisplay">—</span><span class="oid-tip">Save this ID to track your delivery</span></div>
+            <button class="oid-copy-btn" onclick="copyOrderId()"><i class="fas fa-copy"></i> COPY</button>
+        </div>
+        <div class="form-sec">
+            <h3><i class="fas fa-user-circle"></i> Personal Info</h3>
+            <div class="iw"><label>Full Name <span style="color:var(--fire);">*</span></label><input type="text" id="name" placeholder="Your name"></div>
+            <div class="iw"><label>Phone Number <span style="color:var(--fire);">*</span></label><input type="tel" id="phone" placeholder="080xxxxxxxx"></div>
+        </div>
+        <div class="form-sec">
+            <h3><i class="fas fa-truck"></i> Order Type</h3>
+            <div class="ot-grid">
+                <div class="ot-opt sel" id="od" onclick="selOT('Delivery')"><i class="fas fa-truck"></i><span>Delivery</span><small>+₦1,000 fee</small></div>
+                <div class="ot-opt" id="op" onclick="selOT('Pickup')"><i class="fas fa-store"></i><span>Pickup</span><small>No fee</small></div>
+            </div>
+            <div id="addrWrap" class="iw"><label id="addressLabel">Delivery Address <span style="color:var(--fire);">*</span></label><textarea id="address" rows="2" placeholder="Street, landmark, building name..."></textarea></div>
+            <div class="iw"><label>Special Notes (optional)</label><textarea id="notes" rows="2" placeholder="Extra spice, no onion..."></textarea></div>
+            <div id="locationStatus" style="font-size:0.75rem; margin-top:6px; text-align:center; color:var(--text-muted);"></div>
+        </div>
+        <div class="form-sec">
+            <h3><i class="fab fa-whatsapp"></i> Order Preview</h3>
+            <div id="preview" class="preview-card">✨ Your order summary will appear here.</div>
+            <a id="sendLink" class="wa-btn" href="#"><i class="fab fa-whatsapp"></i> SEND ORDER ON WHATSAPP</a>
+        </div>
+    </div>
+
+    <!-- PAGE: TRACK -->
+    <div id="page-track" class="page">
+        <div class="sec-title"><i class="fas fa-map-marked-alt"></i> Track Order</div>
+        <div class="track-toggle-bar">
+            <button class="track-toggle-btn active-toggle" id="togglePickupBtn">📍 Pickup Spot</button>
+            <button class="track-toggle-btn" id="toggleDeliveryTrackBtn">🚚 Delivery Tracking</button>
+        </div>
+        <div id="pickupPanel" class="track-panel">
+            <div><i class="fas fa-store" style="color:var(--fire);"></i><h3>Find Our Spot</h3></div>
+            <div class="map-container"><iframe src="https://maps.google.com/?q=Patogrills+Abraka+Delta+State+Nigeria&output=embed" title="Patogrills pickup location"></iframe></div>
+            <div><a href="https://www.google.com/maps/dir/?api=1&destination=Patogrills+Abraka+Delta+State+Nigeria" target="_blank" class="dir-btn-map">Get Directions</a></div>
+            <p><i class="fas fa-location-dot"></i> Campus 4 Road, Opposite Oma's Hostel, Abraka — Delta State</p>
+        </div>
+        <div id="deliveryPanel" class="track-panel hidden-panel">
+            <h3>Track Your Delivery</h3>
+            <p>Enter your Order ID (Tracking Number) to see rider's live location</p>
+            <div class="track-input-group">
+                <input type="text" id="trackingIdInput" placeholder="PAT-YYYYMMDD-XXXX">
+                <button id="trackOrderBtn" class="track-btn">Track</button>
+            </div>
+            <div id="trackStatusResult" class="status-box" style="display:none;"></div>
+            <div id="liveTrackingMap" style="display:none;"></div>
+        </div>
+    </div>
+
+    <!-- BOTTOM NAV -->
+    <nav class="bot-nav">
+        <div class="nav-inner">
+            <button class="ni active" id="nav-menu" onclick="goTo('menu')"><i class="fas fa-utensils"></i><span>Menu</span></button>
+            <button class="ni nc" id="nav-cart" onclick="goTo('cart')">
+                <div class="nb"><i class="fas fa-bag-shopping"></i></div>
+                <span>Cart</span>
+                <div class="n-badge" id="navBadge" style="display:none;">0</div>
+            </button>
+            <button class="ni" id="nav-order" onclick="goTo('order')"><i class="fas fa-paper-plane"></i><span>Order</span></button>
+            <button class="ni" id="nav-track" onclick="goTo('track')"><i class="fas fa-map-marked-alt"></i><span>Track</span></button>
+        </div>
+    </nav>
+
+    <div class="toast" id="toast"></div>
+    <div class="foot-txt">🔥 Best Grill spot in Abraka · <span class="rider-trigger" onclick="openRiderModal()">Rider Portal</span></div>
+    <div id="riderModal" class="rider-modal"></div>
+
+    <script>
+        // ============================================================
+        // 1. FIREBASE INIT
+        // ============================================================
+        const firebaseConfig = {
+            apiKey: "AIzaSyDNZUtiUoEuV6cqF90144wqwsGAFERnsuw",
+            authDomain: "tracking-61ea4.firebaseapp.com",
+            databaseURL: "https://tracking-61ea4-default-rtdb.europe-west1.firebasedatabase.app",
+            projectId: "tracking-61ea4",
+            storageBucket: "tracking-61ea4.firebasestorage.app",
+            appId: "1:397920553801:web:8326ae436c7fa169a46898"
+        };
+        firebase.initializeApp(firebaseConfig);
+        firebase.database().setPersistenceEnabled(false);
+        const rtdb = firebase.database();
+
+        // ============================================================
+        // 2. STATIC MENU DATA
+        // ============================================================
+        const menuItems = [
+            { id: 1, name: "Spaghetti", price: 1500, desc: "Classic pasta", cat: "MAINS", img: "Spaghetti.jpg",
+            stock: 99 },
+            { id: 2, name: "Chips (Fries)", price: 1500, desc: "Crispy fries", cat: "MAINS", img: "chip.jpg",
+            stock: 99 },
+            { id: 3, name: "Sharp Wrap", price: 3500, desc: "Shawarma wrap", cat: "MAINS", img: "shawarma.jpg",
+            stock: 99 },
+            { id: 4, name: "Sabi Talk Turkey", price: 6000, desc: "Jumbo turkey", cat: "PROTEINS", img: "turk.jpg",
+                stock: 99 },
+            { id: 5, name: "Talkless Turkey", price: 4000, desc: "Small turkey", cat: "PROTEINS", img: "trk.jpg",
+                stock: 99 },
+            { id: 6, name: "Big Chicken", price: 5000, desc: "Full chicken", cat: "PROTEINS", img: "chick.jpg",
+            stock: 99 },
+            { id: 7, name: "Small Chicken", price: 3500, desc: "Half chicken", cat: "PROTEINS", img: "chken.jpg",
+            stock: 99 },
+            { id: 8, name: "Sausage", price: 500, desc: "Smoky sausage", cat: "EXTRAS", img: "suss.png", stock: 99 },
+            { id: 9, name: "Fresh Salad", price: 700, desc: "Veggie mix", cat: "EXTRAS", img: "salad.jpg", stock: 99 }
+        ];
+
+        // ============================================================
+        // 3. CART STATE
+        // ============================================================
+        let cart = [];
+        const FEE = 1000;
+        const PH = "2348029811578";
+        let OT = "Delivery";
+        let currentOrderId = null;
+        let trackMap = null,
+            routingControl = null,
+            trackOrderRef = null;
+
+        // ============================================================
+        // 4. HELPERS
+        // ============================================================
+        const fmt = n => "₦" + n.toLocaleString();
+
+        const toast = (m, isSuccess = true) => {
+            const t = document.getElementById("toast");
+            t.textContent = m;
+            t.classList.add("show");
+            setTimeout(() => t.classList.remove("show"), 2200);
+        };
+
+        function generateOrderId() {
+            const now = new Date();
+            return `PAT-${now.getFullYear()}${String(now.getMonth()+1).padStart(2,'0')}${String(now.getDate()).padStart(2,'0')}-${Math.floor(Math.random()*9000+1000)}`;
         }
-      }
 
-      const orderData = {
-        trackingId: currentOrderId,
-        customerName: name,
-        phone: phone,
-        orderType: OT,
-        address: OT === "Delivery" ? address : "Pickup order",
-        notes: notes || "",
-        items: cart.map(i => ({ id: i.id, name: i.name, price: i.price, quantity: i.qty, subtotal: i.price * i.qty })),
-        totalAmount: tot(),
-        paymentStatus: "Pending",
-        receiptIssued: false,
-        orderStatus: "pending",
-        timestamp: Date.now(),
-        createdAtFormatted: new Date().toLocaleString(),
-        customerLocation: (OT === "Delivery" && customerCoords) ? { latitude: customerCoords.lat,
-          longitude: customerCoords.lng, timestamp: Date.now() } : null,
-        stockProcessed: false
-      };
-      try {
-        await rtdb.ref('orders/' + currentOrderId).set(orderData);
-        toast("✅ Order saved! Admin will confirm payment and stock will be updated.");
-        return true;
-      } catch (e) { console.error(e);
-        toast("⚠️ Failed to save order"); return false; }
-    }
-
-    async function handleSendOrder(e) {
-      if (!cart.length) { e.preventDefault();
-        toast("Add items to cart first!"); return; }
-      const name = document.getElementById("name").value.trim();
-      const phone = document.getElementById("phone").value.trim();
-      if (!name || !phone) { e.preventDefault();
-        toast("Please fill name and phone"); return; }
-
-      if (OT === "Delivery") {
-        const address = document.getElementById("address").value.trim();
-        if (!address) { e.preventDefault();
-          toast("Please enter delivery address"); return; }
-        let coords = null;
-        try {
-          coords = await captureCustomerLocation();
-        } catch (err) {
-          const proceed = confirm(
-            "⚠️ We couldn't get your GPS location. Your order will still be delivered, but rider may call you for directions. Continue?"
-            );
-          if (!proceed) { e.preventDefault(); return; }
+        function refreshOrderId() {
+            currentOrderId = generateOrderId();
+            document.getElementById("orderIdDisplay").innerText = currentOrderId;
         }
-        await saveOrderToRTDB(coords);
-      } else {
-        await saveOrderToRTDB(null);
-      }
-      cart = [];
-      updBadge();
-      renderCart();
-      refreshOrderId();
-      updPreview();
-      toast("🎉 Order placed! Check WhatsApp for confirmation.");
-      goTo('order');
-    }
+        window.copyOrderId = () => {
+            if (currentOrderId) {
+                navigator.clipboard.writeText(currentOrderId);
+                toast("✅ Order ID copied");
+            }
+        };
 
-    // ============================================================
-    // 9. WHATSAPP PREVIEW (unchanged)
-    // ============================================================
-    function genMsg() {
-      if (!cart.length) return "Cart empty";
-      const lines = cart.map(i => `• ${i.qty} x ${i.name} — ${fmt(i.qty * i.price)}`).join("\n");
-      const nm = document.getElementById("name").value.trim() || "—";
-      const ph = document.getElementById("phone").value.trim() || "—";
-      const ad = document.getElementById("address").value.trim() || (OT === "Delivery" ? "—" : "Pickup order");
-      const nt = document.getElementById("notes").value.trim() || "—";
-      return `🍢 *PATO GRILLS ORDER* 🍢\n\n🔖 *Order ID:* ${currentOrderId}\n💳 *Payment:* Pending (Pay on ${OT === "Delivery" ? "delivery" : "pickup"})\n\n📦 *Items:*\n${lines}\n${OT === "Delivery" ? `🚚 Delivery fee: +₦1,000\n` : `📦 Pickup Order (no delivery fee)\n`}────────────────\n💰 *Total:* ${fmt(tot())}\n\n👤 *Name:* ${nm}\n📞 *Phone:* ${ph}\n📍 *${OT === "Delivery" ? "Address" : "Order Type"}:* ${ad}\n📝 *Notes:* ${nt}\n\n🔥 *Patogrills — Good Food No Dey Rush*`;
-    }
-
-    function updPreview() {
-      document.getElementById("preview").textContent = genMsg();
-      const lk = document.getElementById("sendLink");
-      if (cart.length && currentOrderId) lk.href = `https://wa.me/${PH}?text=${encodeURIComponent(genMsg())}`;
-      else lk.href = "#";
-    }
-
-    // ============================================================
-    // 10. NAVIGATION
-    // ============================================================
-    function goTo(p) {
-      document.querySelectorAll('.page').forEach(x => x.classList.remove('active'));
-      document.querySelectorAll('.ni').forEach(x => x.classList.remove('active'));
-      document.getElementById('page-' + p).classList.add('active');
-      document.getElementById('nav-' + p).classList.add('active');
-      if (p === 'order') { if (!currentOrderId) refreshOrderId();
-        updPreview(); }
-      if (p === 'cart') renderCart();
-      window.scrollTo({ top: 0 });
-    }
-    window.goTo = goTo;
-
-    // ============================================================
-    // 11. CATEGORY FILTER (static HTML with JS show/hide)
-    // ============================================================
-    function filterMenu(category) {
-      const allCards = document.querySelectorAll('.menu-card');
-      const secTitles = document.querySelectorAll('.sec-title');
-      allCards.forEach(card => {
-        const cat = card.getAttribute('data-cat');
-        card.style.display = (category === 'ALL' || cat === category) ? 'flex' : 'none';
-      });
-      secTitles.forEach(title => {
-        const parent = title.parentElement;
-        const cardsInSection = parent.querySelectorAll('.menu-card');
-        let anyVisible = false;
-        cardsInSection.forEach(c => { if (c.style.display !== 'none') anyVisible = true; });
-        title.style.display = anyVisible ? 'flex' : 'none';
-      });
-    }
-
-    document.querySelectorAll('.cat-pill').forEach(p => {
-      p.addEventListener('click', function() {
-        document.querySelectorAll('.cat-pill').forEach(x => x.classList.remove('active'));
-        this.classList.add('active');
-        filterMenu(this.dataset.cat);
-      });
-    });
-    filterMenu('ALL');
-
-    // ============================================================
-    // 12. TRACKING (unchanged)
-    // ============================================================
-    function initTrackMap(lat, lng) {
-      const container = document.getElementById("liveTrackingMap");
-      if (!container) return;
-      container.style.display = "block";
-      if (trackMap) trackMap.remove();
-      trackMap = L.map(container).setView([lat, lng], 14);
-      L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png').addTo(trackMap);
-      L.marker([lat, lng], { icon: L.divIcon({ html: '📍', iconSize: [30, 30] }) }).addTo(trackMap).bindPopup(
-        'Your location');
-    }
-
-    function updateTracking(riderLat, riderLng, custLat, custLng) {
-      if (!trackMap) initTrackMap(custLat, custLng);
-      if (routingControl && trackMap) trackMap.removeControl(routingControl);
-      routingControl = L.Routing.control({
-        waypoints: [L.latLng(riderLat, riderLng), L.latLng(custLat, custLng)],
-        router: L.Routing.osrmv1({ serviceUrl: 'https://router.project-osrm.org/route/v1' }),
-        show: false,
-        lineOptions: { styles: [{ color: '#f2622e', weight: 4 }] }
-      }).addTo(trackMap);
-      document.getElementById("trackStatusResult").innerHTML =
-        `<i class="fas fa-truck"></i> Rider en route · ETA ~${Math.floor(Math.random()*20+5)} min`;
-    }
-
-    const trackBtn = document.getElementById("trackOrderBtn");
-    if (trackBtn) trackBtn.addEventListener("click", () => {
-      const id = document.getElementById("trackingIdInput").value.trim();
-      if (!id) { toast("Enter Order ID"); return; }
-      if (trackOrderRef) trackOrderRef.off();
-      trackOrderRef = rtdb.ref('orders/' + id);
-      trackOrderRef.on('value', (snap) => {
-        const order = snap.val();
-        const statusDiv = document.getElementById("trackStatusResult");
-        if (!order) {
-          if (statusDiv) { statusDiv.innerHTML = "❌ Order not found";
-            statusDiv.style.display = "block"; }
-          return;
+        // ============================================================
+        // 5. VISITOR TRACKING
+        // ============================================================
+        function trackVisitor() {
+            const today = new Date().toDateString();
+            const storageKey = 'pg_visitor_tracked';
+            const lastTrackedDate = localStorage.getItem(storageKey);
+            if (lastTrackedDate !== today) {
+                localStorage.setItem(storageKey, today);
+                const todayVisitorsRef = rtdb.ref('visitors/' + today.replace(/\s/g, '_'));
+                todayVisitorsRef.transaction(current => (current || 0) + 1);
+                const totalRef = rtdb.ref('visitors/total');
+                totalRef.transaction(current => (current || 0) + 1);
+            }
         }
-        if (order.orderType !== 'Delivery') {
-          if (statusDiv) { statusDiv.innerHTML = "⚠️ Pickup order - no live tracking available";
-            statusDiv.style.display = "block"; }
-          return;
+        trackVisitor();
+        document.addEventListener('visibilitychange', () => { if (!document.hidden) trackVisitor(); });
+
+        // ============================================================
+        // 6. CART FUNCTIONS — FIXED! 
+        //    Now calls renderCart() so the cart page updates immediately.
+        // ============================================================
+        window.addItem = function(id) {
+            const item = menuItems.find(i => i.id === id);
+            if (!item) {
+                toast("❌ Item not found");
+                return;
+            }
+            if (item.stock === 0) {
+                toast(`❌ "${item.name}" is out of stock!`);
+                return;
+            }
+            const ex = cart.find(i => i.id === id);
+            if (ex) {
+                if (ex.qty + 1 > item.stock) {
+                    toast(`⚠️ Only ${item.stock} left in stock!`);
+                    return;
+                }
+                ex.qty++;
+            } else {
+                cart.push({ ...item,
+                    qty: 1 });
+            }
+
+            // --- UPDATE ALL UI ---
+            updBadge();
+            renderCart(); // <-- NOW the cart page content updates immediately!
+            updPreview();
+            toast("✅ " + item.name + " added to cart!");
+
+            // --- Visual feedback on the menu card ---
+            const card = document.querySelector(`.menu-card[data-id="${id}"]`);
+            if (card) {
+                card.classList.remove('just-added');
+                // force reflow
+                void card.offsetWidth;
+                card.classList.add('just-added');
+                setTimeout(() => card.classList.remove('just-added'), 800);
+            }
+
+            // --- Pulse the cart pill badge ---
+            const pill = document.getElementById('cartPill');
+            if (pill) {
+                pill.classList.remove('pulse');
+                void pill.offsetWidth;
+                pill.classList.add('pulse');
+                setTimeout(() => pill.classList.remove('pulse'), 400);
+            }
+            const navBadge = document.getElementById('navBadge');
+            if (navBadge && navBadge.style.display !== 'none') {
+                navBadge.classList.remove('pulse');
+                void navBadge.offsetWidth;
+                navBadge.classList.add('pulse');
+                setTimeout(() => navBadge.classList.remove('pulse'), 400);
+            }
+        };
+
+        window.updateQty = (id, d) => {
+            const idx = cart.findIndex(i => i.id === id);
+            if (idx === -1) return;
+            const cartItem = cart[idx];
+            const menuItem = menuItems.find(m => m.id === id);
+            if (d > 0 && menuItem && (cartItem.qty + d > menuItem.stock)) {
+                toast(`⚠️ Only ${menuItem.stock} left in stock!`);
+                return;
+            }
+            cart[idx].qty += d;
+            if (cart[idx].qty <= 0) cart.splice(idx, 1);
+            updBadge();
+            renderCart();
+            updPreview();
+        };
+
+        const sub = () => cart.reduce((s, i) => s + i.price * i.qty, 0);
+        const tot = () => sub() + (OT === "Delivery" && cart.length ? FEE : 0);
+
+        function updBadge() {
+            const n = cart.reduce((s, i) => s + i.qty, 0);
+            document.getElementById("cartCount").textContent = n;
+            const nb = document.getElementById("navBadge");
+            if (nb) {
+                nb.style.display = n > 0 ? "flex" : "none";
+                nb.textContent = n;
+            }
         }
-        const cust = order.customerLocation;
-        if (!cust) {
-          if (statusDiv) { statusDiv.innerHTML =
-              "📍 Customer location missing - please ensure location was shared when ordering";
-            statusDiv.style.display = "block"; }
-          return;
+
+        function renderCart() {
+            const el = document.getElementById("cartContent");
+            const sm = document.getElementById("cartSummary");
+            const cw = document.getElementById("chkWrap");
+            if (!cart.length) {
+                if (el) el.innerHTML =
+                    `<div class="cart-empty"><i class="fas fa-bag-shopping"></i><h3>CART IS EMPTY</h3><p>Go to Menu and tap ORDER to add items!</p></div>`;
+                if (sm) sm.style.display = "none";
+                if (cw) cw.innerHTML = "";
+                return;
+            }
+            if (el) {
+                el.innerHTML = `<div class="cart-list">${cart.map(it => `
+                        <div class="cart-item">
+                            <img class="ci-img" src="${it.img}" onerror="this.src='https://placehold.co/100x100/fef0e6/f2622e?text=🔥'">
+                            <div class="ci-info">
+                                <div class="ci-name">${it.name}</div>
+                                <div class="ci-unit">${fmt(it.price)} each</div>
+                                <div class="qty-row">
+                                    <button class="qty-btn" onclick="updateQty(${it.id},-1)">−</button>
+                                    <span class="qty-num">${it.qty}</span>
+                                    <button class="qty-btn" onclick="updateQty(${it.id},1)">+</button>
+                                </div>
+                            </div>
+                            <div class="ci-price">${fmt(it.price * it.qty)}</div>
+                        </div>
+                    `).join("")}</div>`;
+            }
+            const isDelivery = OT === "Delivery";
+            document.getElementById("sSub").textContent = fmt(sub());
+            document.getElementById("dRow").style.display = isDelivery && cart.length ? "flex" : "none";
+            document.getElementById("sTotal").textContent = fmt(tot());
+            if (sm) sm.style.display = "block";
+            if (cw) cw.innerHTML =
+                `<button class="wa-btn" onclick="goTo('order')"><i class="fas fa-receipt"></i> FILL ORDER DETAILS</button>`;
         }
-        const rider = order.riderLocation;
-        if (rider && rider.latitude) {
-          updateTracking(rider.latitude, rider.longitude, cust.latitude, cust.longitude);
-          if (statusDiv) statusDiv.style.display = "block";
-        } else {
-          if (statusDiv) { statusDiv.innerHTML = "⏳ Waiting for rider to accept and start delivery...";
-            statusDiv.style.display = "block"; }
+
+        // ============================================================
+        // 7. ORDER TYPE & LOCATION
+        // ============================================================
+        window.selOT = function(type) {
+            OT = type;
+            document.getElementById("od").classList.toggle("sel", type === "Delivery");
+            document.getElementById("op").classList.toggle("sel", type === "Pickup");
+            const addrWrap = document.getElementById("addrWrap");
+            if (type === "Delivery") {
+                addrWrap.classList.remove("hidden-address");
+                document.getElementById("addressLabel").innerHTML = 'Delivery Address <span style="color:var(--fire);">*</span>';
+            } else {
+                addrWrap.classList.add("hidden-address");
+            }
+            renderCart();
+            updPreview();
+        };
+
+        function captureCustomerLocation() {
+            return new Promise((resolve, reject) => {
+                if (!navigator.geolocation) { reject(new Error("Geolocation not supported")); return; }
+                const statusDiv = document.getElementById("locationStatus");
+                if (statusDiv) statusDiv.innerHTML =
+                    `<i class="fas fa-spinner fa-spin"></i> Getting your location (required for delivery)...`;
+                const timeoutId = setTimeout(() => {
+                    statusDiv.innerHTML =
+                        `⏰ Location request timed out. <button class="retry-location-btn" onclick="retryLocation()">Try again</button> or continue with address only.`;
+                    reject(new Error("Timeout"));
+                }, 20000);
+                navigator.geolocation.getCurrentPosition(
+                    (pos) => {
+                        clearTimeout(timeoutId);
+                        if (statusDiv) statusDiv.innerHTML = `✅ Location captured! Rider will find you easily.`;
+                        resolve({ lat: pos.coords.latitude, lng: pos.coords.longitude });
+                    },
+                    (err) => {
+                        clearTimeout(timeoutId);
+                        if (statusDiv) statusDiv.innerHTML =
+                            `⚠️ Location permission denied. Please enable GPS for better delivery. <button class="retry-location-btn" onclick="retryLocation()">Retry</button>`;
+                        reject(new Error("Location permission denied"));
+                    }, { enableHighAccuracy: true, timeout: 15000, maximumAge: 0 }
+                );
+            });
         }
-      });
-    });
 
-    const togglePickup = document.getElementById("togglePickupBtn"),
-      toggleDelivery = document.getElementById("toggleDeliveryTrackBtn"),
-      pickupPanel = document.getElementById("pickupPanel"),
-      deliveryPanel = document.getElementById("deliveryPanel");
-    if (togglePickup && toggleDelivery && pickupPanel && deliveryPanel) {
-      togglePickup.addEventListener("click", () => {
-        pickupPanel.classList.remove("hidden-panel");
-        deliveryPanel.classList.add("hidden-panel");
-        togglePickup.classList.add("active-toggle");
-        toggleDelivery.classList.remove("active-toggle");
-      });
-      toggleDelivery.addEventListener("click", () => {
-        deliveryPanel.classList.remove("hidden-panel");
-        pickupPanel.classList.add("hidden-panel");
-        toggleDelivery.classList.add("active-toggle");
-        togglePickup.classList.remove("active-toggle");
-      });
-    }
+        window.retryLocation = async () => {
+            const statusDiv = document.getElementById("locationStatus");
+            statusDiv.innerHTML = `<i class="fas fa-spinner fa-spin"></i> Retrying location...`;
+            try {
+                await captureCustomerLocation();
+                statusDiv.innerHTML = `✅ Location captured! You can now send your order.`;
+                toast("Location obtained!");
+            } catch (e) {
+                statusDiv.innerHTML = `⚠️ Still unable to get location. You can still place order – driver will call you.`;
+            }
+        };
 
-    // ============================================================
-    // 13. RIDER MODAL (unchanged)
-    // ============================================================
-    window.openRiderModal = () => {
-      const modal = document.getElementById("riderModal");
-      if (modal) {
-        modal.innerHTML =
-          `<div class="rider-modal-content"><div class="rider-close" onclick="closeRiderModal()">&times;</div><div class="rider-inner"><div class="rider-logo">RIDER PORTAL</div><div class="rider-field-label">PIN</div><input type="password" id="riderPinInput" class="rider-input" placeholder="Enter PIN"><button class="rider-btn" onclick="riderAuth()">Login</button><div id="riderMsg" style="color:#ef4444; margin-top:10px;"></div></div></div>`;
-        modal.classList.add("active");
-      }
-    };
-    window.closeRiderModal = () => { const modal = document.getElementById("riderModal"); if (modal) modal.classList
-        .remove("active"); };
-    window.riderAuth = () => {
-      const pinInput = document.getElementById("riderPinInput");
-      if (!pinInput) return;
-      const pin = pinInput.value;
-      if (pin === "pato2026") { alert("Rider access granted.");
-        closeRiderModal(); } else { const msgDiv = document.getElementById("riderMsg"); if (msgDiv) msgDiv
-          .innerText = "Invalid PIN - Access Denied"; }
-    };
+        // ============================================================
+        // 8. SAVE ORDER TO RTDB
+        // ============================================================
+        async function saveOrderToRTDB(customerCoords) {
+            if (!cart.length) { toast("Cart empty"); return false; }
+            if (!currentOrderId) refreshOrderId();
+            const name = document.getElementById("name").value.trim();
+            const phone = document.getElementById("phone").value.trim();
+            const address = document.getElementById("address").value.trim();
+            const notes = document.getElementById("notes").value.trim();
+            if (!name || !phone) { toast("❌ Please fill name and phone"); return false; }
+            if (OT === "Delivery" && !address) { toast("📍 Enter delivery address"); return false; }
 
-    // ============================================================
-    // 14. EVENT LISTENERS
-    // ============================================================
-    function setupEventListeners() {
-      document.getElementById("name")?.addEventListener("input", updPreview);
-      document.getElementById("phone")?.addEventListener("input", updPreview);
-      document.getElementById("address")?.addEventListener("input", updPreview);
-      document.getElementById("notes")?.addEventListener("input", updPreview);
-      document.getElementById("sendLink")?.addEventListener("click", handleSendOrder);
-    }
+            for (const cartItem of cart) {
+                const menuItem = menuItems.find(m => m.id === cartItem.id);
+                if (!menuItem || menuItem.stock < cartItem.qty) {
+                    toast(`❌ "${cartItem.name}" stock insufficient. Please update your cart.`);
+                    return false;
+                }
+            }
 
-    // ============================================================
-    // 15. ONBOARDING – FIXED!
-    // ============================================================
-    function initOnboarding() {
-      const ob = document.getElementById('onboarding');
-      // If already seen, hide immediately
-      if (localStorage.getItem('pg_ob2')) {
-        ob.classList.add('gone');
-        return;
-      }
+            const orderData = {
+                trackingId: currentOrderId,
+                customerName: name,
+                phone: phone,
+                orderType: OT,
+                address: OT === "Delivery" ? address : "Pickup order",
+                notes: notes || "",
+                items: cart.map(i => ({ id: i.id, name: i.name, price: i.price, quantity: i.qty, subtotal: i.price * i
+                        .qty })),
+                totalAmount: tot(),
+                paymentStatus: "Pending",
+                receiptIssued: false,
+                orderStatus: "pending",
+                timestamp: Date.now(),
+                createdAtFormatted: new Date().toLocaleString(),
+                customerLocation: (OT === "Delivery" && customerCoords) ? { latitude: customerCoords.lat,
+                    longitude: customerCoords.lng, timestamp: Date.now() } : null,
+                stockProcessed: false
+            };
+            try {
+                await rtdb.ref('orders/' + currentOrderId).set(orderData);
+                toast("✅ Order saved! Admin will confirm payment and stock will be updated.");
+                return true;
+            } catch (e) { console.error(e);
+                toast("⚠️ Failed to save order"); return false; }
+        }
 
-      const steps = ['os0', 'os1', 'os2', 'os3'];
-      const dots = ['d0', 'd1', 'd2', 'd3'];
-      let currentStep = 0;
-      const nextBtn = document.getElementById('obNext');
-      const skipBtn = document.getElementById('obSkip');
+        async function handleSendOrder(e) {
+            if (!cart.length) { e.preventDefault();
+                toast("Add items to cart first!"); return; }
+            const name = document.getElementById("name").value.trim();
+            const phone = document.getElementById("phone").value.trim();
+            if (!name || !phone) { e.preventDefault();
+                toast("Please fill name and phone"); return; }
 
-      function updateUI() {
-        steps.forEach((id, i) => {
-          const el = document.getElementById(id);
-          const dot = document.getElementById(dots[i]);
-          if (el) el.classList.toggle('on', i === currentStep);
-          if (dot) dot.classList.toggle('on', i === currentStep);
+            if (OT === "Delivery") {
+                const address = document.getElementById("address").value.trim();
+                if (!address) { e.preventDefault();
+                    toast("Please enter delivery address"); return; }
+                let coords = null;
+                try {
+                    coords = await captureCustomerLocation();
+                } catch (err) {
+                    const proceed = confirm(
+                        "⚠️ We couldn't get your GPS location. Your order will still be delivered, but rider may call you for directions. Continue?"
+                        );
+                    if (!proceed) { e.preventDefault(); return; }
+                }
+                await saveOrderToRTDB(coords);
+            } else {
+                await saveOrderToRTDB(null);
+            }
+            cart = [];
+            updBadge();
+            renderCart();
+            refreshOrderId();
+            updPreview();
+            toast("🎉 Order placed! Check WhatsApp for confirmation.");
+            goTo('order');
+        }
+
+        // ============================================================
+        // 9. WHATSAPP PREVIEW
+        // ============================================================
+        function genMsg() {
+            if (!cart.length) return "Cart empty";
+            const lines = cart.map(i => `• ${i.qty} x ${i.name} — ${fmt(i.qty * i.price)}`).join("\n");
+            const nm = document.getElementById("name").value.trim() || "—";
+            const ph = document.getElementById("phone").value.trim() || "—";
+            const ad = document.getElementById("address").value.trim() || (OT === "Delivery" ? "—" : "Pickup order");
+            const nt = document.getElementById("notes").value.trim() || "—";
+            return `🍢 *PATO GRILLS ORDER* 🍢\n\n🔖 *Order ID:* ${currentOrderId}\n💳 *Payment:* Pending (Pay on ${OT === "Delivery" ? "delivery" : "pickup"})\n\n📦 *Items:*\n${lines}\n${OT === "Delivery" ? `🚚 Delivery fee: +₦1,000\n` : `📦 Pickup Order (no delivery fee)\n`}────────────────\n💰 *Total:* ${fmt(tot())}\n\n👤 *Name:* ${nm}\n📞 *Phone:* ${ph}\n📍 *${OT === "Delivery" ? "Address" : "Order Type"}:* ${ad}\n📝 *Notes:* ${nt}\n\n🔥 *Patogrills — Good Food No Dey Rush*`;
+        }
+
+        function updPreview() {
+            document.getElementById("preview").textContent = genMsg();
+            const lk = document.getElementById("sendLink");
+            if (cart.length && currentOrderId) lk.href = `https://wa.me/${PH}?text=${encodeURIComponent(genMsg())}`;
+            else lk.href = "#";
+        }
+
+        // ============================================================
+        // 10. NAVIGATION
+        // ============================================================
+        function goTo(p) {
+            document.querySelectorAll('.page').forEach(x => x.classList.remove('active'));
+            document.querySelectorAll('.ni').forEach(x => x.classList.remove('active'));
+            document.getElementById('page-' + p).classList.add('active');
+            document.getElementById('nav-' + p).classList.add('active');
+            if (p === 'order') { if (!currentOrderId) refreshOrderId();
+                updPreview(); }
+            if (p === 'cart') renderCart();
+            window.scrollTo({ top: 0 });
+        }
+        window.goTo = goTo;
+
+        // ============================================================
+        // 11. CATEGORY FILTER
+        // ============================================================
+        function filterMenu(category) {
+            const allCards = document.querySelectorAll('.menu-card');
+            const secTitles = document.querySelectorAll('.sec-title');
+            allCards.forEach(card => {
+                const cat = card.getAttribute('data-cat');
+                card.style.display = (category === 'ALL' || cat === category) ? 'flex' : 'none';
+            });
+            secTitles.forEach(title => {
+                const parent = title.parentElement;
+                const cardsInSection = parent.querySelectorAll('.menu-card');
+                let anyVisible = false;
+                cardsInSection.forEach(c => { if (c.style.display !== 'none') anyVisible = true; });
+                title.style.display = anyVisible ? 'flex' : 'none';
+            });
+        }
+
+        document.querySelectorAll('.cat-pill').forEach(p => {
+            p.addEventListener('click', function() {
+                document.querySelectorAll('.cat-pill').forEach(x => x.classList.remove('active'));
+                this.classList.add('active');
+                filterMenu(this.dataset.cat);
+            });
         });
-        nextBtn.textContent = currentStep === 3 ? "LET'S EAT! 🔥" : "NEXT →";
-      }
+        filterMenu('ALL');
 
-      function goToStep(index) {
-        if (index >= steps.length) {
-          // Finish onboarding
-          ob.classList.add('fade-out');
-          setTimeout(() => {
-            ob.classList.add('gone');
-            localStorage.setItem('pg_ob2', '1');
-          }, 300);
-          return;
+        // ============================================================
+        // 12. TRACKING
+        // ============================================================
+        function initTrackMap(lat, lng) {
+            const container = document.getElementById("liveTrackingMap");
+            if (!container) return;
+            container.style.display = "block";
+            if (trackMap) trackMap.remove();
+            trackMap = L.map(container).setView([lat, lng], 14);
+            L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png').addTo(trackMap);
+            L.marker([lat, lng], { icon: L.divIcon({ html: '📍', iconSize: [30, 30] }) }).addTo(trackMap).bindPopup(
+                'Your location');
         }
-        currentStep = index;
-        updateUI();
-      }
 
-      function next() {
-        goToStep(currentStep + 1);
-      }
+        function updateTracking(riderLat, riderLng, custLat, custLng) {
+            if (!trackMap) initTrackMap(custLat, custLng);
+            if (routingControl && trackMap) trackMap.removeControl(routingControl);
+            routingControl = L.Routing.control({
+                waypoints: [L.latLng(riderLat, riderLng), L.latLng(custLat, custLng)],
+                router: L.Routing.osrmv1({ serviceUrl: 'https://router.project-osrm.org/route/v1' }),
+                show: false,
+                lineOptions: { styles: [{ color: '#f2622e', weight: 4 }] }
+            }).addTo(trackMap);
+            document.getElementById("trackStatusResult").innerHTML =
+                `<i class="fas fa-truck"></i> Rider en route · ETA ~${Math.floor(Math.random()*20+5)} min`;
+        }
 
-      function skip() {
-        ob.classList.add('fade-out');
-        setTimeout(() => {
-          ob.classList.add('gone');
-          localStorage.setItem('pg_ob2', '1');
-        }, 300);
-      }
+        const trackBtn = document.getElementById("trackOrderBtn");
+        if (trackBtn) trackBtn.addEventListener("click", () => {
+            const id = document.getElementById("trackingIdInput").value.trim();
+            if (!id) { toast("Enter Order ID"); return; }
+            if (trackOrderRef) trackOrderRef.off();
+            trackOrderRef = rtdb.ref('orders/' + id);
+            trackOrderRef.on('value', (snap) => {
+                const order = snap.val();
+                const statusDiv = document.getElementById("trackStatusResult");
+                if (!order) {
+                    if (statusDiv) { statusDiv.innerHTML = "❌ Order not found";
+                        statusDiv.style.display = "block"; }
+                    return;
+                }
+                if (order.orderType !== 'Delivery') {
+                    if (statusDiv) { statusDiv.innerHTML = "⚠️ Pickup order - no live tracking available";
+                        statusDiv.style.display = "block"; }
+                    return;
+                }
+                const cust = order.customerLocation;
+                if (!cust) {
+                    if (statusDiv) { statusDiv.innerHTML =
+                            "📍 Customer location missing - please ensure location was shared when ordering";
+                        statusDiv.style.display = "block"; }
+                    return;
+                }
+                const rider = order.riderLocation;
+                if (rider && rider.latitude) {
+                    updateTracking(rider.latitude, rider.longitude, cust.latitude, cust.longitude);
+                    if (statusDiv) statusDiv.style.display = "block";
+                } else {
+                    if (statusDiv) { statusDiv.innerHTML = "⏳ Waiting for rider to accept and start delivery...";
+                        statusDiv.style.display = "block"; }
+                }
+            });
+        });
 
-      // Remove any inline onclick and use addEventListener
-      nextBtn.addEventListener('click', next);
-      skipBtn.addEventListener('click', skip);
+        const togglePickup = document.getElementById("togglePickupBtn"),
+            toggleDelivery = document.getElementById("toggleDeliveryTrackBtn"),
+            pickupPanel = document.getElementById("pickupPanel"),
+            deliveryPanel = document.getElementById("deliveryPanel");
+        if (togglePickup && toggleDelivery && pickupPanel && deliveryPanel) {
+            togglePickup.addEventListener("click", () => {
+                pickupPanel.classList.remove("hidden-panel");
+                deliveryPanel.classList.add("hidden-panel");
+                togglePickup.classList.add("active-toggle");
+                toggleDelivery.classList.remove("active-toggle");
+            });
+            toggleDelivery.addEventListener("click", () => {
+                deliveryPanel.classList.remove("hidden-panel");
+                pickupPanel.classList.add("hidden-panel");
+                toggleDelivery.classList.add("active-toggle");
+                togglePickup.classList.remove("active-toggle");
+            });
+        }
 
-      // Initialize first step
-      updateUI();
-    }
+        // ============================================================
+        // 13. RIDER MODAL
+        // ============================================================
+        window.openRiderModal = () => {
+            const modal = document.getElementById("riderModal");
+            if (modal) {
+                modal.innerHTML =
+                    `<div class="rider-modal-content"><div class="rider-close" onclick="closeRiderModal()">&times;</div><div class="rider-inner"><div class="rider-logo">RIDER PORTAL</div><div class="rider-field-label">PIN</div><input type="password" id="riderPinInput" class="rider-input" placeholder="Enter PIN"><button class="rider-btn" onclick="riderAuth()">Login</button><div id="riderMsg" style="color:#ef4444; margin-top:10px;"></div></div></div>`;
+                modal.classList.add("active");
+            }
+        };
+        window.closeRiderModal = () => { const modal = document.getElementById("riderModal"); if (modal) modal.classList
+                .remove("active"); };
+        window.riderAuth = () => {
+            const pinInput = document.getElementById("riderPinInput");
+            if (!pinInput) return;
+            const pin = pinInput.value;
+            if (pin === "pato2026") { alert("Rider access granted.");
+                closeRiderModal(); } else { const msgDiv = document.getElementById("riderMsg"); if (msgDiv) msgDiv
+                    .innerText = "Invalid PIN - Access Denied"; }
+        };
 
-    // ============================================================
-    // 16. INIT
-    // ============================================================
-    function init() {
-      initOnboarding();
-      renderCart();
-      refreshOrderId();
-      selOT("Delivery");
-      setupEventListeners();
-      updPreview();
-      filterMenu('ALL');
-    }
+        // ============================================================
+        // 14. EVENT LISTENERS
+        // ============================================================
+        function setupEventListeners() {
+            document.getElementById("name")?.addEventListener("input", updPreview);
+            document.getElementById("phone")?.addEventListener("input", updPreview);
+            document.getElementById("address")?.addEventListener("input", updPreview);
+            document.getElementById("notes")?.addEventListener("input", updPreview);
+            document.getElementById("sendLink")?.addEventListener("click", handleSendOrder);
+        }
 
-    init();
-  </script>
+        // ============================================================
+        // 15. ONBOARDING
+        // ============================================================
+        function initOnboarding() {
+            const ob = document.getElementById('onboarding');
+            if (localStorage.getItem('pg_ob2')) {
+                ob.classList.add('gone');
+                return;
+            }
+
+            const steps = ['os0', 'os1', 'os2', 'os3'];
+            const dots = ['d0', 'd1', 'd2', 'd3'];
+            let currentStep = 0;
+            const nextBtn = document.getElementById('obNext');
+            const skipBtn = document.getElementById('obSkip');
+
+            function updateUI() {
+                steps.forEach((id, i) => {
+                    const el = document.getElementById(id);
+                    const dot = document.getElementById(dots[i]);
+                    if (el) el.classList.toggle('on', i === currentStep);
+                    if (dot) dot.classList.toggle('on', i === currentStep);
+                });
+                nextBtn.textContent = currentStep === 3 ? "LET'S EAT! 🔥" : "NEXT →";
+            }
+
+            function goToStep(index) {
+                if (index >= steps.length) {
+                    ob.classList.add('fade-out');
+                    setTimeout(() => {
+                        ob.classList.add('gone');
+                        localStorage.setItem('pg_ob2', '1');
+                    }, 300);
+                    return;
+                }
+                currentStep = index;
+                updateUI();
+            }
+
+            function next() { goToStep(currentStep + 1); }
+
+            function skip() {
+                ob.classList.add('fade-out');
+                setTimeout(() => {
+                    ob.classList.add('gone');
+                    localStorage.setItem('pg_ob2', '1');
+                }, 300);
+            }
+
+            nextBtn.addEventListener('click', next);
+            skipBtn.addEventListener('click', skip);
+            updateUI();
+        }
+
+        // ============================================================
+        // 16. INIT
+        // ============================================================
+        function init() {
+            initOnboarding();
+            renderCart();
+            refreshOrderId();
+            selOT("Delivery");
+            setupEventListeners();
+            updPreview();
+            filterMenu('ALL');
+
+            // --- DELEGATE: click on any .order-btn to call addItem ---
+            document.addEventListener('click', function(e) {
+                const btn = e.target.closest('.order-btn');
+                if (btn && btn.dataset.id) {
+                    e.preventDefault();
+                    const id = parseInt(btn.dataset.id, 10);
+                    if (!isNaN(id)) addItem(id);
+                }
+            });
+        }
+
+        init();
+    </script>
 </body>
 </html>
