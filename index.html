@@ -45,7 +45,7 @@
       overflow-x: hidden;
       padding-bottom: calc(var(--nav-h) + var(--safe-bottom) + 8px);
     }
-    /* Onboarding (unchanged) */
+    /* Onboarding (fixed) */
     #onboarding {
       position: fixed; inset: 0; z-index: 9999;
       display: flex; flex-direction: column;
@@ -55,8 +55,13 @@
       padding: 0 0 calc(var(--nav-h) + var(--safe-bottom) + 10px);
       transition: opacity 0.35s;
     }
-    #onboarding.fade-out { opacity:0; pointer-events:none; }
-    #onboarding.gone { display:none; }
+    #onboarding.fade-out {
+      opacity: 0;
+      pointer-events: none;
+    }
+    #onboarding.gone {
+      display: none;
+    }
     .ob-sheet {
       background: white;
       border-radius: 28px 28px 0 0;
@@ -64,25 +69,62 @@
       padding: 26px 22px 22px;
       animation: sheetUp 0.45s cubic-bezier(0.34,1.5,0.64,1);
     }
-    @keyframes sheetUp { from { transform:translateY(100%); opacity:0; } to { transform:translateY(0); opacity:1; } }
-    .ob-dots { display:flex; gap:7px; justify-content:center; margin-bottom:22px; }
-    .ob-dot { width:32px; height:4px; border-radius:4px; background:#f0e4dc; transition:background .3s; }
-    .ob-dot.on { background: var(--fire); }
-    .ob-step { display:none; animation:fadeSlide .3s ease; }
-    .ob-step.on { display:block; }
-    @keyframes fadeSlide { from { opacity:0; transform:translateX(18px); } to { opacity:1; transform:translateX(0); } }
+    @keyframes sheetUp {
+      from { transform: translateY(100%); opacity: 0; }
+      to { transform: translateY(0); opacity: 1; }
+    }
+    .ob-dots {
+      display: flex; gap: 7px; justify-content: center; margin-bottom: 22px;
+    }
+    .ob-dot {
+      width: 32px; height: 4px; border-radius: 4px;
+      background: #f0e4dc; transition: background .3s;
+    }
+    .ob-dot.on {
+      background: var(--fire);
+    }
+    .ob-step {
+      display: none;
+      animation: fadeSlide .3s ease;
+    }
+    .ob-step.on {
+      display: block;
+    }
+    @keyframes fadeSlide {
+      from { opacity:0; transform: translateX(18px); }
+      to { opacity:1; transform: translateX(0); }
+    }
     .ob-icon-wrap {
       width:68px; height:68px; border-radius:22px;
       background: linear-gradient(135deg, var(--fire), var(--fire-light));
       display:flex; align-items:center; justify-content:center;
       margin: 0 auto 16px; font-size:2rem;
     }
-    .ob-step h2 { font-family: var(--BF); font-size:2.1rem; letter-spacing:2px; text-align:center; color:var(--black); margin-bottom:10px; }
-    .ob-step p { text-align:center; color:var(--text-muted); font-size:.9rem; line-height:1.6; }
-    .ob-chip { display:inline-flex; align-items:center; gap:5px; background:var(--fire); color:white; padding:2px 10px; border-radius:30px; font-weight:700; font-size:.85rem; }
-    .ob-actions { display:flex; gap:10px; margin-top:22px; }
-    .ob-skip { flex:1; padding:13px; border-radius:16px; background:#f4ede8; color:var(--text-muted); border:none; font-family:var(--DF); font-weight:600; font-size:.9rem; cursor:pointer; }
-    .ob-next { flex:2; padding:13px; border-radius:16px; background:var(--fire); color:white; border:none; font-family:var(--BF); font-size:1.3rem; letter-spacing:1.5px; cursor:pointer; transition:background .15s; }
+    .ob-step h2 {
+      font-family: var(--BF); font-size:2.1rem; letter-spacing:2px;
+      text-align:center; color:var(--black); margin-bottom:10px;
+    }
+    .ob-step p {
+      text-align:center; color:var(--text-muted); font-size:.9rem; line-height:1.6;
+    }
+    .ob-chip {
+      display:inline-flex; align-items:center; gap:5px;
+      background:var(--fire); color:white; padding:2px 10px;
+      border-radius:30px; font-weight:700; font-size:.85rem;
+    }
+    .ob-actions {
+      display: flex; gap: 10px; margin-top: 22px;
+    }
+    .ob-skip {
+      flex:1; padding:13px; border-radius:16px; background:#f4ede8;
+      color:var(--text-muted); border:none; font-family:var(--DF);
+      font-weight:600; font-size:.9rem; cursor:pointer;
+    }
+    .ob-next {
+      flex:2; padding:13px; border-radius:16px; background:var(--fire);
+      color:white; border:none; font-family:var(--BF); font-size:1.3rem;
+      letter-spacing:1.5px; cursor:pointer; transition:background .15s;
+    }
     .ob-next:hover { background:var(--fire-deep); }
 
     /* Top Bar & Hero (unchanged) */
@@ -269,15 +311,39 @@
 </head>
 <body>
 
-  <!-- ONBOARDING (unchanged) -->
+  <!-- ONBOARDING – fixed buttons -->
   <div id="onboarding">
     <div class="ob-sheet">
-      <div class="ob-dots"><div class="ob-dot on" id="d0"></div><div class="ob-dot" id="d1"></div><div class="ob-dot" id="d2"></div><div class="ob-dot" id="d3"></div></div>
-      <div class="ob-step on" id="os0"><div class="ob-icon-wrap">🔥</div><h2>Welcome to Patogrills!</h2><p>Flame-grilled perfection · Smoky & Bold<br><br>Swipe to see how to order in <strong>3 easy steps</strong>.</p></div>
-      <div class="ob-step" id="os1"><div class="ob-icon-wrap">🍗</div><h2>Step 1: Browse Menu</h2><p>Tap <span class="ob-chip"><i class="fas fa-utensils"></i> Menu</span> tab, filter categories, and press <strong style="color:var(--fire);">ORDER</strong> to add to cart.</p></div>
-      <div class="ob-step" id="os2"><div class="ob-icon-wrap">🛒</div><h2>Step 2: Review Cart</h2><p>Tap the orange <span class="ob-chip"><i class="fas fa-bag-shopping"></i></span> cart button. Adjust quantities & choose <strong>Delivery/Pickup</strong>.</p></div>
-      <div class="ob-step" id="os3"><div class="ob-icon-wrap">📲</div><h2>Step 3: Order via WhatsApp</h2><p>Fill details and hit <strong style="color:#25D366;">Send on WhatsApp</strong>. We'll fire up the grill! 🔥</p></div>
-      <div class="ob-actions"><button class="ob-skip" id="obSkip">Skip</button><button class="ob-next" id="obNext">NEXT →</button></div>
+      <div class="ob-dots">
+        <div class="ob-dot on" id="d0"></div>
+        <div class="ob-dot" id="d1"></div>
+        <div class="ob-dot" id="d2"></div>
+        <div class="ob-dot" id="d3"></div>
+      </div>
+      <div class="ob-step on" id="os0">
+        <div class="ob-icon-wrap">🔥</div>
+        <h2>Welcome to Patogrills!</h2>
+        <p>Flame-grilled perfection · Smoky & Bold<br><br>Swipe to see how to order in <strong>3 easy steps</strong>.</p>
+      </div>
+      <div class="ob-step" id="os1">
+        <div class="ob-icon-wrap">🍗</div>
+        <h2>Step 1: Browse Menu</h2>
+        <p>Tap <span class="ob-chip"><i class="fas fa-utensils"></i> Menu</span> tab, filter categories, and press <strong style="color:var(--fire);">ORDER</strong> to add to cart.</p>
+      </div>
+      <div class="ob-step" id="os2">
+        <div class="ob-icon-wrap">🛒</div>
+        <h2>Step 2: Review Cart</h2>
+        <p>Tap the orange <span class="ob-chip"><i class="fas fa-bag-shopping"></i></span> cart button. Adjust quantities & choose <strong>Delivery/Pickup</strong>.</p>
+      </div>
+      <div class="ob-step" id="os3">
+        <div class="ob-icon-wrap">📲</div>
+        <h2>Step 3: Order via WhatsApp</h2>
+        <p>Fill details and hit <strong style="color:#25D366;">Send on WhatsApp</strong>. We'll fire up the grill! 🔥</p>
+      </div>
+      <div class="ob-actions">
+        <button class="ob-skip" id="obSkip">Skip</button>
+        <button class="ob-next" id="obNext">NEXT →</button>
+      </div>
     </div>
   </div>
 
@@ -793,16 +859,10 @@
     function filterMenu(category) {
       const allCards = document.querySelectorAll('.menu-card');
       const secTitles = document.querySelectorAll('.sec-title');
-      // Show/hide section titles based on whether any child card is visible
       allCards.forEach(card => {
         const cat = card.getAttribute('data-cat');
-        if (category === 'ALL' || cat === category) {
-          card.style.display = 'flex';
-        } else {
-          card.style.display = 'none';
-        }
+        card.style.display = (category === 'ALL' || cat === category) ? 'flex' : 'none';
       });
-      // Hide section titles if no cards visible in that section
       secTitles.forEach(title => {
         const parent = title.parentElement;
         const cardsInSection = parent.querySelectorAll('.menu-card');
@@ -812,16 +872,13 @@
       });
     }
 
-    // Category pill click
     document.querySelectorAll('.cat-pill').forEach(p => {
       p.addEventListener('click', function() {
         document.querySelectorAll('.cat-pill').forEach(x => x.classList.remove('active'));
         this.classList.add('active');
-        const cat = this.dataset.cat;
-        filterMenu(cat);
+        filterMenu(this.dataset.cat);
       });
     });
-    // Initially show all
     filterMenu('ALL');
 
     // ============================================================
@@ -941,50 +998,64 @@
     }
 
     // ============================================================
-    // 15. ONBOARDING (unchanged)
+    // 15. ONBOARDING – FIXED!
     // ============================================================
     function initOnboarding() {
-      let step = 0;
+      const ob = document.getElementById('onboarding');
+      // If already seen, hide immediately
+      if (localStorage.getItem('pg_ob2')) {
+        ob.classList.add('gone');
+        return;
+      }
+
       const steps = ['os0', 'os1', 'os2', 'os3'];
       const dots = ['d0', 'd1', 'd2', 'd3'];
+      let currentStep = 0;
       const nextBtn = document.getElementById('obNext');
       const skipBtn = document.getElementById('obSkip');
 
-      function updateStep() {
-        steps.forEach((s, i) => {
-          const stepEl = document.getElementById(s);
-          const dotEl = document.getElementById(dots[i]);
-          if (stepEl) stepEl.classList.toggle('on', i === step);
-          if (dotEl) dotEl.classList.toggle('on', i === step);
+      function updateUI() {
+        steps.forEach((id, i) => {
+          const el = document.getElementById(id);
+          const dot = document.getElementById(dots[i]);
+          if (el) el.classList.toggle('on', i === currentStep);
+          if (dot) dot.classList.toggle('on', i === currentStep);
         });
-        if (nextBtn) nextBtn.textContent = step === 3 ? "LET'S EAT! 🔥" : "NEXT →";
+        nextBtn.textContent = currentStep === 3 ? "LET'S EAT! 🔥" : "NEXT →";
       }
 
-      function nextStep() {
-        if (step < 3) { step++;
-          updateStep(); } else {
-          const ob = document.getElementById('onboarding');
-          if (ob) { ob.classList.add('fade-out');
-            setTimeout(() => ob.classList.add('gone'), 300); }
-          localStorage.setItem("pg_ob2", "1");
+      function goToStep(index) {
+        if (index >= steps.length) {
+          // Finish onboarding
+          ob.classList.add('fade-out');
+          setTimeout(() => {
+            ob.classList.add('gone');
+            localStorage.setItem('pg_ob2', '1');
+          }, 300);
+          return;
         }
+        currentStep = index;
+        updateUI();
       }
 
-      function skipOnboarding() {
-        const ob = document.getElementById('onboarding');
-        if (ob) { ob.classList.add('fade-out');
-          setTimeout(() => ob.classList.add('gone'), 300); }
-        localStorage.setItem("pg_ob2", "1");
+      function next() {
+        goToStep(currentStep + 1);
       }
 
-      if (localStorage.getItem("pg_ob2")) {
-        const ob = document.getElementById('onboarding');
-        if (ob) ob.classList.add('gone');
-      } else {
-        if (nextBtn) nextBtn.onclick = nextStep;
-        if (skipBtn) skipBtn.onclick = skipOnboarding;
-        updateStep();
+      function skip() {
+        ob.classList.add('fade-out');
+        setTimeout(() => {
+          ob.classList.add('gone');
+          localStorage.setItem('pg_ob2', '1');
+        }, 300);
       }
+
+      // Remove any inline onclick and use addEventListener
+      nextBtn.addEventListener('click', next);
+      skipBtn.addEventListener('click', skip);
+
+      // Initialize first step
+      updateUI();
     }
 
     // ============================================================
@@ -997,7 +1068,6 @@
       selOT("Delivery");
       setupEventListeners();
       updPreview();
-      // Ensure menu filter is applied
       filterMenu('ALL');
     }
 
