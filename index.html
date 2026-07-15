@@ -1,540 +1,1461 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-  <title>Patogrills | Fire & Flavor – Abraka, Delta State</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-  <style>
-    :root {
-      --fire: #f2622e;
-      --fire-deep: #c84318;
-      --fire-light: #ff9142;
-      --black: #0d0a08;
-      --charcoal: #1a1410;
-      --cream: #fff8f2;
-      --warm-white: #fffaf6;
-      --text-main: #1a1410;
-      --text-muted: #7a6255;
-      --border: rgba(242,98,46,0.15);
-      --nav-h: 68px;
-      --safe-bottom: env(safe-area-inset-bottom, 0px);
-      --BF: 'Bebas Neue', impact, sans-serif;
-      --DF: 'DM Sans', system-ui, sans-serif;
-    }
-    * { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
-    html { scroll-behavior:smooth; }
-    body {
-      font-family: var(--DF);
-      background: var(--warm-white);
-      color: var(--text-main);
-      overflow-x: hidden;
-      padding-bottom: calc(var(--nav-h) + var(--safe-bottom) + 8px);
-    }
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>Patogrills | Fire & Flavor – Abraka</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        /* ═══════ ROOT & RESET ═══════ */
+        :root {
+            --fire: #f2622e;
+            --fire-deep: #c84318;
+            --fire-light: #ff9142;
+            --black: #0d0a08;
+            --charcoal: #1a1410;
+            --cream: #fff8f2;
+            --warm-white: #fffaf6;
+            --text-main: #1a1410;
+            --text-muted: #7a6255;
+            --border: rgba(242, 98, 46, 0.15);
+            --nav-h: 68px;
+            --safe-bottom: env(safe-area-inset-bottom, 0px);
+            --BF: 'Bebas Neue', impact, sans-serif;
+            --DF: 'DM Sans', system-ui, sans-serif;
+        }
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+        html {
+            scroll-behavior: smooth;
+        }
+        body {
+            font-family: var(--DF);
+            background: var(--warm-white);
+            color: var(--text-main);
+            overflow-x: hidden;
+            padding-bottom: calc(var(--nav-h) + var(--safe-bottom) + 12px);
+        }
 
-    /* ══════════ ONBOARDING (POP WINDOW) ══════════ */
-    #onboarding {
-      position: fixed; inset: 0; z-index: 9999;
-      display: flex; flex-direction: column;
-      align-items: center; justify-content: flex-end;
-      background: rgba(13,10,8,0.85);
-      backdrop-filter: blur(8px);
-      -webkit-backdrop-filter: blur(8px);
-      padding: 0 0 calc(var(--nav-h) + var(--safe-bottom) + 10px);
-      transition: opacity 0.35s;
-    }
-    #onboarding.fade-out { opacity:0; pointer-events:none; }
-    #onboarding.gone { display:none; }
+        /* ═══════ ONBOARDING ═══════ */
+        #onboarding {
+            position: fixed;
+            inset: 0;
+            z-index: 9999;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-end;
+            background: rgba(13, 10, 8, 0.85);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            padding: 0 0 calc(var(--safe-bottom) + 10px);
+            transition: opacity 0.35s;
+        }
+        #onboarding.fade-out {
+            opacity: 0;
+            pointer-events: none;
+        }
+        #onboarding.gone {
+            display: none;
+        }
+        .ob-sheet {
+            background: white;
+            border-radius: 28px 28px 0 0;
+            width: 100%;
+            max-width: 520px;
+            padding: 26px 22px 22px;
+            animation: sheetUp 0.45s cubic-bezier(0.34, 1.5, 0.64, 1);
+        }
+        @keyframes sheetUp {
+            from {
+                transform: translateY(100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+        .ob-dots {
+            display: flex;
+            gap: 7px;
+            justify-content: center;
+            margin-bottom: 22px;
+        }
+        .ob-dot {
+            width: 32px;
+            height: 4px;
+            border-radius: 4px;
+            background: #f0e4dc;
+            transition: background .3s;
+        }
+        .ob-dot.on {
+            background: var(--fire);
+        }
+        .ob-step {
+            display: none;
+            animation: fadeSlide .3s ease;
+        }
+        .ob-step.on {
+            display: block;
+        }
+        @keyframes fadeSlide {
+            from {
+                opacity: 0;
+                transform: translateX(18px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+        .ob-icon-wrap {
+            width: 68px;
+            height: 68px;
+            border-radius: 22px;
+            background: linear-gradient(135deg, var(--fire), var(--fire-light));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 16px;
+            font-size: 2rem;
+        }
+        .ob-step h2 {
+            font-family: var(--BF);
+            font-size: 2.1rem;
+            letter-spacing: 2px;
+            text-align: center;
+            color: var(--black);
+            margin-bottom: 10px;
+        }
+        .ob-step p {
+            text-align: center;
+            color: var(--text-muted);
+            font-size: .9rem;
+            line-height: 1.6;
+        }
+        .ob-chip {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            background: var(--fire);
+            color: white;
+            padding: 2px 10px;
+            border-radius: 30px;
+            font-weight: 700;
+            font-size: .85rem;
+        }
+        .ob-actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 22px;
+        }
+        .ob-skip {
+            flex: 1;
+            padding: 13px;
+            border-radius: 16px;
+            background: #f4ede8;
+            color: var(--text-muted);
+            border: none;
+            font-family: var(--DF);
+            font-weight: 600;
+            font-size: .9rem;
+            cursor: pointer;
+        }
+        .ob-next {
+            flex: 2;
+            padding: 13px;
+            border-radius: 16px;
+            background: var(--fire);
+            color: white;
+            border: none;
+            font-family: var(--BF);
+            font-size: 1.3rem;
+            letter-spacing: 1.5px;
+            cursor: pointer;
+            transition: background .15s;
+        }
+        .ob-next:hover {
+            background: var(--fire-deep);
+        }
 
-    .ob-sheet {
-      background: white;
-      border-radius: 28px 28px 0 0;
-      width: 100%; max-width: 520px;
-      padding: 26px 22px 22px;
-      animation: sheetUp 0.45s cubic-bezier(0.34,1.5,0.64,1);
-    }
-    @keyframes sheetUp { from { transform:translateY(100%); opacity:0; } to { transform:translateY(0); opacity:1; } }
+        /* ═══════ TOP BAR – GLASS ═══════ */
+        .top-bar {
+            position: sticky;
+            top: 0;
+            z-index: 900;
+            background: rgba(255, 250, 246, 0.72);
+            backdrop-filter: blur(24px);
+            -webkit-backdrop-filter: blur(24px);
+            border-bottom: 1px solid rgba(242, 98, 46, 0.2);
+        }
+        .top-bar-inner {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 8px 16px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+        }
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            cursor: default;
+        }
+        .brand-logo {
+            width: 46px;
+            height: 46px;
+            border-radius: 13px;
+            object-fit: cover;
+            flex-shrink: 0;
+        }
+        .brand-logo-fb {
+            width: 46px;
+            height: 46px;
+            border-radius: 13px;
+            background: linear-gradient(135deg, var(--fire), var(--fire-light));
+            display: none;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            flex-shrink: 0;
+        }
+        .brand-text {
+            line-height: 1;
+        }
+        .brand-name {
+            font-family: var(--BF);
+            font-size: 1.85rem;
+            letter-spacing: 3px;
+            color: var(--black);
+            display: block;
+        }
+        .brand-sub {
+            font-size: .62rem;
+            font-weight: 700;
+            color: var(--fire);
+            letter-spacing: .1em;
+            text-transform: uppercase;
+            display: block;
+            margin-top: 1px;
+        }
+        .cart-pill {
+            background: var(--fire);
+            color: white;
+            border-radius: 40px;
+            padding: 7px 14px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            cursor: pointer;
+            border: none;
+            font-family: var(--BF);
+            font-size: 1rem;
+            letter-spacing: .5px;
+            transition: transform .15s, background .15s;
+            text-decoration: none;
+        }
+        .cart-pill:active {
+            transform: scale(.95);
+        }
+        .cart-pill .cnt {
+            background: white;
+            color: var(--fire);
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            font-size: .72rem;
+            font-weight: 700;
+            font-family: var(--DF);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
 
-    .ob-dots { display:flex; gap:7px; justify-content:center; margin-bottom:22px; }
-    .ob-dot { width:32px; height:4px; border-radius:4px; background:#f0e4dc; transition:background .3s; }
-    .ob-dot.on { background: var(--fire); }
+        /* ═══════ HERO ═══════ */
+        .hero {
+            margin: 12px 12px 0;
+            border-radius: 28px;
+            background: linear-gradient(115deg, rgba(0, 0, 0, 0.7) 0%, rgba(0, 0, 0, 0.25) 100%),
+                url('hero.png') center/cover no-repeat;
+            min-height: 290px;
+            display: flex;
+            align-items: flex-end;
+            padding: 24px 20px;
+            overflow: hidden;
+            position: relative;
+            box-shadow: 0 15px 30px -12px rgba(0, 0, 0, 0.25);
+        }
+        .hero::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: radial-gradient(ellipse at 15% 85%, rgba(242, 98, 46, 0.35) 0%, transparent 65%);
+            pointer-events: none;
+        }
+        .hero-content {
+            position: relative;
+            z-index: 1;
+            color: white;
+            text-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+        }
+        .hero-content h1 {
+            font-family: var(--BF);
+            font-size: 3.5rem;
+            letter-spacing: 5px;
+            line-height: .92;
+            text-transform: uppercase;
+        }
+        .hero-content h1 span {
+            color: var(--fire-light);
+            text-shadow: 0 0 8px rgba(242, 98, 46, 0.5);
+        }
+        .hero-content p {
+            font-size: .8rem;
+            opacity: .85;
+            margin-top: 8px;
+            letter-spacing: .1em;
+            font-weight: 500;
+        }
+        .hero-tag {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            margin-top: 14px;
+            background: rgba(242, 98, 46, .9);
+            backdrop-filter: blur(8px);
+            padding: 6px 14px;
+            border-radius: 40px;
+            font-size: .75rem;
+            font-weight: 700;
+            letter-spacing: .08em;
+            text-transform: uppercase;
+        }
 
-    .ob-step { display:none; animation:fadeSlide .3s ease; }
-    .ob-step.on { display:block; }
-    @keyframes fadeSlide { from { opacity:0; transform:translateX(18px); } to { opacity:1; transform:translateX(0); } }
+        /* ═══════ SECTION WRAPPER ═══════ */
+        .seamless-wrap {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 16px 12px 20px;
+        }
 
-    .ob-icon-wrap {
-      width:68px; height:68px; border-radius:22px;
-      background: linear-gradient(135deg, var(--fire), var(--fire-light));
-      display:flex; align-items:center; justify-content:center;
-      margin: 0 auto 16px; font-size:2rem;
-    }
-    .ob-step h2 {
-      font-family: var(--BF);
-      font-size:2.1rem; letter-spacing:2px;
-      text-align:center; color:var(--black);
-      margin-bottom:10px;
-    }
-    .ob-step p { text-align:center; color:var(--text-muted); font-size:.9rem; line-height:1.6; }
-    .ob-chip {
-      display:inline-flex; align-items:center; gap:5px;
-      background:var(--fire); color:white;
-      padding:2px 10px; border-radius:30px;
-      font-weight:700; font-size:.85rem;
-    }
+        /* section anchor offsets */
+        .section-anchor {
+            scroll-margin-top: 80px;
+        }
 
-    .ob-actions { display:flex; gap:10px; margin-top:22px; }
-    .ob-skip {
-      flex:1; padding:13px; border-radius:16px;
-      background:#f4ede8; color:var(--text-muted);
-      border:none; font-family:var(--DF);
-      font-weight:600; font-size:.9rem; cursor:pointer;
-    }
-    .ob-next {
-      flex:2; padding:13px; border-radius:16px;
-      background:var(--fire); color:white;
-      border:none; font-family:var(--BF);
-      font-size:1.3rem; letter-spacing:1.5px;
-      cursor:pointer; transition:background .15s;
-    }
-    .ob-next:hover { background:var(--fire-deep); }
+        /* category pills */
+        .cat-scroll {
+            display: flex;
+            gap: 8px;
+            overflow-x: auto;
+            padding: 4px 0 10px;
+            scrollbar-width: none;
+        }
+        .cat-scroll::-webkit-scrollbar {
+            display: none;
+        }
+        .cat-pill {
+            flex-shrink: 0;
+            padding: 7px 16px;
+            border-radius: 40px;
+            font-family: var(--BF);
+            font-size: .95rem;
+            letter-spacing: .5px;
+            cursor: pointer;
+            border: 2px solid var(--border);
+            background: white;
+            color: var(--text-muted);
+            transition: all .2s;
+        }
+        .cat-pill.active,
+        .cat-pill:hover {
+            background: var(--fire);
+            color: white;
+            border-color: var(--fire);
+        }
 
-    /* ══════════ TOP BAR – GLASS EFFECT (more transparent) ══════════ */
-    .top-bar {
-      position:sticky; top:0; z-index:900;
-      background: rgba(255, 250, 246, 0.7);  /* increased transparency */
-      backdrop-filter: blur(24px);
-      -webkit-backdrop-filter: blur(24px);
-      border-bottom: 1px solid rgba(242, 98, 46, 0.2);
-      transition: background 0.2s;
-    }
-    .top-bar-inner {
-      max-width:900px; margin:0 auto;
-      padding:8px 16px;
-      display:flex; align-items:center; justify-content:space-between; gap:12px;
-    }
+        /* section title */
+        .sec-title {
+            font-family: var(--BF);
+            font-size: 1.5rem;
+            letter-spacing: 1.5px;
+            margin: 18px 0 12px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            color: var(--black);
+            text-transform: uppercase;
+        }
+        .sec-title::after {
+            content: '';
+            flex: 1;
+            height: 2px;
+            background: var(--border);
+            border-radius: 2px;
+        }
 
-    .brand { display:flex; align-items:center; gap:10px; cursor:default; }
-    .brand-logo {
-      width:46px; height:46px; border-radius:13px;
-      object-fit:cover;
-      flex-shrink:0;
-    }
-    .brand-logo-fb {
-      width:46px; height:46px; border-radius:13px;
-      background:linear-gradient(135deg,var(--fire),var(--fire-light));
-      display:none; align-items:center; justify-content:center;
-      font-size:1.5rem; flex-shrink:0;
-    }
-    .brand-text { line-height:1; }
-    .brand-name {
-      font-family:var(--BF);
-      font-size:1.85rem; letter-spacing:3px;
-      color:var(--black); display:block;
-    }
-    .brand-sub {
-      font-size:.62rem; font-weight:700;
-      color:var(--fire); letter-spacing:.1em;
-      text-transform:uppercase; display:block; margin-top:1px;
-    }
+        /* menu grid */
+        .menu-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+        }
+        @media(min-width:600px) {
+            .menu-grid {
+                grid-template-columns: repeat(3, 1fr);
+            }
+        }
+        @media(min-width:800px) {
+            .menu-grid {
+                grid-template-columns: repeat(4, 1fr);
+            }
+        }
 
-    .cart-pill {
-      background:var(--fire); color:white;
-      border-radius:40px; padding:7px 14px;
-      display:flex; align-items:center; gap:6px;
-      cursor:pointer; border:none;
-      font-family:var(--BF); font-size:1rem; letter-spacing:.5px;
-      transition:transform .15s, background .15s;
-    }
-    .cart-pill:active { transform:scale(.95); }
-    .cart-pill .cnt {
-      background:white; color:var(--fire);
-      border-radius:50%; width:20px; height:20px;
-      font-size:.72rem; font-weight:700; font-family:var(--DF);
-      display:flex; align-items:center; justify-content:center;
-    }
+        .menu-card {
+            background: white;
+            border-radius: 20px;
+            overflow: hidden;
+            border: 2px solid rgba(242, 98, 46, .1);
+            transition: transform .2s, box-shadow .2s;
+            display: flex;
+            flex-direction: column;
+        }
+        .menu-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 12px 32px -8px rgba(242, 98, 46, .2);
+        }
+        .menu-card:active {
+            transform: scale(.98);
+        }
+        .menu-img {
+            width: 100%;
+            height: 120px;
+            object-fit: cover;
+            background: #fef0e6;
+        }
+        .menu-info {
+            padding: 10px 10px 12px;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+        .menu-name {
+            font-family: var(--BF);
+            font-size: 1.05rem;
+            letter-spacing: .5px;
+            margin-bottom: 3px;
+            line-height: 1.15;
+        }
+        .menu-desc {
+            font-size: .7rem;
+            color: var(--text-muted);
+            line-height: 1.35;
+            flex: 1;
+            margin-bottom: 10px;
+        }
+        .menu-bottom {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+        .menu-price {
+            font-family: var(--BF);
+            font-size: 1rem;
+            letter-spacing: .5px;
+            color: var(--fire);
+        }
+        .order-btn {
+            background: var(--fire);
+            color: white;
+            border: none;
+            border-radius: 40px;
+            padding: 6px 16px;
+            font-family: var(--BF);
+            font-size: 0.85rem;
+            letter-spacing: 1px;
+            cursor: pointer;
+            transition: all 0.15s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            font-weight: 600;
+        }
+        .order-btn i {
+            font-size: 0.8rem;
+        }
+        .order-btn:hover {
+            background: var(--fire-deep);
+            transform: scale(0.96);
+        }
+        .order-btn:active {
+            transform: scale(0.94);
+        }
 
-    /* ══════════ HERO - full image (hero.png) ══════════ */
-    .hero {
-      margin:12px 12px 0; border-radius:28px;
-      background: linear-gradient(115deg, rgba(0,0,0,0.7) 0%, rgba(0,0,0,0.25) 100%),
-                  url('hero.png') center/cover no-repeat;
-      min-height: 290px;
-      display:flex; align-items:flex-end;
-      padding:24px 20px; overflow:hidden; position:relative;
-      box-shadow: 0 15px 30px -12px rgba(0,0,0,0.25);
-    }
-    .hero::before {
-      content:''; position:absolute; inset:0;
-      background:radial-gradient(ellipse at 15% 85%, rgba(242,98,46,0.35) 0%, transparent 65%);
-      pointer-events: none;
-    }
-    .hero-content { position:relative; z-index:1; color:white; text-shadow: 0 2px 6px rgba(0,0,0,0.3); }
-    .hero-content h1 {
-      font-family:var(--BF); font-size:3.5rem;
-      letter-spacing:5px; line-height:.92; text-transform:uppercase;
-    }
-    .hero-content h1 span { color: var(--fire-light); text-shadow: 0 0 8px rgba(242,98,46,0.5);}
-    .hero-content p { font-size:.8rem; opacity:.85; margin-top:8px; letter-spacing:.1em; font-weight:500;}
-    .hero-tag {
-      display:inline-flex; align-items:center; gap:6px;
-      margin-top:14px;
-      background:rgba(242,98,46,.9); backdrop-filter:blur(8px);
-      padding:6px 14px; border-radius:40px;
-      font-size:.75rem; font-weight:700; letter-spacing:.08em; text-transform:uppercase;
-    }
+        /* ═══════ CART SECTION ═══════ */
+        .cart-section {
+            background: white;
+            border-radius: 28px;
+            margin: 28px 0 16px;
+            padding: 20px 18px;
+            border: 2px solid var(--border);
+            box-shadow: 0 8px 24px -8px rgba(0, 0, 0, 0.06);
+        }
+        .cart-section .sec-title {
+            margin-top: 0;
+        }
+        .cart-empty {
+            text-align: center;
+            padding: 30px 10px;
+            color: var(--text-muted);
+        }
+        .cart-empty i {
+            font-size: 2.4rem;
+            color: #f5cfc0;
+            margin-bottom: 8px;
+            display: block;
+        }
+        .cart-empty h3 {
+            font-family: var(--BF);
+            font-size: 1.2rem;
+            letter-spacing: 1px;
+            margin-bottom: 4px;
+        }
+        .cart-list {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        .cart-item {
+            background: var(--cream);
+            border-radius: 18px;
+            padding: 12px 14px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            border: 1px solid var(--border);
+        }
+        .ci-img {
+            width: 50px;
+            height: 50px;
+            border-radius: 12px;
+            object-fit: cover;
+            background: #fef0e6;
+            flex-shrink: 0;
+        }
+        .ci-info {
+            flex: 1;
+            min-width: 0;
+        }
+        .ci-name {
+            font-family: var(--BF);
+            font-size: 1rem;
+            letter-spacing: .5px;
+        }
+        .ci-unit {
+            font-size: .72rem;
+            color: var(--text-muted);
+        }
+        .qty-row {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-top: 4px;
+        }
+        .qty-btn {
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            border: 2px solid var(--border);
+            background: white;
+            font-size: 1rem;
+            font-weight: 700;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--fire);
+            transition: all .15s;
+        }
+        .qty-btn:hover {
+            background: var(--fire);
+            color: white;
+            border-color: var(--fire);
+        }
+        .qty-num {
+            font-family: var(--BF);
+            font-size: 1.1rem;
+            min-width: 20px;
+            text-align: center;
+        }
+        .ci-price {
+            font-family: var(--BF);
+            font-size: 1rem;
+            letter-spacing: .5px;
+            color: var(--fire);
+            flex-shrink: 0;
+        }
+        .order-summary {
+            background: var(--charcoal);
+            border-radius: 20px;
+            padding: 16px 18px;
+            margin-top: 16px;
+            color: white;
+        }
+        .sum-row {
+            display: flex;
+            justify-content: space-between;
+            font-size: .88rem;
+            padding: 4px 0;
+            color: rgba(255, 255, 255, .7);
+        }
+        .sum-row.tot {
+            font-family: var(--BF);
+            font-size: 1.4rem;
+            letter-spacing: 1px;
+            color: white;
+            border-top: 1px solid rgba(255, 255, 255, .1);
+            margin-top: 10px;
+            padding-top: 12px;
+        }
+        .ft {
+            color: var(--fire-light);
+        }
 
-    /* ══════════ PAGES ══════════ */
-    .page { display:none; max-width:900px; margin:0 auto; padding:16px 12px; animation:pgIn .25s ease; }
-    .page.active { display:block; }
-    @keyframes pgIn { from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:translateY(0)} }
+        /* ═══════ ORDER FORM SECTION ═══════ */
+        .order-section {
+            margin: 16px 0 20px;
+        }
+        .form-sec {
+            background: white;
+            border-radius: 20px;
+            padding: 18px;
+            margin-bottom: 14px;
+            border: 2px solid var(--border);
+        }
+        .form-sec h3 {
+            font-family: var(--BF);
+            font-size: 1.2rem;
+            letter-spacing: 1px;
+            margin-bottom: 14px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .form-sec h3 i {
+            color: var(--fire);
+        }
+        label {
+            font-size: .78rem;
+            font-weight: 600;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: .05em;
+            display: block;
+            margin-bottom: 5px;
+        }
+        .iw {
+            margin-bottom: 14px;
+        }
+        input,
+        textarea {
+            width: 100%;
+            background: var(--cream);
+            border: 2px solid var(--border);
+            border-radius: 14px;
+            padding: 11px 14px;
+            font-size: .9rem;
+            font-family: var(--DF);
+            color: var(--text-main);
+            outline: none;
+            transition: border .15s;
+        }
+        input:focus,
+        textarea:focus {
+            border-color: var(--fire);
+            background: white;
+        }
+        .ot-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+            margin-bottom: 14px;
+        }
+        .ot-opt {
+            border: 2px solid var(--border);
+            border-radius: 16px;
+            padding: 14px 12px;
+            cursor: pointer;
+            text-align: center;
+            background: white;
+            transition: all .2s;
+        }
+        .ot-opt.sel {
+            border-color: var(--fire);
+            background: #fff4ef;
+        }
+        .ot-opt i {
+            font-size: 1.4rem;
+            color: var(--text-muted);
+            display: block;
+            margin-bottom: 5px;
+        }
+        .ot-opt.sel i {
+            color: var(--fire);
+        }
+        .ot-opt small {
+            display: block;
+            font-size: .65rem;
+            color: var(--text-muted);
+        }
+        .preview-card {
+            background: var(--charcoal);
+            border-radius: 20px;
+            padding: 16px;
+            font-family: monospace;
+            font-size: .75rem;
+            color: #e8d5c4;
+            white-space: pre-wrap;
+            margin-bottom: 14px;
+            line-height: 1.55;
+            max-height: 260px;
+            overflow-y: auto;
+        }
+        .wa-btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            width: 100%;
+            background: #25D366;
+            color: white;
+            text-decoration: none;
+            border-radius: 18px;
+            padding: 15px;
+            font-family: var(--BF);
+            font-size: 1.2rem;
+            cursor: pointer;
+            border: none;
+            transition: background .15s;
+        }
+        .wa-btn:hover {
+            background: #1da850;
+        }
 
-    /* category pills */
-    .cat-scroll { display:flex; gap:8px; overflow-x:auto; padding:4px 0 10px; scrollbar-width:none; }
-    .cat-scroll::-webkit-scrollbar { display:none; }
-    .cat-pill {
-      flex-shrink:0; padding:7px 16px; border-radius:40px;
-      font-family:var(--BF); font-size:.95rem; letter-spacing:.5px;
-      cursor:pointer; border:2px solid var(--border);
-      background:white; color:var(--text-muted); transition:all .2s;
-    }
-    .cat-pill.active,.cat-pill:hover { background:var(--fire); color:white; border-color:var(--fire); }
+        .hf {
+            display: none !important;
+        }
 
-    /* section title */
-    .sec-title {
-      font-family:var(--BF); font-size:1.5rem; letter-spacing:1.5px;
-      margin:18px 0 12px; display:flex; align-items:center;
-      gap:10px; color:var(--black); text-transform:uppercase;
-    }
-    .sec-title::after { content:''; flex:1; height:2px; background:var(--border); border-radius:2px; }
+        /* ═══════ GOOGLE REVIEWS ═══════ */
+        .g-review-wrap {
+            background: white;
+            border-radius: 28px;
+            margin: 24px 0 20px;
+            padding: 22px 20px;
+            box-shadow: 0 12px 28px -8px rgba(0, 0, 0, 0.08);
+            border: 1px solid var(--border);
+        }
+        .g-review-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-family: var(--BF);
+            font-size: 1.35rem;
+            letter-spacing: 1px;
+            color: var(--black);
+            margin-bottom: 8px;
+        }
+        .g-review-header i {
+            color: var(--fire);
+            font-size: 1.4rem;
+        }
+        .rating-stars {
+            display: flex;
+            gap: 4px;
+            font-size: 1.05rem;
+            color: #fb8c00;
+            margin: 6px 0;
+        }
+        .rating-score {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-bottom: 18px;
+            background: #fef5ef;
+            padding: 10px 14px;
+            border-radius: 60px;
+            width: fit-content;
+        }
+        .g-badge {
+            background: white;
+            border-radius: 50px;
+            padding: 4px 12px;
+            font-size: .75rem;
+            font-weight: 700;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+        }
+        .review-card {
+            background: #fefaf7;
+            border-radius: 20px;
+            padding: 14px;
+            margin-bottom: 14px;
+            border-left: 4px solid var(--fire);
+        }
+        .reviewer {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 6px;
+            font-weight: 600;
+            flex-wrap: wrap;
+        }
+        .reviewer i {
+            font-size: 1.2rem;
+            color: var(--fire);
+            background: #fff0e8;
+            padding: 6px;
+            border-radius: 50%;
+        }
+        .time-price {
+            font-size: 0.72rem;
+            color: var(--text-muted);
+            margin-bottom: 8px;
+        }
+        .rev-stars {
+            color: #ffb347;
+            font-size: .8rem;
+            letter-spacing: 2px;
+            margin-bottom: 6px;
+        }
+        .rev-text {
+            font-size: .85rem;
+            color: var(--text-main);
+            line-height: 1.45;
+            margin-bottom: 8px;
+        }
+        .rating-detail {
+            font-size: 0.7rem;
+            color: var(--text-muted);
+            border-top: 1px solid #f0e0d6;
+            padding-top: 6px;
+            margin-top: 6px;
+        }
+        .g-review-btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            background: #1a73e8;
+            color: white;
+            text-decoration: none;
+            padding: 12px 17px;
+            border-radius: 60px;
+            font-weight: 700;
+            font-size: .9rem;
+            margin-top: 16px;
+            transition: background 0.2s, transform 0.1s;
+            border: none;
+            width: 100%;
+            font-family: var(--DF);
+            letter-spacing: .3px;
+        }
+        .g-review-btn:hover {
+            background: #0d5bbb;
+            transform: scale(0.98);
+        }
+        .g-review-btn i {
+            font-size: 1.1rem;
+        }
 
-    /* menu grid */
-    .menu-grid { display:grid; grid-template-columns:repeat(2,1fr); gap:12px; }
-    @media(min-width:600px){.menu-grid{grid-template-columns:repeat(3,1fr);}}
-    @media(min-width:800px){.menu-grid{grid-template-columns:repeat(4,1fr);}}
+        /* ═══════ SOCIAL & FOOTER ═══════ */
+        .social-sec {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            flex-wrap: wrap;
+            padding: 16px 0 8px;
+        }
+        .soc-btn {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 9px 18px;
+            border-radius: 40px;
+            background: var(--charcoal);
+            color: #e8d5c4;
+            text-decoration: none;
+            font-size: .82rem;
+            font-weight: 600;
+            transition: all .2s;
+        }
+        .soc-btn:hover {
+            background: var(--fire);
+            color: white;
+            transform: translateY(-2px);
+        }
+        .foot-txt {
+            text-align: center;
+            font-size: .75rem;
+            color: var(--text-muted);
+            padding: 10px 0 4px;
+        }
 
-    .menu-card {
-      background:white; border-radius:20px; overflow:hidden;
-      border:2px solid rgba(242,98,46,.1);
-      transition:transform .2s, box-shadow .2s;
-      display:flex; flex-direction:column;
-    }
-    .menu-card:hover { transform:translateY(-3px); box-shadow:0 12px 32px -8px rgba(242,98,46,.2); }
-    .menu-card:active { transform:scale(.98); }
-    .menu-img { width:100%; height:120px; object-fit:cover; background:#fef0e6; }
-    .menu-info { padding:10px 10px 12px; flex:1; display:flex; flex-direction:column; }
-    .menu-name { font-family:var(--BF); font-size:1.05rem; letter-spacing:.5px; margin-bottom:3px; line-height:1.15; }
-    .menu-desc { font-size:.7rem; color:var(--text-muted); line-height:1.35; flex:1; margin-bottom:10px; }
-    .menu-bottom { display:flex; align-items:center; justify-content:space-between; gap:8px; flex-wrap:wrap; }
-    .menu-price { font-family:var(--BF); font-size:1rem; letter-spacing:.5px; color:var(--fire); }
-    
-    /* NEW ORDER BUTTON (replaces small plus) */
-    .order-btn {
-      background: var(--fire);
-      color: white;
-      border: none;
-      border-radius: 40px;
-      padding: 6px 16px;
-      font-family: var(--BF);
-      font-size: 0.85rem;
-      letter-spacing: 1px;
-      cursor: pointer;
-      transition: all 0.15s ease;
-      display: inline-flex;
-      align-items: center;
-      gap: 4px;
-      font-weight: 600;
-    }
-    .order-btn i { font-size: 0.8rem; }
-    .order-btn:hover { background: var(--fire-deep); transform: scale(0.96); }
-    .order-btn:active { transform: scale(0.94); }
+        /* ═══════ BOTTOM NAV ═══════ */
+        .bot-nav {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            z-index: 1000;
+            background: rgba(255, 250, 246, 0.96);
+            backdrop-filter: blur(24px);
+            -webkit-backdrop-filter: blur(24px);
+            border-top: 1px solid var(--border);
+            padding: 0 0 var(--safe-bottom);
+            height: calc(var(--nav-h) + var(--safe-bottom));
+        }
+        .nav-inner {
+            max-width: 520px;
+            margin: 0 auto;
+            display: flex;
+            height: var(--nav-h);
+            align-items: stretch;
+        }
+        .ni {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 2px;
+            cursor: pointer;
+            background: none;
+            border: none;
+            color: var(--text-muted);
+            font-family: var(--BF);
+            font-size: .72rem;
+            letter-spacing: .3px;
+            position: relative;
+            transition: color .2s;
+            padding: 4px 0;
+        }
+        .ni i {
+            font-size: 1.3rem;
+            transition: transform .2s;
+        }
+        .ni span {
+            line-height: 1;
+        }
+        .ni.active {
+            color: var(--fire);
+        }
+        .ni.active i {
+            transform: scale(1.1);
+        }
+        .ni.active::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 24px;
+            height: 3px;
+            background: var(--fire);
+            border-radius: 0 0 4px 4px;
+        }
+        /* center button special */
+        .ni.nc .nb {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--fire), var(--fire-light));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 6px 20px -4px rgba(242, 98, 46, .5);
+            margin-bottom: 1px;
+            transition: transform .2s;
+        }
+        .ni.nc .nb i {
+            color: white;
+            font-size: 1.2rem;
+        }
+        .ni.nc.active::before {
+            display: none;
+        }
+        .ni.nc.active .nb {
+            transform: scale(1.05);
+        }
+        .ni.nc.active {
+            color: var(--fire);
+        }
+        .n-badge {
+            position: absolute;
+            top: 4px;
+            left: 50%;
+            transform: translateX(10px);
+            background: var(--fire);
+            color: white;
+            border-radius: 50%;
+            width: 18px;
+            height: 18px;
+            font-size: .6rem;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 2px solid var(--warm-white);
+            font-family: var(--DF);
+        }
 
-    /* GOOGLE REVIEWS WIDGET – proper format with time/price/ratings */
-    .g-review-wrap {
-      background: white;
-      border-radius: 28px;
-      margin: 32px 0 24px;
-      padding: 22px 20px;
-      box-shadow: 0 12px 28px -8px rgba(0,0,0,0.08);
-      border: 1px solid var(--border);
-    }
-    .g-review-header {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      font-family: var(--BF);
-      font-size: 1.35rem;
-      letter-spacing: 1px;
-      color: var(--black);
-      margin-bottom: 8px;
-    }
-    .g-review-header i { color: var(--fire); font-size: 1.4rem; }
-    .rating-stars {
-      display: flex;
-      gap: 4px;
-      font-size: 1.05rem;
-      color: #fb8c00;
-      margin: 6px 0;
-    }
-    .rating-score {
-      display: inline-flex;
-      align-items: center;
-      gap: 10px;
-      flex-wrap: wrap;
-      margin-bottom: 18px;
-      background: #fef5ef;
-      padding: 10px 14px;
-      border-radius: 60px;
-      width: fit-content;
-    }
-    .g-badge {
-      background: white;
-      border-radius: 50px;
-      padding: 4px 12px;
-      font-size: .75rem;
-      font-weight: 700;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.05);
-    }
-    .review-card {
-      background: #fefaf7;
-      border-radius: 20px;
-      padding: 14px;
-      margin-bottom: 14px;
-      border-left: 4px solid var(--fire);
-    }
-    .reviewer {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      margin-bottom: 6px;
-      font-weight: 600;
-      flex-wrap: wrap;
-    }
-    .reviewer i { font-size: 1.2rem; color: var(--fire); background: #fff0e8; padding: 6px; border-radius: 50%; }
-    .time-price {
-      font-size: 0.72rem;
-      color: var(--text-muted);
-      margin-bottom: 8px;
-    }
-    .rev-stars { color: #ffb347; font-size: .8rem; letter-spacing: 2px; margin-bottom: 6px; }
-    .rev-text { font-size: .85rem; color: var(--text-main); line-height: 1.45; margin-bottom: 8px; }
-    .rating-detail { font-size: 0.7rem; color: var(--text-muted); border-top: 1px solid #f0e0d6; padding-top: 6px; margin-top: 6px; }
-    .g-review-btn {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 10px;
-      background: #1a73e8;
-      color: white;
-      text-decoration: none;
-      padding: 12px 17px;
-      border-radius: 60px;
-      font-weight: 700;
-      font-size: .9rem;
-      margin-top: 16px;
-      transition: background 0.2s, transform 0.1s;
-      border: none;
-      width: 100%;
-      font-family: var(--DF);
-      letter-spacing: .3px;
-    }
-    .g-review-btn:hover { background: #0d5bbb; transform: scale(0.98); }
-    .g-review-btn i { font-size: 1.1rem; }
+        /* ═══════ TOAST ═══════ */
+        .toast {
+            position: fixed;
+            top: 72px;
+            left: 50%;
+            transform: translateX(-50%) translateY(-10px);
+            background: var(--charcoal);
+            color: white;
+            padding: 9px 18px;
+            border-radius: 40px;
+            font-size: .82rem;
+            z-index: 9000;
+            opacity: 0;
+            pointer-events: none;
+            transition: all .3s;
+            white-space: nowrap;
+        }
+        .toast.show {
+            opacity: 1;
+            transform: translateX(-50%) translateY(0);
+        }
 
-    /* cart & order styles (unchanged) */
-    .cart-empty { text-align:center; padding:60px 20px; color:var(--text-muted); }
-    .cart-empty i { font-size:3rem; color:#f5cfc0; margin-bottom:12px; display:block; }
-    .cart-empty h3 { font-family:var(--BF); font-size:1.4rem; letter-spacing:1px; margin-bottom:6px; }
-    .cart-list { display:flex; flex-direction:column; gap:10px; }
-    .cart-item { background:white; border-radius:18px; padding:14px 16px; display:flex; align-items:center; gap:12px; border:2px solid var(--border); }
-    .ci-img { width:54px; height:54px; border-radius:12px; object-fit:cover; background:#fef0e6; flex-shrink:0; }
-    .ci-info { flex:1; }
-    .ci-name { font-family:var(--BF); font-size:1rem; letter-spacing:.5px; }
-    .ci-unit { font-size:.75rem; color:var(--text-muted); }
-    .qty-row { display:flex; align-items:center; gap:10px; margin-top:6px; }
-    .qty-btn { width:30px; height:30px; border-radius:50%; border:2px solid var(--border); background:white; font-size:1.1rem; font-weight:700; cursor:pointer; display:flex; align-items:center; justify-content:center; color:var(--fire); }
-    .qty-btn:hover { background:var(--fire); color:white; border-color:var(--fire); }
-    .qty-num { font-family:var(--BF); font-size:1.1rem; min-width:20px; text-align:center; }
-    .ci-price { font-family:var(--BF); font-size:1rem; letter-spacing:.5px; color:var(--fire); flex-shrink:0; }
-    .order-summary { background:var(--charcoal); border-radius:24px; padding:18px; margin-top:16px; color:white; }
-    .sum-row { display:flex; justify-content:space-between; font-size:.88rem; padding:4px 0; color:rgba(255,255,255,.7); }
-    .sum-row.tot { font-family:var(--BF); font-size:1.5rem; letter-spacing:1px; color:white; border-top:1px solid rgba(255,255,255,.1); margin-top:10px; padding-top:12px; }
-    .ft { color:var(--fire-light); }
-    .form-sec { background:white; border-radius:20px; padding:18px; margin-bottom:14px; border:2px solid var(--border); }
-    .form-sec h3 { font-family:var(--BF); font-size:1.2rem; letter-spacing:1px; margin-bottom:14px; display:flex; align-items:center; gap:8px; }
-    .form-sec h3 i { color:var(--fire); }
-    label { font-size:.78rem; font-weight:600; color:var(--text-muted); text-transform:uppercase; letter-spacing:.05em; display:block; margin-bottom:5px; }
-    .iw { margin-bottom:14px; }
-    input, textarea { width:100%; background:var(--cream); border:2px solid var(--border); border-radius:14px; padding:11px 14px; font-size:.9rem; font-family:var(--DF); color:var(--text-main); outline:none; }
-    input:focus, textarea:focus { border-color:var(--fire); background:white; }
-    .ot-grid { display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-bottom:14px; }
-    .ot-opt { border:2px solid var(--border); border-radius:16px; padding:14px 12px; cursor:pointer; text-align:center; background:white; transition:all .2s; }
-    .ot-opt.sel { border-color:var(--fire); background:#fff4ef; }
-    .ot-opt i { font-size:1.4rem; color:var(--text-muted); display:block; margin-bottom:5px; }
-    .ot-opt.sel i { color:var(--fire); }
-    .preview-card { background:var(--charcoal); border-radius:20px; padding:16px; font-family:monospace; font-size:.75rem; color:#e8d5c4; white-space:pre-wrap; margin-bottom:14px; line-height:1.55; }
-    .wa-btn { display:flex; align-items:center; justify-content:center; gap:10px; width:100%; background:#25D366; color:white; text-decoration:none; border-radius:18px; padding:15px; font-family:var(--BF); font-size:1.2rem; cursor:pointer; border:none; }
-    .wa-btn:hover { background:#1da850; }
-    .bot-nav { position:fixed; bottom:0; left:0; right:0; z-index:1000; background:rgba(255,250,246,.96); backdrop-filter:blur(24px); border-top:1px solid var(--border); padding:0 0 var(--safe-bottom); }
-    .nav-inner { max-width:520px; margin:0 auto; display:flex; height:var(--nav-h); }
-    .ni { flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:3px; cursor:pointer; background:none; border:none; color:var(--text-muted); font-family:var(--BF); font-size:.78rem; position:relative; }
-    .ni i { font-size:1.35rem; transition:transform .2s; }
-    .ni.active { color:var(--fire); }
-    .ni.active i { transform:scale(1.12); }
-    .ni.active::before { content:''; position:absolute; top:0; left:50%; transform:translateX(-50%); width:24px; height:3px; background:var(--fire); border-radius:0 0 4px 4px; }
-    .ni.nc .nb { width:52px; height:52px; border-radius:50%; background:linear-gradient(135deg,var(--fire),var(--fire-light)); display:flex; align-items:center; justify-content:center; box-shadow:0 6px 20px -4px rgba(242,98,46,.5); margin-bottom:2px; }
-    .ni.nc .nb i { color:white; font-size:1.3rem; }
-    .ni.nc.active::before { display:none; }
-    .n-badge { position:absolute; top:8px; left:50%; transform:translateX(2px); background:var(--fire); color:white; border-radius:50%; width:17px; height:17px; font-size:.65rem; font-weight:700; display:flex; align-items:center; justify-content:center; border:2px solid var(--warm-white); }
-    .social-sec { display:flex; gap:10px; justify-content:center; flex-wrap:wrap; padding:24px 0 8px; }
-    .soc-btn { display:flex; align-items:center; gap:8px; padding:9px 18px; border-radius:40px; background:var(--charcoal); color:#e8d5c4; text-decoration:none; font-size:.82rem; font-weight:600; transition:all .2s; }
-    .soc-btn:hover { background:var(--fire); color:white; transform:translateY(-2px); }
-    .foot-txt { text-align:center; font-size:.75rem; color:var(--text-muted); padding:10px 0 4px; }
-    .toast { position:fixed; top:72px; left:50%; transform:translateX(-50%) translateY(-10px); background:var(--charcoal); color:white; padding:9px 18px; border-radius:40px; font-size:.82rem; z-index:9000; opacity:0; pointer-events:none; transition:all .3s; white-space:nowrap; }
-    .toast.show { opacity:1; transform:translateX(-50%) translateY(0); }
-    .hf { display:none; }
-  </style>
+        /* ═══════ RESPONSIVE ═══════ */
+        @media(max-width:480px) {
+            .hero-content h1 {
+                font-size: 2.6rem;
+            }
+            .brand-name {
+                font-size: 1.5rem;
+            }
+            .cart-pill {
+                padding: 5px 10px;
+                font-size: .85rem;
+            }
+            .cart-pill .cnt {
+                width: 18px;
+                height: 18px;
+                font-size: .65rem;
+            }
+            .ni {
+                font-size: .65rem;
+            }
+            .ni i {
+                font-size: 1.15rem;
+            }
+            .ni.nc .nb {
+                width: 44px;
+                height: 44px;
+            }
+            .ni.nc .nb i {
+                font-size: 1rem;
+            }
+        }
+    </style>
 </head>
 <body>
 
-<!-- ONBOARDING POPUP (first visit) -->
-<div id="onboarding">
-  <div class="ob-sheet">
-    <div class="ob-dots"><div class="ob-dot on" id="d0"></div><div class="ob-dot" id="d1"></div><div class="ob-dot" id="d2"></div><div class="ob-dot" id="d3"></div></div>
-    <div class="ob-step on" id="os0"><div class="ob-icon-wrap">🔥</div><h2>Welcome to Patogrills!</h2><p>Flame-grilled perfection · Smoky & Bold<br><br>Swipe to see how to order in <strong>3 easy steps</strong>.</p></div>
-    <div class="ob-step" id="os1"><div class="ob-icon-wrap">🍗</div><h2>Step 1: Browse Menu</h2><p>Tap <span class="ob-chip"><i class="fas fa-utensils"></i> Menu</span> tab, filter categories, and press <strong style="color:var(--fire);">ORDER</strong> to add to cart.</p></div>
-    <div class="ob-step" id="os2"><div class="ob-icon-wrap">🛒</div><h2>Step 2: Review Cart</h2><p>Tap the orange <span class="ob-chip"><i class="fas fa-bag-shopping"></i></span> cart button. Adjust quantities & choose <strong>Delivery/Pickup</strong>.</p></div>
-    <div class="ob-step" id="os3"><div class="ob-icon-wrap">📲</div><h2>Step 3: Order via WhatsApp</h2><p>Fill details and hit <strong style="color:#25D366;">Send on WhatsApp</strong>. We'll fire up the grill! 🔥</p></div>
-    <div class="ob-actions"><button class="ob-skip" id="obSkip">Skip</button><button class="ob-next" id="obNext">NEXT →</button></div>
-  </div>
-</div>
-
-<!-- TOP BAR (glass effect) -->
-<header class="top-bar"><div class="top-bar-inner"><div class="brand"><img class="brand-logo" src="logo.png" alt="Patogrills Logo" onerror="this.style.display='none';document.getElementById('lf').style.display='flex';"><div class="brand-logo-fb" id="lf">🔥</div><div class="brand-text"><span class="brand-name">Patogrills</span><span class="brand-sub">Fire &amp; Flavor</span></div></div><button class="cart-pill" onclick="goTo('cart')"><i class="fas fa-bag-shopping"></i> CART <span class="cnt" id="cartCount">0</span></button></div></header>
-
-<!-- HERO (hero.png) -->
-<div class="hero"><div class="hero-content"><h1>FIRE &amp;<br><span>FLAVOR</span></h1><p>FLAME-GRILLED · FRESH · BOLD</p><div class="hero-tag"><i class="fas fa-crown"></i> GOOD FOOD NO DEY RUSH</div></div></div>
-
-<!-- PAGE: MENU -->
-<div id="page-menu" class="page active">
-  <div class="cat-scroll"><div class="cat-pill active" data-cat="ALL">ALL ITEMS</div><div class="cat-pill" data-cat="MAINS">🍝 MAINS</div><div class="cat-pill" data-cat="PROTEINS">🍗 PROTEINS</div><div class="cat-pill" data-cat="EXTRAS">🥗 EXTRAS</div></div>
-  <div id="menuContent"></div>
-
-  <!-- GOOGLE REVIEWS WIDGET – final format with local names, time/price, ratings -->
-  <div class="g-review-wrap">
-    <div class="g-review-header"><i class="fab fa-google"></i> Google Reviews</div>
-    <div class="rating-score"><div class="rating-stars"><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star-half-alt"></i></div><span style="font-weight:800;">4.9 ★</span><span class="g-badge">120+ reviews</span></div>
-
-    <div class="review-card">
-      <div class="reviewer"><i class="fas fa-user-circle"></i> <strong>Oghenetega O.</strong> <span style="font-size:0.7rem; color:#aaa; margin-left:6px;">a year ago</span></div>
-      <div class="time-price">Takeaway  |  Dinner  |  ₦4,000–6,000</div>
-      <div class="rev-stars">★★★★★</div>
-      <div class="rev-text">“The very best grill spot in Delta state. Grilled turkey is unbeatable, chips and sauce on point. I can recommend 100%”</div>
-      <div class="rating-detail">Food: 5/5  |  Service: 5/5  |  Atmosphere: 5/5</div>
+    <!-- ═══ ONBOARDING ═══ -->
+    <div id="onboarding">
+        <div class="ob-sheet">
+            <div class="ob-dots"><div class="ob-dot on" id="d0"></div><div class="ob-dot" id="d1"></div><div class="ob-dot" id="d2"></div><div class="ob-dot" id="d3"></div></div>
+            <div class="ob-step on" id="os0"><div class="ob-icon-wrap">🔥</div><h2>Welcome to Patogrills!</h2><p>Flame-grilled perfection · Smoky & Bold<br><br>Swipe to see how to order in <strong>3 easy steps</strong>.</p></div>
+            <div class="ob-step" id="os1"><div class="ob-icon-wrap">🍗</div><h2>Step 1: Browse Menu</h2><p>Tap <span class="ob-chip"><i class="fas fa-utensils"></i> ORDER</span> on any item to add it to your cart.</p></div>
+            <div class="ob-step" id="os2"><div class="ob-icon-wrap">🛒</div><h2>Step 2: Review Cart</h2><p>Adjust quantities below, then choose <strong>Delivery</strong> or <strong>Pickup</strong>.</p></div>
+            <div class="ob-step" id="os3"><div class="ob-icon-wrap">📲</div><h2>Step 3: Order via WhatsApp</h2><p>Fill your details and hit <strong style="color:#25D366;">Send on WhatsApp</strong>. We'll fire up the grill! 🔥</p></div>
+            <div class="ob-actions"><button class="ob-skip" id="obSkip">Skip</button><button class="ob-next" id="obNext">NEXT →</button></div>
+        </div>
     </div>
 
-    <div class="review-card">
-      <div class="reviewer"><i class="fas fa-user-circle"></i> <strong>Ejiro O.</strong> <span style="font-size:0.7rem; color:#aaa; margin-left:6px;">8 months ago</span></div>
-      <div class="time-price">Delivery  |  Lunch  |  ₦3,000–5,000</div>
-      <div class="rev-stars">★★★★★</div>
-      <div class="rev-text">“As a DELSU student, Patogrills na my number one. Their shawarma and sausage are 🔥. Fast delivery to campus. 10/10”</div>
-      <div class="rating-detail">Food: 5/5  |  Service: 5/5  |  Atmosphere: 5/5</div>
-    </div>
-
-    <div class="review-card">
-      <div class="reviewer"><i class="fas fa-user-circle"></i> <strong>Akpofure R.</strong> <span style="font-size:0.7rem; color:#aaa; margin-left:6px;">2 weeks ago</span></div>
-      <div class="time-price">Takeaway  |  Dinner  |  ₦4,000–6,000</div>
-      <div class="rev-stars">★★★★★</div>
-      <div class="rev-text">“The grill turkey for Abraka no get rival. Chips and sauce sweet well well. If you never try, you missing. Eji re!”</div>
-      <div class="rating-detail">Food: 5/5  |  Service: 5/5  |  Atmosphere: 5/5</div>
-    </div>
-
-    <a class="g-review-btn" href="https://www.google.com/search?client=ms-android-xiaomi-terr1-rso2&hs=nqqp&sca_esv=39e7e74914a90773&sxsrf=ANbL-n4KG161SznHY9JQX9jtsDL44Kg4Vg:1778238525882&q=patogrills+reviews&uds=ALYpb_kGrzrO92vWfVUObUyhGdu-ZnUQYDQj4x15clcHZUdUhzieyk0sSJt8GtlvfaOGXC5Cd8heCAGM7hMfh6k9yS_G78b_KvfLxjURe7xsSzfUkD6vCEPhA3toCnkqlCZrqnPw8f5cfcA-dsVBJJNkUuI-tZGwtdG3BMxticWOlK3B7AhU7pSrOVo5hq2lnSLaXdr-4G9Pyrp9e2tHntTbrdg32KCcADwN-F37uuNezAofwFxEfxiJ-2QqnjuWUcM67Ex2FagWYTkogxbbaf0wwire_LwmseYtKCiWhp7_w4Upfj3omGyFh8wCh6NFoxLRHtAv5Vio9jI2c975stCPcLDu4IQVGZjZlf97el2K05liUyU7SrVr-ql7cQSrb2k49L5v5gBWsIA9ftLc-CVaYwv5VqcjjKu4jMVKSpJgo8xJLfqg8RDXifboi8W3Y79Lpi8722TPgcWFHHfb3RJWeJ1nO2wesZE9ck3f846YdRZy4TGAWbA&si=AL3DRZEsmMGCryMMFSHJ3StBhOdZ2-6yYkXd_doETEE1OR-qOTnrX26u2nPaXJMIdN1654OVA0X12ckxX_FE56QDYRuk7vtGaEYzEwmGvPhfyGmrHZr3PH3mDyaONS8ex_5PP--9X60Q&sa=X&ved=2ahUKEwiwxqTdxqmUAxWwVkEAHTjeKwgQk8gLegUInwEQAQ&ictx=1&stq=1&cs=1&lei=PcT9afCzNbCthbIPuLyvQQ#ebo=5" target="_blank" rel="noopener noreferrer"><i class="fab fa-google"></i> ✍️ Write a review on Google</a>
-    <p style="font-size: .7rem; color: var(--text-muted); text-align: center; margin-top: 14px;">⭐ Your feedback fuels our fire — share your experience!</p>
-  </div>
-
-  <div class="social-sec"><a href="https://www.tiktok.com/@patogrills1" target="_blank" class="soc-btn"><i class="fab fa-tiktok"></i> @patogrills</a><a href="#" class="soc-btn"><i class="fab fa-instagram"></i> Instagram</a></div>
-  <div class="foot-txt">🔥 Firewood &amp; Charcoal since 2025 · Enjoy the Thrills Of The Grills</div>
-</div>
-
-<!-- PAGE: CART -->
-<div id="page-cart" class="page"><div class="sec-title"><i class="fas fa-bag-shopping" style="color:var(--fire);"></i> Your Cart</div><div id="cartContent"></div><div id="cartSummary" class="order-summary" style="display:none;"><div class="sum-row"><span>Subtotal</span><span id="sSub">₦0</span></div><div class="sum-row" id="dRow"><span>Delivery fee</span><span class="ft">+₦1,000</span></div><div class="sum-row tot"><span>Total</span><span id="sTotal">₦0</span></div></div><div style="margin-top:14px;" id="chkWrap"></div></div>
-
-<!-- PAGE: ORDER -->
-<div id="page-order" class="page"><div class="sec-title"><i class="fas fa-receipt"></i> Your Details</div><div class="form-sec"><h3><i class="fas fa-user-circle"></i> Personal Info</h3><div class="iw"><label>Full Name</label><input type="text" id="name" placeholder="Your name"></div><div class="iw"><label>WhatsApp Number</label><input type="text" id="phone" placeholder="080xxxxxxxx"></div></div><div class="form-sec"><h3><i class="fas fa-truck"></i> Order Type</h3><div class="ot-grid"><div class="ot-opt sel" id="od" onclick="selOT('Delivery')"><i class="fas fa-truck"></i><span>Delivery</span><small>+₦1,000 fee</small></div><div class="ot-opt" id="op" onclick="selOT('Pickup')"><i class="fas fa-store"></i><span>Pickup</span><small>No fee</small></div></div><div id="addrWrap" class="iw"><label>Delivery Address</label><textarea id="address" rows="2" placeholder="Street, landmark..."></textarea></div><div class="iw"><label>Special Notes</label><textarea id="notes" rows="2" placeholder="Extra spice, no onion..."></textarea></div></div><div class="form-sec"><h3><i class="fab fa-whatsapp"></i> Order Preview</h3><div id="preview" class="preview-card">✨ Your order summary will appear here.</div><a id="sendLink" class="wa-btn" href="#"><i class="fab fa-whatsapp"></i> SEND ORDER ON WHATSAPP</a></div></div>
-
-<!-- BOTTOM NAV -->
-<nav class="bot-nav"><div class="nav-inner"><button class="ni active" id="nav-menu" onclick="goTo('menu')"><i class="fas fa-utensils"></i><span>Menu</span></button><button class="ni nc" id="nav-cart" onclick="goTo('cart')"><div class="nb"><i class="fas fa-bag-shopping"></i></div><span>Cart</span><div class="n-badge" id="navBadge" style="display:none;">0</div></button><button class="ni" id="nav-order" onclick="goTo('order')"><i class="fas fa-paper-plane"></i><span>Order</span></button></div></nav>
-<div class="toast" id="toast"></div>
-
-<script>
-  // ----- ALL ORIGINAL IMAGE FILE NAMES RETAINED -----
-  const ITEMS = [
-    {id:1,name:"Spaghetti",       price:1500,desc:"Classic pasta, rich tomato sauce",    cat:"MAINS",   img:"Spaghetti.jpg"},
-    {id:2,name:"Chips (Fries)",    price:1500,desc:"Golden crispy fries, well-salted",    cat:"MAINS",   img:"chip.jpg"},
-    {id:3,name:"Sharp Wrap",       price:3500,desc:"Shawarma wrap, garlic sauce, veggies",cat:"MAINS",   img:"shawarma.jpg"},
-    {id:4,name:"Sabi Talk Turkey", price:6000,desc:"Jumbo turkey, smoky glaze",           cat:"PROTEINS",img:"turk.jpg"},
-    {id:5,name:"Talkless Turkey",  price:4000,desc:"Small turkey, well-spiced & tender",  cat:"PROTEINS",img:"trk.jpg"},
-    {id:6,name:"Big Chicken",      price:4500,desc:"Full grilled chicken, super juicy",   cat:"PROTEINS",img:"chick.jpg"},
-    {id:7,name:"Small Chicken",    price:3000,desc:"Half chicken, flame-grilled",         cat:"PROTEINS",img:"chken.jpg"},
-    {id:8,name:"Sausage",          price:500, desc:"Smoky grilled sausage",               cat:"EXTRAS",  img:"suss.png"},
-    {id:9,name:"Fresh Salad",      price:700, desc:"Crunchy veggie mix, house dressing",  cat:"EXTRAS",  img:"salad.jpg"}
-  ];
-  const FEE=1000, PH="2348029811578"; 
-  let cart=[], OT="Delivery", actCat="ALL";
-  const OB_KEY="pg_ob2";
-  let obI=0;
-  function closeOB(){ localStorage.setItem(OB_KEY,"1"); const el=document.getElementById("onboarding"); el.classList.add("fade-out"); setTimeout(()=>el.classList.add("gone"),380); }
-  function initOB(){ if(localStorage.getItem(OB_KEY)){ document.getElementById("onboarding").classList.add("gone"); return; } showOBStep(0); }
-  function showOBStep(i){ for(let j=0;j<4;j++){ document.getElementById("os"+j).classList.toggle("on",j===i); document.getElementById("d"+j).classList.toggle("on",j===i); } document.getElementById("obNext").textContent = i===3 ? "LET'S EAT! 🔥" : "NEXT →"; }
-  document.getElementById("obNext").onclick=()=>{ if(obI<3){ obI++; showOBStep(obI); } else closeOB(); };
-  document.getElementById("obSkip").onclick=closeOB;
-  const fmt=n=>"₦"+n.toLocaleString();
-  function toast(m){ const t=document.getElementById("toast"); t.textContent=m; t.classList.add("show"); setTimeout(()=>t.classList.remove("show"),1900); }
-  const sub=()=>cart.reduce((s,i)=>s+i.price*i.qty,0);
-  const tot=()=>sub()+(OT==="Delivery"&&cart.length?FEE:0);
-  function goTo(p){ document.querySelectorAll('.page').forEach(x=>x.classList.remove('active')); document.querySelectorAll('.ni').forEach(x=>x.classList.remove('active')); document.getElementById('page-'+p).classList.add('active'); document.getElementById('nav-'+p).classList.add('active'); if(p==='order') updPreview(); if(p==='cart') renderCart(); window.scrollTo({top:0,behavior:'smooth'}); }
-  
-  // Updated buildMenu with ORDER button instead of plus icon
-  function buildMenu(){ 
-    const cats=actCat==="ALL"?["MAINS","PROTEINS","EXTRAS"]:[actCat]; 
-    const CL={MAINS:"🍝 Mains",PROTEINS:"🍗 Proteins",EXTRAS:"🥗 Extras"}; 
-    let h=""; 
-    for(const c of cats){ 
-      const items=ITEMS.filter(i=>i.cat===c); 
-      if(!items.length) continue; 
-      h+=`<div class="sec-title">${CL[c]}</div><div class="menu-grid">`; 
-      items.forEach(i=>{ 
-        h+=`<div class="menu-card">
-          <img class="menu-img" src="${i.img}" alt="${i.name}" loading="lazy" onerror="this.src='https://placehold.co/400x250/fef0e6/f2622e?text=🔥'">
-          <div class="menu-info">
-            <div class="menu-name">${i.name}</div>
-            <div class="menu-desc">${i.desc}</div>
-            <div class="menu-bottom">
-              <div class="menu-price">${fmt(i.price)}</div>
-              <button class="order-btn" onclick="addItem(${i.id})"><i class="fas fa-shopping-cart"></i> ORDER</button>
+    <!-- ═══ TOP BAR ═══ -->
+    <header class="top-bar">
+        <div class="top-bar-inner">
+            <div class="brand">
+                <img class="brand-logo" src="logo.png" alt="Patogrills Logo" onerror="this.style.display='none';document.getElementById('lf').style.display='flex';">
+                <div class="brand-logo-fb" id="lf">🔥</div>
+                <div class="brand-text">
+                    <span class="brand-name">Patogrills</span>
+                    <span class="brand-sub">Fire &amp; Flavor</span>
+                </div>
             </div>
-          </div>
-        </div>`; 
-      }); 
-      h+="</div>"; 
-    } 
-    document.getElementById("menuContent").innerHTML=h; 
-  }
-  
-  document.querySelectorAll('.cat-pill').forEach(p=>p.addEventListener('click',()=>{ document.querySelectorAll('.cat-pill').forEach(x=>x.classList.remove('active')); p.classList.add('active'); actCat=p.dataset.cat; buildMenu(); }));
-  function addItem(id){ const it=ITEMS.find(i=>i.id===id); const ex=cart.find(i=>i.id===id); if(ex) ex.qty++; else cart.push({...it,qty:1}); updBadge(); toast("✅ "+it.name+" added to cart!"); }
-  window.updateQty=(id,d)=>{ const idx=cart.findIndex(i=>i.id===id); if(idx===-1) return; cart[idx].qty+=d; if(cart[idx].qty<=0) cart.splice(idx,1); updBadge(); renderCart(); updPreview(); };
-  function updBadge(){ const n=cart.reduce((s,i)=>s+i.qty,0); document.getElementById("cartCount").textContent=n; const b=document.getElementById("navBadge"); b.style.display=n>0?"flex":"none"; b.textContent=n; }
-  function renderCart(){ const el=document.getElementById("cartContent"), sm=document.getElementById("cartSummary"), cw=document.getElementById("chkWrap"); if(!cart.length){ el.innerHTML=`<div class="cart-empty"><i class="fas fa-bag-shopping"></i><h3>CART IS EMPTY</h3><p>Go to Menu and tap ORDER to add items!</p></div>`; sm.style.display="none"; cw.innerHTML=""; return; } el.innerHTML=`<div class="cart-list">${cart.map(it=>`<div class="cart-item"><img class="ci-img" src="${it.img}" onerror="this.src='https://placehold.co/100x100/fef0e6/f2622e?text=🔥'"><div class="ci-info"><div class="ci-name">${it.name}</div><div class="ci-unit">${fmt(it.price)} each</div><div class="qty-row"><button class="qty-btn" onclick="updateQty(${it.id},-1)">−</button><span class="qty-num">${it.qty}</span><button class="qty-btn" onclick="updateQty(${it.id},1)">+</button></div></div><div class="ci-price">${fmt(it.price*it.qty)}</div></div>`).join("")}</div>`; const isD=OT==="Delivery"; document.getElementById("sSub").textContent=fmt(sub()); document.getElementById("dRow").style.display=isD?"flex":"none"; document.getElementById("sTotal").textContent=fmt(tot()); sm.style.display="block"; cw.innerHTML=`<button class="wa-btn" onclick="goTo('order')"><i class="fas fa-receipt"></i> FILL ORDER DETAILS</button>`; }
-  window.selOT=type=>{ OT=type; document.getElementById("od").classList.toggle("sel",type==="Delivery"); document.getElementById("op").classList.toggle("sel",type==="Pickup"); document.getElementById("addrWrap").classList.toggle("hf",type!=="Delivery"); renderCart(); updPreview(); };
-  function genMsg(){ if(!cart.length) return "🔥 Patogrills: Cart is empty."; const lines=cart.map(i=>`• ${i.qty} x ${i.name} — ${fmt(i.qty*i.price)}`).join("\n"); const nm=document.getElementById("name").value.trim()||"—", ph=document.getElementById("phone").value.trim()||"—", ad=OT==="Delivery"?(document.getElementById("address").value.trim()||"—"):null, nt=document.getElementById("notes").value.trim()||"—"; const dl=OT==="Delivery"?`\n🚚 Delivery fee: ${fmt(FEE)}`:""; return `🍢 *PATO GRILLS ORDER* 🍢\n\n${lines}${dl}\n\n────────────────\n📦 *Total:* ${fmt(tot())}\n\n📌 *Order type:* ${OT}\n👤 *Name:* ${nm}\n📞 *Phone:* ${ph}${ad!==null?`\n📍 *Address:* ${ad}`:""}\n📝 *Notes:* ${nt}\n\n🔥 *Enjoy the Thrills Of The Grills — Good Food No Dey Rush*`; }
-  function updPreview(){ document.getElementById("preview").textContent=genMsg(); const lk=document.getElementById("sendLink"); if(!cart.length){lk.href="#";return;} lk.href=`https://wa.me/${PH}?text=${encodeURIComponent(genMsg())}`; }
-  document.getElementById("sendLink").addEventListener("click",e=>{ if(!cart.length){e.preventDefault();toast("🍽️ Add items first!");return;} if(OT==="Delivery"&&!document.getElementById("address").value.trim()){e.preventDefault();toast("📍 Enter delivery address");} });
-  ["name","phone","address","notes"].forEach(id=>{ const el=document.getElementById(id); if(el) el.addEventListener("input",updPreview); });
-  buildMenu(); renderCart(); initOB(); selOT("Delivery");
-</script>
+            <button class="cart-pill" onclick="document.getElementById('cart-section').scrollIntoView({behavior:'smooth'})">
+                <i class="fas fa-bag-shopping"></i> CART <span class="cnt" id="cartCount">0</span>
+            </button>
+        </div>
+    </header>
+
+    <!-- ═══ HERO ═══ -->
+    <div class="hero">
+        <div class="hero-content">
+            <h1>FIRE &amp;<br><span>FLAVOR</span></h1>
+            <p>FLAME-GRILLED · FRESH · BOLD</p>
+            <div class="hero-tag"><i class="fas fa-crown"></i> GOOD FOOD NO DEY RUSH</div>
+        </div>
+    </div>
+
+    <!-- ═══ SEAMLESS CONTENT ═══ -->
+    <div class="seamless-wrap">
+
+        <!-- ─── MENU SECTION ─── -->
+        <div id="section-menu" class="section-anchor">
+            <div class="cat-scroll">
+                <div class="cat-pill active" data-cat="ALL">ALL ITEMS</div>
+                <div class="cat-pill" data-cat="MAINS">🍝 MAINS</div>
+                <div class="cat-pill" data-cat="PROTEINS">🍗 PROTEINS</div>
+                <div class="cat-pill" data-cat="EXTRAS">🥗 EXTRAS</div>
+            </div>
+            <div id="menuContent"></div>
+        </div>
+
+        <!-- ─── CART SECTION ─── -->
+        <div id="cart-section" class="cart-section section-anchor">
+            <div class="sec-title"><i class="fas fa-bag-shopping" style="color:var(--fire);"></i> Your Cart</div>
+            <div id="cartContent"></div>
+            <div id="cartSummary" class="order-summary" style="display:none;">
+                <div class="sum-row"><span>Subtotal</span><span id="sSub">₦0</span></div>
+                <div class="sum-row" id="dRow"><span>Delivery fee</span><span class="ft">+₦1,000</span></div>
+                <div class="sum-row tot"><span>Total</span><span id="sTotal">₦0</span></div>
+            </div>
+        </div>
+
+        <!-- ─── ORDER SECTION ─── -->
+        <div id="section-order" class="order-section section-anchor">
+            <div class="sec-title"><i class="fas fa-receipt"></i> Your Details</div>
+
+            <div class="form-sec">
+                <h3><i class="fas fa-user-circle"></i> Personal Info</h3>
+                <div class="iw"><label>Full Name</label><input type="text" id="name" placeholder="Your name"></div>
+                <div class="iw"><label>WhatsApp Number</label><input type="text" id="phone" placeholder="080xxxxxxxx"></div>
+            </div>
+
+            <div class="form-sec">
+                <h3><i class="fas fa-truck"></i> Order Type</h3>
+                <div class="ot-grid">
+                    <div class="ot-opt sel" id="od" onclick="selOT('Delivery')"><i class="fas fa-truck"></i><span>Delivery</span><small>+₦1,000 fee</small></div>
+                    <div class="ot-opt" id="op" onclick="selOT('Pickup')"><i class="fas fa-store"></i><span>Pickup</span><small>No fee</small></div>
+                </div>
+                <div id="addrWrap" class="iw"><label>Delivery Address</label><textarea id="address" rows="2" placeholder="Street, landmark..."></textarea></div>
+                <div class="iw"><label>Special Notes</label><textarea id="notes" rows="2" placeholder="Extra spice, no onion..."></textarea></div>
+            </div>
+
+            <div class="form-sec">
+                <h3><i class="fab fa-whatsapp"></i> Order Preview</h3>
+                <div id="preview" class="preview-card">✨ Your order summary will appear here.</div>
+                <a id="sendLink" class="wa-btn" href="#"><i class="fab fa-whatsapp"></i> SEND ORDER ON WHATSAPP</a>
+            </div>
+        </div>
+
+        <!-- ─── GOOGLE REVIEWS ─── -->
+       <div class="g-review-wrap"><div class="g-review-header"><i class="fab fa-google"></i> Google Reviews</div><div class="rating-score"><div class="rating-stars"><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star-half-alt"></i></div><span style="font-weight:800;">4.9 ★</span><span class="g-badge">10+ reviews</span></div><div class="review-card"><div class="reviewer"><i class="fas fa-user-circle"></i> <strong>Iwelumo Rita.</strong> <span style="font-size:0.7rem; color:#aaa; margin-left:6px;">a year ago</span></div><div class="time-price">Takeaway  |  Dinner  |  ₦4,000–6,000</div><div class="rev-stars">★★★★★</div><div class="rev-text">“The very best grill spot in Delta state. I can recommend 100%”</div><div class="rating-detail">Food: 5/5  |  Service: 5/5  |  Atmosphere: 5/5</div></div><div class="review-card"><div class="reviewer"><i class="fas fa-user-circle"></i> <strong>Chibuzor Olamilekan.</strong> <span style="font-size:0.7rem; color:#aaa; margin-left:6px;">8 months ago</span></div><div class="time-price">Delivery  |  Lunch  |  ₦3,000–5,000</div><div class="rev-stars">★★★★★</div><div class="rev-text">“It’s the best stir-fry pasta on that side of town”</div><div class="rating-detail">Food: 5/5  |  Service: 5/5  |  Atmosphere: 5/5</div></div><div class="review-card"><div class="reviewer"><i class="fas fa-user-circle"></i> <strong>Idosi Talent.</strong> <span style="font-size:0.7rem; color:#aaa; margin-left:6px;">2 weeks ago</span></div><div class="time-price">Takeaway  |  Dinner  |  ₦4,000–6,000</div><div class="rev-stars">★★★★★</div><div class="rev-text">“The boy de try 😊😊<br>Plus na my destiny helper”</div><div class="rating-detail">Food: 5/5  |  Service: 5/5  |  Atmosphere: 5/5</div></div><a class="g-review-btn" href="https://search.google.com/local/writereview?placeid=ChIJN6xYtU_uShARlQHxr2ANz8Q" target="_blank" rel="noopener noreferrer"><i class="fab fa-google"></i> ✍️ Write a review on Google</a><p style="font-size: .7rem; color: var(--text-muted); text-align: center; margin-top: 14px;">⭐ Your feedback fuels our fire — share your experience!</p></div
+        </div>
+
+        <!-- ─── SOCIAL & FOOTER ─── -->
+        <div class="social-sec">
+            <a href="https://www.tiktok.com/@patogrills1" target="_blank" class="soc-btn"><i class="fab fa-tiktok"></i> @patogrills</a>
+            <a href="#" class="soc-btn"><i class="fab fa-instagram"></i> Instagram</a>
+        </div>
+        <div class="foot-txt">🔥 Firewood &amp; Charcoal since 2025 · Enjoy the Thrills Of The Grills</div>
+
+    </div><!-- /seamless-wrap -->
+
+    <!-- ═══ BOTTOM NAV ═══ -->
+    <nav class="bot-nav">
+        <div class="nav-inner">
+            <button class="ni active" id="nav-menu" data-target="menu" onclick="scrollToSection('section-menu')">
+                <i class="fas fa-utensils"></i>
+                <span>Menu</span>
+            </button>
+            <button class="ni nc" id="nav-cart" data-target="cart" onclick="scrollToSection('cart-section')">
+                <div class="nb"><i class="fas fa-bag-shopping"></i></div>
+                <span>Cart</span>
+                <div class="n-badge" id="navBadge" style="display:none;">0</div>
+            </button>
+            <button class="ni" id="nav-order" data-target="order" onclick="scrollToSection('section-order')">
+                <i class="fas fa-paper-plane"></i>
+                <span>Order</span>
+            </button>
+        </div>
+    </nav>
+
+    <!-- ═══ TOAST ═══ -->
+    <div class="toast" id="toast"></div>
+
+    <!-- ════════════════════════════════════════════════════════════════ -->
+    <script>
+        // ─── DATA ───
+        const ITEMS = [
+            { id: 1, name: "Spaghetti", price: 1500, desc: "Classic pasta, rich tomato sauce", cat: "MAINS", img: "Spaghetti.jpg" },
+            { id: 2, name: "Chips (Fries)", price: 1500, desc: "Golden crispy fries, well-salted", cat: "MAINS", img: "chip.jpg" },
+            { id: 3, name: "Sharp Wrap", price: 3500, desc: "Shawarma wrap, garlic sauce, veggies", cat: "MAINS", img: "shawarma.jpg" },
+            { id: 4, name: "Sabi Talk Turkey", price: 6000, desc: "Jumbo turkey, smoky glaze", cat: "PROTEINS", img: "turk.jpg" },
+            { id: 5, name: "Talkless Turkey", price: 4000, desc: "Small turkey, well-spiced & tender", cat: "PROTEINS", img: "trk.jpg" },
+            { id: 6, name: "Big Chicken", price: 4500, desc: "Full grilled chicken, super juicy", cat: "PROTEINS", img: "chick.jpg" },
+            { id: 7, name: "Small Chicken", price: 3000, desc: "Half chicken, flame-grilled", cat: "PROTEINS", img: "chken.jpg" },
+            { id: 8, name: "Sausage", price: 500, desc: "Smoky grilled sausage", cat: "EXTRAS", img: "suss.png" },
+            { id: 9, name: "Fresh Salad", price: 700, desc: "Crunchy veggie mix, house dressing", cat: "EXTRAS", img: "salad.jpg" }
+        ];
+        const FEE = 1000,
+            PH = "2348029811578";
+        let cart = [],
+            OT = "Delivery",
+            actCat = "ALL";
+
+        // ─── HELPERS ───
+        const fmt = n => "₦" + n.toLocaleString();
+        const sub = () => cart.reduce((s, i) => s + i.price * i.qty, 0);
+        const tot = () => sub() + (OT === "Delivery" && cart.length ? FEE : 0);
+
+        function toast(m) {
+            const t = document.getElementById("toast");
+            t.textContent = m;
+            t.classList.add("show");
+            setTimeout(() => t.classList.remove("show"), 1900);
+        }
+
+        // ─── ONBOARDING ───
+        const OB_KEY = "pg_ob2";
+        let obI = 0;
+
+        function closeOB() {
+            localStorage.setItem(OB_KEY, "1");
+            const el = document.getElementById("onboarding");
+            el.classList.add("fade-out");
+            setTimeout(() => el.classList.add("gone"), 380);
+        }
+
+        function showOBStep(i) {
+            for (let j = 0; j < 4; j++) {
+                document.getElementById("os" + j).classList.toggle("on", j === i);
+                document.getElementById("d" + j).classList.toggle("on", j === i);
+            }
+            document.getElementById("obNext").textContent = i === 3 ? "LET'S EAT! 🔥" : "NEXT →";
+        }
+
+        function initOB() {
+            if (localStorage.getItem(OB_KEY)) {
+                document.getElementById("onboarding").classList.add("gone");
+                return;
+            }
+            showOBStep(0);
+        }
+        document.getElementById("obNext").onclick = () => { if (obI < 3) { obI++;
+                showOBStep(obI); } else closeOB(); };
+        document.getElementById("obSkip").onclick = closeOB;
+
+        // ─── SCROLL NAV ───
+        function scrollToSection(id) {
+            const el = document.getElementById(id);
+            if (el) {
+                el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }
+            updateActiveNav(id);
+        }
+
+        function updateActiveNav(sectionId) {
+            const map = {
+                'section-menu': 'nav-menu',
+                'cart-section': 'nav-cart',
+                'section-order': 'nav-order'
+            };
+            const navId = map[sectionId];
+            if (!navId) return;
+            document.querySelectorAll('.ni').forEach(b => b.classList.remove('active'));
+            document.getElementById(navId).classList.add('active');
+        }
+
+        // ─── SCROLL SPY ───
+        function setupScrollSpy() {
+            const sections = ['section-menu', 'cart-section', 'section-order'];
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        const id = entry.target.id;
+                        updateActiveNav(id);
+                    }
+                });
+            }, { rootMargin: '-80px 0px -40% 0px', threshold: 0.1 });
+
+            sections.forEach(id => {
+                const el = document.getElementById(id);
+                if (el) observer.observe(el);
+            });
+        }
+
+        // ─── MENU ───
+        function buildMenu() {
+            const cats = actCat === "ALL" ? ["MAINS", "PROTEINS", "EXTRAS"] : [actCat];
+            const CL = { MAINS: "🍝 Mains", PROTEINS: "🍗 Proteins", EXTRAS: "🥗 Extras" };
+            let h = "";
+            for (const c of cats) {
+                const items = ITEMS.filter(i => i.cat === c);
+                if (!items.length) continue;
+                h += `<div class="sec-title">${CL[c]}</div><div class="menu-grid">`;
+                items.forEach(i => {
+                    h += `<div class="menu-card">
+                        <img class="menu-img" src="${i.img}" alt="${i.name}" loading="lazy" onerror="this.src='https://placehold.co/400x250/fef0e6/f2622e?text=🔥'">
+                        <div class="menu-info">
+                            <div class="menu-name">${i.name}</div>
+                            <div class="menu-desc">${i.desc}</div>
+                            <div class="menu-bottom">
+                                <div class="menu-price">${fmt(i.price)}</div>
+                                <button class="order-btn" onclick="addItem(${i.id})"><i class="fas fa-shopping-cart"></i> ORDER</button>
+                            </div>
+                        </div>
+                    </div>`;
+                });
+                h += "</div>";
+            }
+            document.getElementById("menuContent").innerHTML = h;
+        }
+
+        document.querySelectorAll('.cat-pill').forEach(p => {
+            p.addEventListener('click', () => {
+                document.querySelectorAll('.cat-pill').forEach(x => x.classList.remove('active'));
+                p.classList.add('active');
+                actCat = p.dataset.cat;
+                buildMenu();
+            });
+        });
+
+        // ─── CART ───
+        function addItem(id) {
+            const it = ITEMS.find(i => i.id === id);
+            const ex = cart.find(i => i.id === id);
+            if (ex) ex.qty++;
+            else cart.push({ ...it, qty: 1 });
+            updBadge();
+            renderCart();
+            updPreview();
+            toast("✅ " + it.name + " added to cart!");
+        }
+
+        window.updateQty = (id, d) => {
+            const idx = cart.findIndex(i => i.id === id);
+            if (idx === -1) return;
+            cart[idx].qty += d;
+            if (cart[idx].qty <= 0) cart.splice(idx, 1);
+            updBadge();
+            renderCart();
+            updPreview();
+        };
+
+        function updBadge() {
+            const n = cart.reduce((s, i) => s + i.qty, 0);
+            document.getElementById("cartCount").textContent = n;
+            const badge = document.getElementById("navBadge");
+            if (n > 0) {
+                badge.style.display = "flex";
+                badge.textContent = n;
+            } else {
+                badge.style.display = "none";
+            }
+        }
+
+        function renderCart() {
+            const el = document.getElementById("cartContent"),
+                sm = document.getElementById("cartSummary");
+            if (!cart.length) {
+                el.innerHTML =
+                    `<div class="cart-empty"><i class="fas fa-bag-shopping"></i><h3>CART IS EMPTY</h3><p>Tap ORDER on any menu item to add.</p></div>`;
+                sm.style.display = "none";
+                return;
+            }
+            el.innerHTML = `<div class="cart-list">${cart.map(it => `
+                    <div class="cart-item">
+                        <img class="ci-img" src="${it.img}" onerror="this.src='https://placehold.co/100x100/fef0e6/f2622e?text=🔥'">
+                        <div class="ci-info">
+                            <div class="ci-name">${it.name}</div>
+                            <div class="ci-unit">${fmt(it.price)} each</div>
+                            <div class="qty-row">
+                                <button class="qty-btn" onclick="updateQty(${it.id},-1)">−</button>
+                                <span class="qty-num">${it.qty}</span>
+                                <button class="qty-btn" onclick="updateQty(${it.id},1)">+</button>
+                            </div>
+                        </div>
+                        <div class="ci-price">${fmt(it.price*it.qty)}</div>
+                    </div>
+                `).join("")}</div>`;
+            const isD = OT === "Delivery";
+            document.getElementById("sSub").textContent = fmt(sub());
+            document.getElementById("dRow").style.display = isD ? "flex" : "none";
+            document.getElementById("sTotal").textContent = fmt(tot());
+            sm.style.display = "block";
+        }
+
+        // ─── ORDER TYPE ───
+        window.selOT = type => {
+            OT = type;
+            document.getElementById("od").classList.toggle("sel", type === "Delivery");
+            document.getElementById("op").classList.toggle("sel", type === "Pickup");
+            document.getElementById("addrWrap").classList.toggle("hf", type !== "Delivery");
+            renderCart();
+            updPreview();
+        };
+
+        // ─── PREVIEW & SEND ───
+        function genMsg() {
+            if (!cart.length) return "🔥 Patogrills: Cart is empty.";
+            const lines = cart.map(i => `• ${i.qty} x ${i.name} — ${fmt(i.qty*i.price)}`).join("\n");
+            const nm = document.getElementById("name").value.trim() || "—";
+            const ph = document.getElementById("phone").value.trim() || "—";
+            const ad = OT === "Delivery" ? (document.getElementById("address").value.trim() || "—") : null;
+            const nt = document.getElementById("notes").value.trim() || "—";
+            const dl = OT === "Delivery" ? `\n🚚 Delivery fee: ${fmt(FEE)}` : "";
+            return `🍢 *PATO GRILLS ORDER* 🍢\n\n${lines}${dl}\n\n────────────────\n📦 *Total:* ${fmt(tot())}\n\n📌 *Order type:* ${OT}\n👤 *Name:* ${nm}\n📞 *Phone:* ${ph}${ad !== null ? `\n📍 *Address:* ${ad}` : ""}\n📝 *Notes:* ${nt}\n\n🔥 *Enjoy the Thrills Of The Grills — Good Food No Dey Rush*`;
+        }
+
+        function updPreview() {
+            document.getElementById("preview").textContent = genMsg();
+            const lk = document.getElementById("sendLink");
+            if (!cart.length) { lk.href = "#"; return; }
+            lk.href = `https://wa.me/${PH}?text=${encodeURIComponent(genMsg())}`;
+        }
+
+        document.getElementById("sendLink").addEventListener("click", e => {
+            if (!cart.length) { e.preventDefault();
+                toast("🍽️ Add items first!"); return; }
+            if (OT === "Delivery" && !document.getElementById("address").value.trim()) {
+                e.preventDefault();
+                toast("📍 Enter delivery address");
+            }
+        });
+
+        ["name", "phone", "address", "notes"].forEach(id => {
+            const el = document.getElementById(id);
+            if (el) el.addEventListener("input", updPreview);
+        });
+
+        // ─── INIT ───
+        buildMenu();
+        renderCart();
+        initOB();
+        selOT("Delivery");
+        updPreview();
+        setupScrollSpy();
+
+        // ─── fix nav badge on load ───
+        setTimeout(updBadge, 100);
+    </script>
 </body>
 </html>
